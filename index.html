@@ -78,6 +78,31 @@ details ol{padding-left:22px;margin:0 0 12px;display:grid;gap:6px}
 .empty{color:var(--ink-soft);font-weight:700}
 @keyframes chipIn{from{transform:scale(.6);opacity:0}}
 .lobby-cat{width:110px}
+select{font:700 18px var(--body);color:var(--ink);width:100%;padding:12px 40px 12px 16px;border:3px solid var(--ink);border-radius:16px;background:#fffdfb url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%234a3428' stroke-width='2.5'/%3E%3C/svg%3E") no-repeat right 16px center;appearance:none;-webkit-appearance:none}
+.btn.sm{font-size:15px;padding:9px 15px 7px;box-shadow:0 3px 0 var(--ink)}
+.btn.armed,.cx.armed{background:#ffe3e0;color:#9b2d25;border-color:#9b2d25}
+.class-list{display:grid;gap:10px}
+.class-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border:2px dashed var(--line);border-radius:18px;padding:12px 14px}
+.class-row b{font:800 20px var(--display)}
+.class-row .actions{gap:8px}
+.editor{display:grid;gap:14px;border-top:3px dashed var(--line);padding-top:18px}
+.editor h3{font-size:24px}
+.roster{display:flex;flex-wrap:wrap;gap:8px}
+.rchip{display:inline-flex;align-items:center;border:2px solid var(--ink);border-radius:999px;background:#fff;padding:2px 2px 2px 10px;max-width:100%}
+.rchip input{border:0;padding:4px 2px;font-size:16px;width:auto;min-width:3ch;max-width:24ch;background:transparent;border-radius:8px}
+.rchip input:focus{background:#fff6ef}
+.rx,.cx{border:0;background:none;cursor:pointer;font:800 13px/1 var(--body);color:var(--ink-soft);min-width:28px;height:28px;border-radius:999px;flex:none}
+.rx:hover,.cx:hover{background:#ffe3e0;color:#9b2d25}
+.cx.armed{padding:0 10px;border:0}
+.chip.wait{background:#f4efec;color:var(--ink-soft);border-style:dashed;font-weight:700}
+.chip.done{display:inline-flex;align-items:center;gap:2px;padding-right:3px}
+.chip.extra{background:#fff6e6}
+.rmsg{font-weight:800;color:var(--ink-soft)}
+.ok-msg{font-weight:800;color:#2f8a55;min-height:1.5em}
+.lock-note{background:#f1edff;border:2px dashed var(--ghost);border-radius:14px;padding:10px 14px;font-weight:700}
+details.sub{border-top:3px dashed var(--line);padding-top:12px}
+details.sub summary{font:800 19px var(--display);cursor:pointer}
+.new-round{background:#eaf7ef;border-color:var(--mint);font-weight:800}
 
 /* ---------- Student ---------- */
 .student{max-width:520px}
@@ -285,9 +310,13 @@ function makeBackend(db) {
       local: true,
       async getRoom(c) { return LS.get(key(c), null); },
       async setRoom(c, d) { LS.set(key(c), d); },
-      async patchRoom(c, p) { const r = LS.get(key(c), null) || {}; Object.assign(r, p); LS.set(key(c), r); },
+      async patchRoom(c, p) { const r = LS.get(key(c), null) || {}; Object.entries(p).forEach(([k, v]) => { if (v === null) delete r[k]; else r[k] = v; }); LS.set(key(c), r); },
       async putEntry(c, id, e) { const r = LS.get(key(c), null); if (!r) throw new Error('notfound'); r.entries = r.entries || {}; r.entries[id] = e; LS.set(key(c), r); },
       async patchEntry(c, id, p) { const r = LS.get(key(c), null); if (!r || !r.entries || !r.entries[id]) return; Object.assign(r.entries[id], p); LS.set(key(c), r); },
+      async deleteEntry(c, id) { const r = LS.get(key(c), null); if (r && r.entries) { delete r.entries[id]; LS.set(key(c), r); } },
+      async getClasses() { return LS.get('localclasses', {}); },
+      async putClass(id, d) { const all = LS.get('localclasses', {}); all[id] = d; LS.set('localclasses', all); },
+      async delClass(id) { const all = LS.get('localclasses', {}); delete all[id]; LS.set('localclasses', all); },
       async ping() { return true; }
     };
   }
@@ -304,6 +333,10 @@ function makeBackend(db) {
     patchRoom: (c, p) => req(`rooms/${c}`, 'PATCH', p),
     putEntry: (c, id, e) => req(`rooms/${c}/entries/${id}`, 'PUT', e),
     patchEntry: (c, id, p) => req(`rooms/${c}/entries/${id}`, 'PATCH', p),
+    deleteEntry: (c, id) => req(`rooms/${c}/entries/${id}`, 'DELETE'),
+    getClasses: () => req('classes'),
+    putClass: (id, d) => req(`classes/${id}`, 'PUT', d),
+    delClass: id => req(`classes/${id}`, 'DELETE'),
     ping: () => req('rooms/__ping')
   };
 }
@@ -311,7 +344,7 @@ function roomCode() { const A = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; let s = ''; f
 
 /* ================= time parsing ================= */
 const pad = n => String(n).padStart(2, '0');
-function mkTime(h, mi) { return { h, mi, min: h * 60 + mi, label: `${((h + 11) % 12) + 1}:${pad(mi)} ${h < 12 ? 'AM' : 'PM'}`, key: ((h * 60 + mi) - 300 + 1440) % 1440 }; }
+function mkTime(h, mi) { return { h, mi, min: h * 60 + mi, label: `${((h + 11) % 12) + 1}:${pad(mi)} ${h < 12 ? 'AM' : 'PM'}`, key: h * 60 + mi }; } // sort 0:00 → 23:59
 function parseTime(text) {
   const t = String(text).toLowerCase();
   if (/\bmidnight\b/.test(t)) return mkTime(0, 0);
@@ -454,7 +487,7 @@ function checkGrammar(text) {
 function errText(g, cat) {
   const q = s => `<b>“${esc(s)}”</b>`;
   const W = g.wrong ? g.wrong.raw : '';
-  const tail = ' nên rất nhiều sinh vật lạ xuất hiện!';
+  const tail = ' nên rất nhiều hiện tượng kỳ bí xảy ra!';
   switch (g.kind) {
     case '3sg-base': return { msg: `${q(g.subj)} là ngôi số ít mà bạn lại chia số nhiều ${q(W)},${tail}`, hint: 'He / she / it / tên 1 người → động từ thêm -s hoặc -es.', ans: `${W} → ${g.fix}` };
     case 'non3-s': return { msg: `${q(g.subj)} không phải ngôi số ít mà bạn lại thêm -s/-es vào ${q(W)},${tail}`, hint: 'I / you / we / they → động từ giữ nguyên, không thêm -s/-es.', ans: `${W} → ${g.fix}` };
@@ -463,7 +496,7 @@ function errText(g, cat) {
     case 'aux-s': return { msg: `Sau ${q(g.aux)} động từ phải để nguyên mẫu, mà bạn lại viết ${q(W)},${tail}`, hint: `${esc(g.aux)} + động từ nguyên mẫu (không thêm -s/-es).`, ans: `${W} → ${g.fix}` };
     case 'be-base': return { msg: `Câu có cả ${q(g.be)} lẫn động từ ${q(W)},${tail}`, hint: `Hiện tại đơn: bỏ “${esc(g.be)}” đi. Hoặc dùng ${esc(g.be)} + ${esc(g.ing)}.`, ans: `${g.be} ${W} → ${g.fix}` };
     case 'ing': return { msg: `Có ${q(W)} mà thiếu ${q(g.be)},${tail}`, hint: `Hiện tại đơn: ${esc(g.subj)} + ${esc(g.fix)}. Hoặc: ${esc(g.subj)} ${esc(g.be)} ${esc(W)}.`, ans: `${W} → ${g.fix}` };
-    case 'nosubj': return { msg: `Câu thiếu chủ ngữ nên rất nhiều sinh vật lạ lạc vào nhà ${esc(cat)}!`, hint: `Thêm I / he / she trước ${q(W)}.`, ans: `→ I ${W} …` };
+    case 'nosubj': return { msg: `Câu thiếu chủ ngữ nên rất nhiều hiện tượng kỳ bí xảy ra trong nhà ${esc(cat)}!`, hint: `Thêm I / he / she trước ${q(W)}.`, ans: `→ I ${W} …` };
   }
   return { msg: 'Có lỗi ngữ pháp' + tail, hint: '', ans: '' };
 }
@@ -1001,15 +1034,87 @@ const RULES = `{
   "rules": {
     "rooms": {
       "$room": { ".read": true, ".write": true }
-    }
+    },
+    "classes": { ".read": true, ".write": true }
   }
 }`;
 
+/* ================= classes & rosters ================= */
+const nkey = s => String(s || '').normalize('NFC').trim().toLowerCase().replace(/\s+/g, ' ');
+const toArr = v => Array.isArray(v) ? v.filter(Boolean) : (v ? Object.values(v).filter(Boolean) : []);
+function parseNames(text) {
+  const out = [], seen = new Set();
+  String(text || '').split(/[,;\n\r]+/).forEach(s => {
+    const n = s.trim().replace(/\s+/g, ' ').slice(0, 30), k = nkey(n);
+    if (n && !seen.has(k)) { seen.add(k); out.push(n); }
+  });
+  return out;
+}
+function mergeNames(list, add) {
+  const seen = new Set(list.map(nkey)), out = [...list];
+  add.forEach(n => { const k = nkey(n); if (!seen.has(k)) { seen.add(k); out.push(n); } });
+  return out;
+}
+const newClassId = () => 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+// Two-click confirm (the page can't use confirm()): first click arms the button, second click within 3 s runs it.
+function twoStep(btn, armedLabel, action) {
+  const orig = btn.innerHTML;
+  btn.onclick = async e => {
+    e.preventDefault(); e.stopPropagation();
+    if (btn.dataset.armed) {
+      clearTimeout(btn._t); delete btn.dataset.armed; btn.disabled = true;
+      try { await action(); } finally { btn.disabled = false; btn.innerHTML = orig; btn.classList.remove('armed'); }
+      return;
+    }
+    btn.dataset.armed = '1'; btn.classList.add('armed'); btn.innerHTML = armedLabel;
+    btn._t = setTimeout(() => { delete btn.dataset.armed; btn.classList.remove('armed'); btn.innerHTML = orig; }, 3000);
+  };
+}
+function rosterEditor(el, initial, onChange, idp) {
+  let names = [...initial];
+  const render = (msg = '') => {
+    el.innerHTML = `<div class="form">
+      <label for="${idp}Add">Thêm học viên <span class="note">(cách nhau bằng dấu phẩy hoặc xuống dòng)</span>
+        <textarea id="${idp}Add" rows="3" placeholder="Minh, An, Lan&#10;Huy&#10;Vy"></textarea></label>
+      <div class="actions"><button type="button" class="btn sm" id="${idp}AddBtn">Thêm vào danh sách</button><span class="rmsg" aria-live="polite">${esc(msg)}</span></div>
+      <p class="note">${names.length} học viên. Bấm vào tên để sửa, bấm ✕ để xoá.</p>
+      <div class="roster">${names.length ? names.map((n, i) => `<span class="rchip"><input data-i="${i}" value="${esc(n)}" size="${Math.max(3, n.length + 1)}" maxlength="30" aria-label="Sửa tên ${esc(n)}"><button type="button" class="rx" data-i="${i}" aria-label="Xoá ${esc(n)}">✕</button></span>`).join('') : '<span class="empty">Chưa có học viên nào.</span>'}</div>
+    </div>`;
+    $(`#${idp}AddBtn`, el).onclick = () => {
+      const raw = $(`#${idp}Add`, el).value;
+      const add = parseNames(raw);
+      if (!add.length) { render('Chưa có tên nào để thêm.'); return; }
+      const typed = raw.split(/[,;\n\r]+/).filter(s => s.trim()).length;
+      const before = names.length; names = mergeNames(names, add);
+      const added = names.length - before, dup = typed - added;
+      onChange(names);
+      render(`Đã thêm ${added} bạn${dup ? `, bỏ qua ${dup} tên trùng` : ''}.`);
+    };
+    el.querySelectorAll('.rx').forEach(b => { b.onclick = () => { names.splice(+b.dataset.i, 1); onChange(names); render(); }; });
+    el.querySelectorAll('.rchip input').forEach(inp => {
+      inp.oninput = () => { inp.size = Math.max(3, inp.value.length + 1); };
+      inp.onchange = () => {
+        const i = +inp.dataset.i, v = inp.value.trim().replace(/\s+/g, ' ');
+        if (!v) { names.splice(i, 1); onChange(names); render(); return; }
+        if (names.some((n, j) => j !== i && nkey(n) === nkey(v))) { render(`“${v}” đã có trong danh sách.`); return; }
+        if (v !== names[i]) { names[i] = v; onChange(names); }
+      };
+      inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } };
+    });
+  };
+  render();
+  return { get: () => names };
+}
+function resetRound(be, code, round) {
+  return be.patchRoom(code, { entries: null, status: 'open', round: (round || 1) + 1 });
+}
+
 /* ================= TEACHER: home ================= */
+let CLASSES = [];
 function teacherHome() {
   stopPolling();
   const saved = LS.get('teacherRoom', null);
-  const db = LS.get('dbUrl', CONFIG.DB_URL || '');
+  const db = LS.get('dbUrl', normDb(CONFIG.DB_URL) || '');
   const catName = LS.get('catName', 'Chó');
   app.innerHTML = `
   <main class="page">
@@ -1018,19 +1123,20 @@ function teacherHome() {
       <div>
         <p class="eyebrow">Present simple · Daily routine</p>
         <h1>Một ngày của <span>${esc(catName)}</span></h1>
-        <p class="lead">Mỗi bạn viết 1 câu về việc mình làm vào 1 mốc giờ. Không ai thấy câu của ai. Giáo viên bấm <b>Tổng hợp</b> để cả lớp xem một ngày “hỗn loạn” của chú mèo. Câu nào sai ngữ pháp thì ma kéo đến!</p>
+        <p class="lead">Mỗi bạn viết 1 thói quen hoặc lịch trình bất kỳ trong ngày, câu có hoạt động + mốc thời gian. Không ai thấy câu của ai. Giáo viên bấm <b>Tổng hợp</b> để cả lớp xem một ngày “hỗn loạn” của chú mèo. Câu nào sai ngữ pháp thì hiện tượng kỳ bí sẽ xảy ra!</p>
       </div>
     </section>
     <form class="card form" id="createForm">
       <h2>Tạo phòng chơi</h2>
-      <div class="grid2">
-        <label for="className">Tên lớp<input id="className" maxlength="40" placeholder="VD: Starter K12" value="${esc(LS.get('className', ''))}"></label>
-        <label for="catName">Tên chú mèo<input id="catName" maxlength="20" value="${esc(catName)}"></label>
-      </div>
       <label for="dbUrl">Firebase Database URL
         <input id="dbUrl" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://ten-du-an-default-rtdb.asia-southeast1.firebasedatabase.app" value="${esc(db === 'local' ? '' : db)}">
       </label>
       <p class="note">Để trống thì app chạy thử trên máy này (mở thêm 1 tab để giả làm học viên). Học viên thật cần Firebase, xem hướng dẫn bên dưới.</p>
+      <div class="grid2">
+        <label for="classSel">Lớp<select id="classSel"><option value="">Không chọn lớp</option></select></label>
+        <label for="catName">Tên chú mèo<input id="catName" maxlength="20" value="${esc(catName)}"></label>
+      </div>
+      <label for="className" id="classNameWrap">Tên lớp (không bắt buộc)<input id="className" maxlength="40" placeholder="VD: Starter K12" value="${esc(LS.get('className', ''))}"></label>
       <p class="err" id="homeErr" hidden></p>
       <div class="actions">
         <button class="btn primary" type="submit" id="createBtn">Tạo phòng</button>
@@ -1038,49 +1144,133 @@ function teacherHome() {
         <button class="btn ghosty" type="button" id="demoBtn">Xem thử với câu mẫu</button>
       </div>
     </form>
+    <section class="card form" id="classCard">
+      <div class="subs-head"><h2>Lớp học</h2><button class="btn sm" type="button" id="newClassBtn">+ Tạo lớp mới</button></div>
+      <p class="note">Lưu danh sách học viên của từng lớp. Khi chơi, phòng chờ hiện rõ bạn nào đã nộp, bạn nào chưa.</p>
+      <p class="err" id="classErr" hidden></p>
+      <div class="class-list" id="classList"><p class="empty">Đang tải…</p></div>
+      <div class="editor" id="classEditor" hidden></div>
+    </section>
     <details class="card">
       <summary>Cách lấy Firebase URL (làm 1 lần, khoảng 10 phút)</summary>
       <ol>
         <li>Vào <b>console.firebase.google.com</b>, đăng nhập Gmail, bấm <b>Create a project</b>. Đặt tên bất kỳ, tắt Google Analytics.</li>
         <li>Menu trái: <b>Build → Realtime Database → Create Database</b>. Chọn <b>Singapore (asia-southeast1)</b>, chọn <b>Start in locked mode</b>, bấm Enable.</li>
-        <li>Mở tab <b>Rules</b>, xoá hết, dán đoạn dưới rồi bấm <b>Publish</b>.</li>
+        <li>Mở tab <b>Rules</b>, xoá hết, dán đoạn dưới rồi bấm <b>Publish</b>. Nếu trước đây bạn đã dán Rules cũ, hãy dán lại đoạn mới này để lưu được danh sách lớp.</li>
         <li>Mở tab <b>Data</b>, chép đường link trên cùng (dạng <code>https://…firebasedatabase.app</code>) và dán vào ô Firebase Database URL ở trên.</li>
       </ol>
       <div class="copyrow"><pre id="rulesText">${esc(RULES)}</pre><button class="btn" type="button" id="copyRules">Chép Rules</button></div>
-      <p class="note" style="margin-top:10px">Ai có link phòng đều đọc và ghi được phòng đó. App chỉ lưu tên và câu của học viên, không lưu thông tin nào khác.</p>
+      <p class="note" style="margin-top:10px">Ai có link Firebase đều đọc và ghi được dữ liệu của app. App chỉ lưu tên lớp, tên học viên và câu các em viết.</p>
     </details>
     <details class="card">
-      <summary>Đưa app lên mạng để học viên vào bằng điện thoại</summary>
+      <summary>Đưa app lên mạng (GitHub Pages)</summary>
       <ol>
-        <li>Tạo 1 thư mục mới và đặt file <code>index.html</code> này vào.</li>
-        <li>Vào <b>app.netlify.com/drop</b> (nên đăng nhập bằng Gmail để link được giữ lâu dài).</li>
-        <li>Kéo thả cả thư mục vào trang đó. Netlify cho bạn 1 link dạng <code>https://ten-gi-do.netlify.app</code>.</li>
-        <li>Mở link đó trên máy chiếu, dán Firebase URL, bấm <b>Tạo phòng</b>. Học viên quét mã QR là vào được, không cần đăng nhập.</li>
+        <li>Trên <b>github.com</b>: bấm <b>+ → New repository</b>, đặt tên (VD <code>meo-cho</code>), chọn <b>Public</b>, tick <b>Add a README file</b>, bấm <b>Create repository</b>.</li>
+        <li>Bấm <b>Add file → Upload files</b>, kéo file <code>index.html</code> vào, bấm <b>Commit changes</b>.</li>
+        <li>Vào <b>Settings → Pages</b>: Source chọn <b>Deploy from a branch</b>, Branch chọn <b>main</b> và <b>/ (root)</b>, bấm <b>Save</b>.</li>
+        <li>Đợi 1–2 phút, link dạng <code>https://ten-tai-khoan.github.io/meo-cho/</code> sẽ hiện ở đầu trang Pages. Mở link đó trên máy chiếu để chơi.</li>
       </ol>
     </details>
   </main>`;
+  const currentDb = () => { const raw = $('#dbUrl').value.trim(); return raw ? normDb(raw) : 'local'; };
+  const syncClassField = () => { $('#classNameWrap').hidden = !!$('#classSel').value; };
+  const sel = $('#classSel');
+  sel.onchange = () => { LS.set('classSel', sel.value); syncClassField(); };
+  $('#dbUrl').onchange = () => { const d = currentDb(); if (d) LS.set('dbUrl', d === 'local' ? '' : d); loadClasses(); };
+
+  async function loadClasses() {
+    const d = currentDb(), err = $('#classErr'); err.hidden = true;
+    if (!d) { CLASSES = []; renderClasses(); $('#classList').innerHTML = '<p class="empty">Nhập đúng Firebase URL để xem các lớp.</p>'; return; }
+    try {
+      const obj = (await makeBackend(d).getClasses()) || {};
+      CLASSES = Object.entries(obj).map(([id, c]) => ({ id, name: (c && c.name) || 'Lớp chưa đặt tên', students: toArr(c && c.students) }))
+        .sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+    } catch (e) {
+      CLASSES = [];
+      err.innerHTML = e.message === 'denied'
+        ? 'Firebase chưa cho lưu lớp. Mở mục <b>Cách lấy Firebase URL</b> bên dưới, dán lại Rules mới ở bước 3, bấm Publish rồi tải lại trang.'
+        : 'Không tải được danh sách lớp. Kiểm tra link Firebase và mạng.';
+      err.hidden = false;
+    }
+    renderClasses();
+  }
+  function renderClasses() {
+    const want = sel.value || LS.get('classSel', '');
+    sel.innerHTML = `<option value="">Không chọn lớp</option>` + CLASSES.map(c => `<option value="${esc(c.id)}">${esc(c.name)} (${c.students.length} HV)</option>`).join('');
+    sel.value = CLASSES.some(c => c.id === want) ? want : '';
+    syncClassField();
+    const list = $('#classList');
+    list.innerHTML = CLASSES.length
+      ? CLASSES.map(c => `<div class="class-row" data-id="${esc(c.id)}"><div><b>${esc(c.name)}</b> <span class="note">${c.students.length} học viên</span></div><div class="actions"><button type="button" class="btn sm primary" data-act="play">Chơi lớp này</button><button type="button" class="btn sm" data-act="edit">Sửa</button><button type="button" class="btn sm ghosty" data-act="del">Xoá</button></div></div>`).join('')
+      : '<p class="empty">Chưa có lớp nào. Bấm “+ Tạo lớp mới”.</p>';
+    list.querySelectorAll('.class-row').forEach(row => {
+      const c = CLASSES.find(x => x.id === row.dataset.id);
+      row.querySelector('[data-act=play]').onclick = () => { sel.value = c.id; LS.set('classSel', c.id); syncClassField(); $('#createForm').scrollIntoView({ behavior: 'smooth' }); $('#createBtn').focus({ preventScroll: true }); };
+      row.querySelector('[data-act=edit]').onclick = () => openEditor(c);
+      twoStep(row.querySelector('[data-act=del]'), 'Bấm lần nữa để xoá', async () => {
+        try { await makeBackend(currentDb()).delClass(c.id); } catch (e) {}
+        await loadClasses();
+      });
+    });
+  }
+  function openEditor(c) {
+    const ed = $('#classEditor'), id = c ? c.id : newClassId();
+    ed.hidden = false;
+    ed.innerHTML = `<h3>${c ? 'Sửa lớp' : 'Lớp mới'}</h3>
+      <label for="ceName">Tên lớp<input id="ceName" maxlength="40" placeholder="VD: Starter K12" value="${esc(c ? c.name : '')}"></label>
+      <div id="ceRoster"></div>
+      <p class="err" id="ceErr" hidden></p>
+      <div class="actions"><button type="button" class="btn primary" id="ceSave">Lưu lớp</button><button type="button" class="btn ghosty" id="ceCancel">Huỷ</button></div>`;
+    const re = rosterEditor($('#ceRoster'), c ? c.students : [], () => {}, 'ce');
+    $('#ceCancel').onclick = () => { ed.hidden = true; ed.innerHTML = ''; };
+    $('#ceSave').onclick = async () => {
+      const err = $('#ceErr'); err.hidden = true;
+      const name = $('#ceName').value.trim();
+      const students = mergeNames(re.get(), parseNames($('#ceAdd').value)); // include names still in the box
+      if (!name) { err.textContent = 'Hãy đặt tên lớp.'; err.hidden = false; $('#ceName').focus(); return; }
+      const d = currentDb();
+      if (!d) { err.textContent = 'Firebase URL chưa đúng.'; err.hidden = false; return; }
+      $('#ceSave').disabled = true;
+      try {
+        await makeBackend(d).putClass(id, { name, students, updatedAt: Date.now() });
+        LS.set('classSel', id); sel.value = id;
+        ed.hidden = true; ed.innerHTML = '';
+        await loadClasses();
+      } catch (e) {
+        err.textContent = e.message === 'denied' ? 'Firebase chưa cho lưu lớp: hãy dán Rules mới (bước 3 trong hướng dẫn bên dưới).' : 'Lưu chưa được, thử lại nhé.';
+        err.hidden = false; $('#ceSave').disabled = false;
+      }
+    };
+    ed.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    $('#ceName').focus({ preventScroll: true });
+  }
+  $('#newClassBtn').onclick = () => openEditor(null);
+  loadClasses();
+
   $('#copyRules').onclick = e => copyText(RULES, e.currentTarget);
   $('#catName').oninput = e => { const h = $('.hero h1 span'); if (h) h.textContent = e.target.value || 'Chó'; };
   $('#demoBtn').onclick = () => {
     const cat = $('#catName').value.trim() || 'Chó';
     LS.set('catName', cat);
-    startReveal(SAMPLE.map((s, i) => ({ id: 'demo' + i, name: s[0], sentence: s[1] })), { cat, className: $('#className').value.trim() || 'Demo', demo: true });
+    const cls = CLASSES.find(c => c.id === sel.value);
+    startReveal(SAMPLE.map((s, i) => ({ id: 'demo' + i, name: s[0], sentence: s[1] })), { cat, className: cls ? cls.name : ($('#className').value.trim() || 'Demo'), demo: true });
   };
   if ($('#resumeBtn')) $('#resumeBtn').onclick = () => lobby(saved.code, saved.db);
   $('#createForm').onsubmit = async e => {
     e.preventDefault();
     const err = $('#homeErr'); err.hidden = true;
-    const raw = $('#dbUrl').value.trim();
-    const dbu = raw ? normDb(raw) : 'local';
+    const dbu = currentDb();
     if (!dbu) { err.textContent = 'Link Firebase chưa đúng. Link phải bắt đầu bằng https://'; err.hidden = false; return; }
-    const cat = $('#catName').value.trim() || 'Chó', className = $('#className').value.trim();
-    LS.set('catName', cat); LS.set('className', className); LS.set('dbUrl', dbu === 'local' ? '' : dbu);
+    const cat = $('#catName').value.trim() || 'Chó';
+    const cls = CLASSES.find(c => c.id === sel.value);
+    const className = cls ? cls.name : $('#className').value.trim();
+    LS.set('catName', cat); if (!cls) LS.set('className', className); LS.set('dbUrl', dbu === 'local' ? '' : dbu);
     const be = makeBackend(dbu);
     const btn = $('#createBtn'); btn.disabled = true; btn.textContent = 'Đang tạo…';
     try {
       await be.ping();
       const code = roomCode();
-      await be.setRoom(code, { className, catName: cat, status: 'open', createdAt: Date.now() });
+      await be.setRoom(code, { className, catName: cat, status: 'open', round: 1, createdAt: Date.now(), classId: cls ? cls.id : '', roster: cls ? cls.students : [] });
       LS.set('teacherRoom', { code, db: dbu });
       lobby(code, dbu);
     } catch (ex) {
@@ -1094,6 +1284,7 @@ function teacherHome() {
 
 /* ================= TEACHER: lobby ================= */
 async function lobby(code, db) {
+  stopPolling();
   const be = makeBackend(db);
   const base = location.origin + location.pathname;
   const link = `${base}?room=${code}${db !== normDb(CONFIG.DB_URL) ? `&db=${encodeURIComponent(db)}` : ''}`;
@@ -1109,20 +1300,26 @@ async function lobby(code, db) {
         <div class="code-big">${code}</div>
         <div class="qr" id="qr"></div>
         <p style="font-weight:800">Quét mã QR hoặc mở link, nhập tên và câu của bạn.</p>
+        <div class="tip"><b>Hướng dẫn chơi:</b> Viết 1 thói quen hoặc lịch trình bất kỳ trong ngày. Câu có <b>hoạt động + mốc thời gian</b>.<br>Ví dụ: <i>I go to school at 2am.</i></div>
         <div class="linkbox"><code>${esc(link)}</code><button class="btn" id="copyLink" type="button">Chép link</button></div>
-        ${location.protocol === 'file:' ? `<p class="err">Bạn đang mở file trực tiếp trên máy nên điện thoại học viên không mở được link này. Hãy đưa app lên Netlify (xem hướng dẫn ở trang chính).</p>` : ''}
-        ${/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) ? `<p class="err">Link đang là “localhost”. Điện thoại quét QR sẽ không mở được vì “localhost” chỉ có nghĩa là chính máy này. Hãy mở app bằng link Netlify (hoặc địa chỉ IP của máy trong cùng Wi-Fi) rồi tạo phòng lại.</p>` : ''}
+        ${location.protocol === 'file:' ? `<p class="err">Bạn đang mở file trực tiếp trên máy nên điện thoại học viên không mở được link này. Hãy đưa app lên GitHub Pages (xem hướng dẫn ở trang chính).</p>` : ''}
+        ${/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) ? `<p class="err">Link đang là “localhost”. Điện thoại quét QR sẽ không mở được vì “localhost” chỉ có nghĩa là chính máy này. Hãy mở app bằng link GitHub Pages (hoặc địa chỉ IP của máy trong cùng Wi-Fi) rồi tạo phòng lại.</p>` : ''}
         ${db === 'local' ? `<p class="note"><b>Chế độ chạy thử:</b> chỉ dùng được trong trình duyệt này. Mở link trên ở tab mới để giả làm học viên.</p>` : ''}
       </section>
       <section class="card" style="display:grid;gap:12px">
         <div class="subs-head"><h2>Đã nộp</h2><span class="count" id="count">0</span></div>
-        <p class="note">Chỉ hiện tên. Câu được giữ bí mật tới lúc tổng hợp. Học viên được sửa câu cho tới khi bạn bấm Tổng hợp.</p>
+        <p class="note">Chỉ hiện tên, câu được giữ bí mật tới lúc tổng hợp. Bấm ✕ cạnh tên để xoá câu của bạn đó.</p>
+        <p class="lock-note" id="lockNote" hidden>Lượt này đã tổng hợp nên phòng đang khoá. Bấm <b>Reset lượt chơi</b> để chơi lượt mới với cùng mã QR.</p>
         <div class="chips" id="chips"><span class="empty">Chưa có ai nộp…</span></div>
         <p class="err" id="lbErr" hidden></p>
-        <div class="actions" style="margin-top:6px">
-          <button class="btn primary big" id="goBtn" disabled style="width:auto;flex:1">Tổng hợp</button>
+        <button class="btn primary big" id="goBtn" disabled>Tổng hợp</button>
+        <div class="actions">
+          <button class="btn sm" id="resetBtn" type="button">Reset lượt chơi</button>
+          <button class="linkbtn" id="reopenBtn" type="button" hidden>Mở lại phòng cho học viên sửa</button>
+          <button class="linkbtn" id="homeBtn" type="button">Về trang chính</button>
         </div>
-        <div class="actions"><button class="linkbtn" id="reopenBtn" hidden>Mở lại phòng cho học viên sửa</button><button class="linkbtn" id="homeBtn">Về trang chính</button></div>
+        <p class="ok-msg" id="lbMsg" aria-live="polite"></p>
+        <details class="sub" id="rosterBox"><summary>Điều chỉnh học viên (<span id="rosterN">0</span>)</summary><div id="lbRoster" style="margin-top:12px"></div><p class="note" style="margin-top:10px" id="rosterNote"></p></details>
       </section>
     </div>
   </main>`;
@@ -1130,27 +1327,63 @@ async function lobby(code, db) {
   else $('#qr').hidden = true;
   $('#copyLink').onclick = e => copyText(link, e.currentTarget);
   $('#homeBtn').onclick = () => teacherHome();
-  let room = null, shown = '';
+  let room = null, shown = '', rosterInit = false;
+  const flash = m => { const el = $('#lbMsg'); if (!el) return; el.textContent = m; clearTimeout(el._t); el._t = setTimeout(() => { el.textContent = ''; }, 4000); };
+  const renderChips = () => {
+    const ents = Object.entries(room.entries || {}).map(([id, e]) => Object.assign({ id }, e)).sort((a, b) => (a.ts || 0) - (b.ts || 0));
+    const roster = toArr(room.roster);
+    $('#goBtn').disabled = !ents.length;
+    $('#count').textContent = roster.length ? `${ents.length}/${roster.length}` : ents.length;
+    $('#rosterN').textContent = roster.length;
+    const key = JSON.stringify([ents.map(e => e.id + '|' + e.name), roster]);
+    if (key === shown) return;
+    shown = key;
+    const chip = (e, extra) => `<span class="chip done${extra ? ' extra' : ''}"${extra ? ' title="Tên này không có trong danh sách lớp"' : ''}>✓ ${esc(e.name || 'Ẩn danh')}<button type="button" class="cx" data-id="${esc(e.id)}" aria-label="Xoá câu của ${esc(e.name || 'Ẩn danh')}">✕</button></span>`;
+    const pool = [...ents]; let html = '';
+    roster.forEach(n => {
+      const k = pool.findIndex(e => nkey(e.name) === nkey(n));
+      html += k > -1 ? chip(pool.splice(k, 1)[0], false) : `<span class="chip wait">${esc(n)}</span>`;
+    });
+    pool.forEach(e => { html += chip(e, roster.length > 0); });
+    $('#chips').innerHTML = html || '<span class="empty">Chưa có ai nộp…</span>';
+    $('#chips').querySelectorAll('.cx').forEach(b => twoStep(b, 'Xoá?', async () => {
+      try { await be.deleteEntry(code, b.dataset.id); flash('Đã xoá câu. Bạn đó có thể gửi lại.'); } catch (e) { flash('Xoá chưa được, thử lại nhé.'); }
+      await refresh();
+    }));
+  };
+  const saveRoster = async names => {
+    try {
+      await be.patchRoom(code, { roster: names });
+      if (room && room.classId) await be.putClass(room.classId, { name: room.className || 'Lớp', students: names, updatedAt: Date.now() });
+      flash(room && room.classId ? 'Đã lưu danh sách vào lớp.' : 'Đã lưu danh sách cho phòng này.');
+    } catch (e) { flash('Lưu danh sách chưa được. Kiểm tra Rules Firebase.'); }
+    await refresh();
+  };
   const refresh = async () => {
     try {
-      room = await be.getRoom(code);
+      const r = await be.getRoom(code);
       $('#lbErr').hidden = true;
-      if (!room) { $('#lbErr').textContent = 'Phòng này không còn. Hãy tạo phòng mới.'; $('#lbErr').hidden = false; return; }
+      if (!r) { $('#lbErr').textContent = 'Phòng này không còn. Hãy tạo phòng mới.'; $('#lbErr').hidden = false; return; }
+      room = r;
       $('#lbCat').textContent = room.catName || 'Chó';
-      $('#lbClass').textContent = room.className ? `Lớp ${room.className}` : '';
-      const ents = Object.values(room.entries || {}).sort((a, b) => (a.ts || 0) - (b.ts || 0));
-      $('#count').textContent = ents.length;
-      const key = ents.map(e => e.name).join('|');
-      if (key !== shown) {
-        shown = key;
-        $('#chips').innerHTML = ents.length ? ents.map(e => `<span class="chip">${esc(e.name || 'Ẩn danh')}</span>`).join('') : '<span class="empty">Chưa có ai nộp…</span>';
-      }
-      $('#goBtn').disabled = !ents.length;
+      $('#lbClass').textContent = room.className ? `Lớp ${room.className}${(room.round || 1) > 1 ? ` · Lượt ${room.round}` : ''}` : ((room.round || 1) > 1 ? `Lượt ${room.round}` : '');
+      $('#lockNote').hidden = room.status !== 'locked';
       $('#reopenBtn').hidden = room.status !== 'locked';
+      renderChips();
+      if (!rosterInit) {
+        rosterInit = true;
+        rosterEditor($('#lbRoster'), toArr(room.roster), saveRoster, 'lb');
+        $('#rosterNote').textContent = room.classId ? 'Thay đổi ở đây được lưu luôn vào lớp.' : 'Phòng này chưa gắn với lớp nào; danh sách chỉ dùng cho phòng này.';
+      }
     } catch (e) { $('#lbErr').textContent = 'Mất kết nối, đang thử lại…'; $('#lbErr').hidden = false; }
   };
   startPolling(refresh, 2000);
   $('#reopenBtn').onclick = async () => { await be.patchRoom(code, { status: 'open' }); refresh(); };
+  twoStep($('#resetBtn'), 'Bấm lần nữa: xoá hết câu', async () => {
+    try { await resetRound(be, code, room && room.round); flash('Đã mở lượt mới. Điện thoại học viên tự quay về ô nhập câu.'); }
+    catch (e) { flash('Reset chưa được, thử lại nhé.'); }
+    shown = ''; await refresh();
+  });
   $('#goBtn').onclick = async () => {
     Sound.init();
     const btn = $('#goBtn'); btn.disabled = true; btn.textContent = 'Đang tổng hợp…';
@@ -1159,7 +1392,7 @@ async function lobby(code, db) {
       const r = await be.getRoom(code);
       const items = Object.entries(r.entries || {}).map(([id, e]) => ({ id, name: e.name, sentence: e.sentence, fixed: e.fixed || null }));
       stopPolling();
-      startReveal(items, { cat: r.catName || 'Chó', className: r.className || '', code, db });
+      startReveal(items, { cat: r.catName || 'Chó', className: r.className || '', code, db, round: r.round || 1 });
     } catch (e) { btn.disabled = false; btn.textContent = 'Tổng hợp'; $('#lbErr').textContent = 'Không lấy được dữ liệu, thử lại nhé.'; $('#lbErr').hidden = false; }
   };
 }
@@ -1317,7 +1550,7 @@ function showFix(it, text, g) {
   const m = errText(g, R.meta.cat);
   const layer = $('#fixLayer');
   layer.innerHTML = `<div class="fixcard" role="dialog" aria-labelledby="fixT">
-    <h3 id="fixT">Ối! Sinh vật lạ xuất hiện!</h3>
+    <h3 id="fixT">Ối! Hiện tượng kỳ bí xảy ra!</h3>
     <p class="fix-msg" id="fixMsg">${m.msg}</p>
     <label for="fixInput">Cả lớp cùng sửa lại câu này:</label>
     <input id="fixInput" autocomplete="off" spellcheck="false" value="${esc(text)}">
@@ -1354,7 +1587,7 @@ function showFix(it, text, g) {
     const nt = parseTime(val); if (nt) it.time = nt;
     if (R.meta.code && R.meta.db) { try { makeBackend(R.meta.db).patchEntry(R.meta.code, it.id, { fixed: val }).catch(() => {}); } catch (e) {} }
     card.classList.add('win');
-    card.innerHTML = `<h3>Chính xác! 🎉</h3><p class="fix-msg">Sinh vật lạ bỏ chạy hết rồi. ${esc(R.meta.cat)} được yên rồi!</p>`;
+    card.innerHTML = `<h3>Chính xác! 🎉</h3><p class="fix-msg">Hiện tượng kỳ bí đã biến mất. ${esc(R.meta.cat)} được yên rồi!</p>`;
     banish(true);
   };
   $('#checkBtn').onclick = check;
@@ -1380,12 +1613,17 @@ function endView() {
     <div class="actions">
       <button class="btn" id="replayBtn">Xem lại từ đầu</button>
       <button class="btn" id="copyAll">Chép cả bài</button>
+      ${R.meta.demo ? '' : '<button class="btn pink" id="newRoundBtn">Chơi lượt mới</button>'}
       <button class="btn primary" id="doneBtn">${R.meta.demo ? 'Về trang chính' : 'Về phòng chờ'}</button>
     </div>
   </div></div>`;
   $('#replayBtn').onclick = () => { $('#modal').innerHTML = ''; showSlide(0); };
   $('#copyAll').onclick = e => copyText(lines, e.currentTarget);
   $('#doneBtn').onclick = exitReveal;
+  if ($('#newRoundBtn')) twoStep($('#newRoundBtn'), 'Bấm lần nữa: xoá câu, mở lượt mới', async () => {
+    try { await resetRound(makeBackend(R.meta.db), R.meta.code, R.meta.round); } catch (e) {}
+    exitReveal();
+  });
 }
 
 /* ================= STUDENT ================= */
@@ -1393,21 +1631,41 @@ async function studentView(code, db) {
   const head = cat => `<header class="st-head">${miniCat()}<div><p class="eyebrow">Phòng ${esc(code)}</p><h1>Một ngày của ${esc(cat)}</h1></div></header>`;
   if (!db) { app.innerHTML = `<main class="page student">${head('Chó')}<p class="err">Link thiếu thông tin kết nối. Hãy quét lại mã QR trên màn hình.</p></main>`; return; }
   const be = makeBackend(db);
+  const newId = () => 's' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-3);
   let myId = LS.get('sid_' + code, null);
-  if (!myId) { myId = 's' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-3); LS.set('sid_' + code, myId); }
+  if (!myId) { myId = newId(); LS.set('sid_' + code, myId); }
   app.innerHTML = `<main class="page student"><p class="note">Đang vào phòng…</p></main>`;
   let room;
   try { room = await be.getRoom(code); }
   catch (e) { app.innerHTML = `<main class="page student">${head('Chó')}<p class="err">Không kết nối được. Kiểm tra mạng rồi tải lại trang.</p><button class="btn" onclick="location.reload()">Tải lại</button></main>`; return; }
   if (!room) { app.innerHTML = `<main class="page student">${head('Chó')}<p class="err">Không tìm thấy phòng ${esc(code)}. Hãy quét lại mã QR trên màn hình.</p></main>`; return; }
   const catName = room.catName || 'Chó';
-  const mine = (room.entries || {})[myId];
+  let state = '', seenRound = room.round || 1;
 
+  // Follows the teacher: lock → "watch the screen", reset or removed sentence → back to the form.
+  const watch = async () => {
+    try {
+      const r = await be.getRoom(code);
+      if (!r) return;
+      const round = r.round || 1, newRound = round !== seenRound; seenRound = round;
+      const mineNow = (r.entries || {})[myId];
+      if (r.status === 'locked') { if (state !== 'locked') lockedView(); return; }
+      if (mineNow) { if (state !== 'done') doneView(mineNow); return; }
+      if (state !== 'form') {
+        const wasLocked = state === 'locked';
+        LS.del('mine_' + code);
+        formView(null, false, newRound || wasLocked ? 'Lượt chơi mới! Viết một câu mới nhé.' : 'Câu trước của bạn đã được xoá. Viết lại nhé.');
+      }
+    } catch (e) {}
+  };
   const lockedView = () => {
-    stopPolling();
-    app.innerHTML = `<main class="page student">${head(catName)}<section class="card done"><div class="big-check">👀</div><h2>Cả lớp đang xem!</h2><p>Giáo viên đã bấm Tổng hợp. Nhìn lên màn hình nhé!</p>${LS.get('mine_' + code, null) ? `<div class="mysentence">${esc(LS.get('mine_' + code).sentence)}</div>` : ''}</section></main>`;
+    state = 'locked';
+    const mine = LS.get('mine_' + code, null);
+    app.innerHTML = `<main class="page student">${head(catName)}<section class="card done"><div class="big-check">👀</div><h2>Cả lớp đang xem!</h2><p>Giáo viên đã bấm Tổng hợp. Nhìn lên màn hình nhé!</p>${mine ? `<div class="mysentence">${esc(mine.sentence)}</div>` : ''}<p class="note">Khi giáo viên mở lượt mới, trang này tự chuyển sang ô nhập câu.</p></section></main>`;
+    startPolling(watch, 4000);
   };
   const doneView = entry => {
+    state = 'done';
     app.innerHTML = `<main class="page student">${head(catName)}<section class="card done">
       <div class="big-check">✓</div><h2>Đã gửi!</h2>
       <div class="mysentence">${esc(entry.sentence)}</div>
@@ -1418,22 +1676,22 @@ async function studentView(code, db) {
       </div>
       <p class="note">Dùng chung máy? Bấm <b>Bạn khác gửi câu</b> để bạn tiếp theo viết câu riêng. Câu của bạn trước vẫn được giữ.</p>
     </section></main>`;
-    $('#editBtn').onclick = () => { stopPolling(); formView(entry); };
+    $('#editBtn').onclick = () => formView(entry);
     $('#nextStBtn').onclick = () => {
-      stopPolling();
-      myId = 's' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-3);
-      LS.set('sid_' + code, myId); LS.del('mine_' + code);
+      myId = newId(); LS.set('sid_' + code, myId); LS.del('mine_' + code);
       formView(null, true);
     };
-    startPolling(async () => { try { const r = await be.getRoom(code); if (r && r.status === 'locked') lockedView(); } catch (e) {} }, 4000);
+    startPolling(watch, 4000);
   };
-  const formView = (prev, fresh = false) => {
+  const formView = (prev, fresh = false, banner = '') => {
+    state = 'form'; stopPolling();
     const name = fresh ? '' : ((prev && prev.name) || LS.get('stName', ''));
     app.innerHTML = `<main class="page student">${head(catName)}
       <form class="card form" id="stForm">
+        ${banner ? `<p class="tip new-round">${esc(banner)}</p>` : ''}
         <label for="stName">Tên của bạn<input id="stName" maxlength="24" autocomplete="off" value="${esc(name)}" placeholder="VD: Minh"></label>
-        <label for="stText">Câu của bạn<textarea id="stText" maxlength="160" placeholder="At 6 a.m., I get up and brush my teeth.">${esc(prev ? prev.sentence : '')}</textarea></label>
-        <div class="tip"><b>Cách viết:</b> At + giờ, I / He / She + làm gì.<br>VD: At 7 a.m., I go to school. · At 9 p.m., she watches TV.</div>
+        <label for="stText">Câu của bạn<textarea id="stText" maxlength="160" placeholder="I go to school at 2am.">${esc(prev ? prev.sentence : '')}</textarea></label>
+        <div class="tip"><b>Hướng dẫn:</b> Viết 1 thói quen hoặc lịch trình bất kỳ trong ngày. Câu có <b>hoạt động + mốc thời gian</b>.<br>Ví dụ: <i>I go to school at 2am.</i></div>
         <p class="err" id="stErr" hidden></p>
         <button class="btn primary big" type="submit" id="stBtn">Gửi câu</button>
       </form></main>`;
@@ -1443,13 +1701,14 @@ async function studentView(code, db) {
       const nm = $('#stName').value.trim(), tx = $('#stText').value.trim().replace(/\s+/g, ' ');
       const fail = m => { err.textContent = m; err.hidden = false; };
       if (!nm) return fail('Bạn quên ghi tên rồi.');
-      if (tx.split(' ').length < 3) return fail('Viết một câu đầy đủ nhé, ví dụ: At 7 a.m., I go to school.');
-      if (!parseTime(tx)) return fail('Bạn quên ghi giờ rồi! Bắt đầu câu bằng At + giờ, ví dụ: At 7 a.m., …');
+      if (tx.split(' ').length < 3) return fail('Viết một câu đầy đủ nhé, ví dụ: I go to school at 2am.');
+      if (!parseTime(tx)) return fail('Câu cần có mốc thời gian nhé! Ví dụ: I go to school at 2am.');
       const btn = $('#stBtn'); btn.disabled = true; btn.textContent = 'Đang gửi…';
       try {
         const r = await be.getRoom(code);
         if (!r) return fail('Phòng không còn nữa.');
         if (r.status === 'locked') return lockedView();
+        seenRound = r.round || 1;
         const entry = { name: nm, sentence: tx, ts: (prev && prev.ts) || Date.now() };
         await be.putEntry(code, myId, entry);
         LS.set('stName', nm); LS.set('mine_' + code, entry);
@@ -1457,6 +1716,7 @@ async function studentView(code, db) {
       } catch (ex) { fail('Gửi chưa được. Kiểm tra mạng rồi thử lại.'); btn.disabled = false; btn.textContent = 'Gửi câu'; }
     };
   };
+  const mine = (room.entries || {})[myId];
   if (room.status === 'locked') lockedView();
   else if (mine) doneView(mine);
   else formView(null);
