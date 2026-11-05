@@ -418,13 +418,14 @@ function predicate(text) {
   r = r.replace(/^(i|you|we|they|he|she|it)\s+/i, '');
   return r.replace(/[.!?]+$/, '');
 }
-function checkGrammar(text) {
+function checkAgreement(text) {
   const toks = tokenize(text).filter(t => t.i >= clauseStart(text));
   if (!toks.length) return { error: false };
   const t0 = toks[0];
   let subj = null, type = null, k = 0;
   const isCap = t => /^[A-Z]/.test(t.raw);
   if (PRON[t0.w]) { subj = t0; type = PRON[t0.w]; k = 1; }
+  else if (SUBJ_FIX[t0.w]) { subj = t0; type = PRON[SUBJ_FIX[t0.w].toLowerCase()]; k = 1; } // "Me go…": reported separately
   else if (isCap(t0) && !BASE.has(t0.w) && !baseOfS(t0.w) && !['at', 'in', 'on', 'every', 'my', 'our', 'the', 'a', 'then', 'after', 'before'].includes(t0.w)) {
     if (toks[1] && toks[1].w === 'and') return { error: false };
     subj = t0; type = '3'; k = 1;
@@ -433,7 +434,7 @@ function checkGrammar(text) {
   else if (BASE.has(t0.w) || baseOfS(t0.w)) return { error: true, kind: 'nosubj', wrong: t0, subj: '' };
   else return { error: false };
 
-  const S = subj.raw, sw = subj.w;
+  const S = subj.raw, sw = SUBJ_FIX[subj.w] ? SUBJ_FIX[subj.w].toLowerCase() : subj.w;
   const E = (kind, d) => Object.assign({ error: true, kind, subj: S }, d);
   const skip = j => { while (j < toks.length && ADV.has(toks[j].w)) j++; return j; };
   const j = skip(k), v = toks[j];
@@ -466,6 +467,11 @@ function checkGrammar(text) {
     if (n && BASE.has(n.w) && n.w !== 'like') return E('be-base', { wrong: n, be: v.raw, fix: type === '3' ? sForm(n.w) : n.w, ing: ingForm(n.w) });
     return { error: false };
   }
+  // daily routine → present simple, not past
+  const pb = IRR[w] || (w.endsWith('ied') && BASE.has(w.slice(0, -3) + 'y') ? w.slice(0, -3) + 'y'
+    : w.endsWith('ed') ? (BASE.has(w.slice(0, -2)) ? w.slice(0, -2) : BASE.has(w.slice(0, -1)) ? w.slice(0, -1) : (w.length > 5 && w.at(-3) === w.at(-4) && BASE.has(w.slice(0, -3))) ? w.slice(0, -3) : null) : null);
+  if (pb && pb !== 'read') return E('past', { wrong: v, fix: type === '3' ? sForm(pb) : pb });
+  if (w === 'was' || w === 'were') return E('past', { wrong: v, fix: beFor });
   // main verb agreement
   if (type === '3') {
     if (BASE.has(w)) return E('3sg-base', { wrong: v, fix: sForm(w) });
@@ -485,6 +491,91 @@ function checkGrammar(text) {
   }
   return { error: false };
 }
+/* ---- more checks: nouns, articles, time prepositions, common verb patterns ---- */
+const DETS = new Set('a an the my your his her its our their this that these those every each another no any which what whose'.split(' '));
+const NUMS = new Set('one two three four five six seven eight nine ten many several few some lots both'.split(' '));
+const PREPS = new Set('at in on to with by for from of about into onto under near after before during without'.split(' '));
+const PLACE_COUNT = new Set('park zoo supermarket market beach cinema library mall gym pool restaurant cafe bakery museum store river lake mountain'.split(' '));
+const COUNTABLE = new Set([...PLACE_COUNT, ...'game book comic movie film cartoon song picture photo video apple banana orange egg sandwich hamburger burger cookie letter email story toy doll ball card kite bike bicycle car friend dog cat bird pet flower shirt dress hat bag pen pencil puzzle lesson newspaper magazine novel poem phone computer laptop noodle dumpling'.split(' ')]);
+const VERBISH = new Set('dress email film phone book bike picture text'.split(' '));
+const UNCOUNT = new Set('homework music advice information furniture rice bread money'.split(' '));
+const MEALS = new Set(['breakfast', 'lunch', 'dinner']);
+const SPORTS = new Set('football soccer badminton tennis basketball volleyball chess baseball'.split(' '));
+const YU = /^(uni|use|usu|ukulele|euro|one|once)/;
+const SILENT_H = /^(hour|honest|honou?r|heir)/;
+function plural(n) {
+  const irr = { child: 'children', man: 'men', woman: 'women', foot: 'feet', tooth: 'teeth', mouse: 'mice', person: 'people', fish: 'fish' };
+  if (irr[n]) return irr[n];
+  if (/(photo|video|piano|radio|zoo|kilo|logo|cafe)$/.test(n)) return n + 's';
+  if (/(s|x|z|ch|sh|o)$/.test(n)) return n + 'es';
+  if (/[^aeiou]y$/.test(n)) return n.slice(0, -1) + 'ies';
+  return n + 's';
+}
+const PLURALS = new Map([...COUNTABLE].map(n => [plural(n), n]));
+const isVerbish = w => BASE.has(w) || !!baseOfS(w) || !!stemIng(w) || !!IRR[w] || ['am', 'is', 'are', 'was', 'were', 'do', 'does', 'did', "don't", "doesn't"].includes(w) || MODAL.has(w);
+const SUBJ_FIX = { me: 'I', him: 'He', her: 'She', us: 'We', them: 'They' };
+const TO_VERBS = /^(want|wants|wanted|need|needs|needed|try|tries|tried|hope|hopes|decide|decides|plan|plans|like|likes|love|loves|hate|hates|forget|forgets)$/;
+const NOT_AFTER_WANT = new Set('help rest sleep work drink snack nap dream call text plan love'.split(' '));
+function extraErrors(text) {
+  const out = [], toks = tokenize(text), L = toks.length;
+  const E = (kind, d) => out.push(Object.assign({ error: true, kind }, d));
+  const start = clauseStart(text);
+  const firstIdx = toks.findIndex(t => t.i >= start);
+  for (let k = 0; k < L; k++) {
+    const t = toks[k], w = t.w, prev = toks[k - 1], next = toks[k + 1];
+    if ((w === 'a' || w === 'an') && next) {
+      const nw = next.w;
+      if (PLURALS.has(nw)) E('a-plural', { wrong: next, art: t.raw });
+      else if (UNCOUNT.has(nw)) E('uncount-a', { wrong: t, noun: next.raw });
+      else if (MEALS.has(nw)) E('meal', { wrong: t, noun: next.raw });
+      else if (w === 'a' && /^[aeiou]/.test(nw) && !YU.test(nw)) E('a-an', { wrong: t, fix: 'an', next: next.raw });
+      else if (w === 'an' && (!/^[aeiou]/.test(nw) || YU.test(nw)) && !SILENT_H.test(nw)) E('a-an', { wrong: t, fix: 'a', next: next.raw });
+    }
+    if (/^(homeworks|musics|advices|informations|furnitures|rices|breads|moneys)$/.test(w)) E('uncount-s', { wrong: t, fix: w.slice(0, -1) });
+    if (w === 'the' && prev && /^play(s|ing|ed)?$/.test(prev.w) && next && SPORTS.has(next.w)) E('sport-the', { wrong: t, sport: next.raw });
+    if (MODAL.has(w) && next && next.w === 'to') E('modal-to', { wrong: next, modal: t.raw });
+    if (TO_VERBS.test(w) && next && STRONG.has(next.w) && !NOT_AFTER_WANT.has(next.w)) E('to-inf', { wrong: next, prev: t.raw });
+    if (k === firstIdx && SUBJ_FIX[w] && next && isVerbish(next.w)) E('pron-case', { wrong: t, fix: SUBJ_FIX[w] });
+    // countable noun standing alone: "play video game", "eat apple", "go to park", "two apple"
+    if (COUNTABLE.has(w)) {
+      if (next && (COUNTABLE.has(next.w) || PLURALS.has(next.w) || /^(class|classes|room|show|shows|call|calls|screen|store|ticket|tickets|cake|cakes|shop)$/.test(next.w))) continue;
+      if (prev && (PRON[prev.w] || prev.w === 'to' || prev.w === "don't" || prev.w === "doesn't" || MODAL.has(prev.w)) && VERBISH.has(w)) continue;
+      let b = k - 1;
+      while (b >= 0 && !DETS.has(toks[b].w) && !NUMS.has(toks[b].w) && !PREPS.has(toks[b].w) && !PRON[toks[b].w] && !/'s$/.test(toks[b].w) && !isVerbish(toks[b].w) && !['and', 'or', 'but', 'then'].includes(toks[b].w)) b--;
+      const stop = toks[b];
+      if (stop && (DETS.has(stop.w) || /'s$/.test(stop.w))) continue;
+      if (stop && stop.w === 'by' && /^(bike|bicycle|car|bus|train|plane|taxi|boat)$/.test(w)) continue;
+      if (stop && NUMS.has(stop.w)) { if (stop.w !== 'one') E('noun-num', { wrong: t, fix: plural(w), num: stop.raw }); continue; }
+      if (PLACE_COUNT.has(w)) { E('place-the', { wrong: t }); continue; }
+      const phrase = text.slice((toks[b + 1] || t).i, t.i + t.raw.length);
+      E('noun-bare', { wrong: t, phrase, phraseFix: phrase.slice(0, phrase.length - t.raw.length) + plural(w) });
+    }
+  }
+  const add = (kind, m, raw, extra = {}) => { const i = m.index + m[0].indexOf(raw); out.push(Object.assign({ error: true, kind, wrong: { raw, i } }, extra)); };
+  const each = (re, fn) => { re.lastIndex = 0; let m; while ((m = re.exec(text))) fn(m); };
+  each(/\b(in|on)\s+\d{1,2}(?:\s*[:.h]\s*\d{2})?\s*(?:a\.?\s?m\b\.?|p\.?\s?m\b\.?|o['’]?clock)?(?!\d)/gi, m => add('prep-at', m, m[1]));
+  each(/\b(at)\s+the\s+(?:morning|afternoon|evening)\b/gi, m => add('prep-in', m, m[1]));
+  each(/\b(in)\s+(?:the\s+)?night\b/gi, m => add('prep-night', m, m[1]));
+  each(/\b(at|in)\s+(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekends?)\b/gi, m => add('prep-day', m, m[1]));
+  each(/(?:^|[^A-Za-z'])([A-Za-z]+)\s+(\d{1,2}(?:\s*[:.]\s*\d{2})?\s*(?:a\.?\s?m\b\.?|p\.?\s?m\b\.?|o['’]?clock))/gi, m => {
+    if (!/^(at|around|about|until|till|from|to|before|after|by|past|since|between|and|or|in|on|every|than|is|are|am|it|its)$/i.test(m[1])) add('prep-missing', m, m[2]);
+  });
+  each(/\b(listen(?:s|ed|ing)?)\s+(?!to\b)(?:music|songs?|the|my|a|an|radio|podcasts?|k-?pop|him|her|them|me|his|their|our|your)\b/gi, m => add('listen-to', m, m[1], { fix: m[1] + ' to' }));
+  each(/\b(?:go|goes|going|went|come|comes|coming|came|get|gets|got)\s+(to)\s+home\b/gi, m => add('go-home', m, m[1]));
+  each(/\b(?:go|goes|going|went)\s+(to)\s+(shopping|swimming|fishing|camping|jogging|running|dancing|skiing|hiking|cycling)\b/gi, m => add('go-ing', m, m[1], { act: m[2] }));
+  each(/\bbrush(?:es|ed|ing)?\s+(?:my|his|her|your|our|their|its|the)\s+(tooth)\b/gi, m => add('tooth', m, m[1]));
+  return out;
+}
+// All mistakes in the sentence, first one first.
+function checkGrammar(text) {
+  const a = checkAgreement(text);
+  const all = (a.error ? [a] : []).concat(extraErrors(text));
+  if (!all.length) return { error: false };
+  const seen = new Set();
+  const list = all.filter(e => { const k = e.wrong ? e.wrong.i : -1; if (seen.has(k)) return false; seen.add(k); return true; })
+    .sort((x, y) => (x.wrong ? x.wrong.i : 0) - (y.wrong ? y.wrong.i : 0));
+  return Object.assign({}, list[0], { count: list.length, all: list });
+}
 function errText(g, cat) {
   const q = s => `<b>“${esc(s)}”</b>`;
   const W = g.wrong ? g.wrong.raw : '';
@@ -497,6 +588,29 @@ function errText(g, cat) {
     case 'aux-s': return { msg: `Sau ${q(g.aux)} động từ phải để nguyên mẫu, mà bạn lại viết ${q(W)},${tail}`, hint: `${esc(g.aux)} + động từ nguyên mẫu (không thêm -s/-es).`, ans: `${W} → ${g.fix}` };
     case 'be-base': return { msg: `Câu có cả ${q(g.be)} lẫn động từ ${q(W)},${tail}`, hint: `Hiện tại đơn: bỏ “${esc(g.be)}” đi. Hoặc dùng ${esc(g.be)} + ${esc(g.ing)}.`, ans: `${g.be} ${W} → ${g.fix}` };
     case 'ing': return { msg: `Có ${q(W)} mà thiếu ${q(g.be)},${tail}`, hint: `Hiện tại đơn: ${esc(g.subj)} + ${esc(g.fix)}. Hoặc: ${esc(g.subj)} ${esc(g.be)} ${esc(W)}.`, ans: `${W} → ${g.fix}` };
+    case 'noun-bare': return { msg: `${q(W)} là danh từ đếm được mà lại đứng một mình (không có a/an/the, không thêm -s),${tail}`, hint: 'Danh từ đếm được: thêm -s/-es, hoặc thêm a / an / the / my… phía trước.', ans: `${g.phrase} → ${g.phraseFix}` };
+    case 'place-the': return { msg: `Trước nơi chốn ${q(W)} còn thiếu “the”,${tail}`, hint: 'go to the park / the zoo / the supermarket / the beach…', ans: `${W} → the ${W}` };
+    case 'noun-num': return { msg: `Có ${q(g.num)} (nhiều) mà ${q(W)} chưa thêm -s,${tail}`, hint: `${esc(g.num)} + danh từ số nhiều.`, ans: `${W} → ${g.fix}` };
+    case 'a-plural': return { msg: `${q(g.art)} chỉ dùng cho 1 thứ, mà ${q(W)} là số nhiều,${tail}`, hint: 'a / an + danh từ số ít. Số nhiều thì bỏ a / an.', ans: `${g.art} ${W} → ${W}` };
+    case 'uncount-a': return { msg: `${q(g.noun)} không đếm được nên không đi với ${q(W)},${tail}`, hint: 'homework, music, bread, rice, money… không đi với a / an.', ans: `${W} ${g.noun} → ${g.noun}` };
+    case 'uncount-s': return { msg: `${q(g.fix)} không đếm được nên không thêm -s,${tail}`, hint: 'homework, music, bread, rice, money… không có số nhiều.', ans: `${W} → ${g.fix}` };
+    case 'meal': return { msg: `Trước bữa ăn ${q(g.noun)} không dùng ${q(W)},${tail}`, hint: 'have breakfast / have lunch / have dinner', ans: `${W} ${g.noun} → ${g.noun}` };
+    case 'a-an': return { msg: `Trước ${q(g.next)} phải dùng ${q(g.fix)},${tail}`, hint: 'an + từ bắt đầu bằng âm nguyên âm: an apple, an egg, an hour. Còn lại dùng a: a banana, a university.', ans: `${W} ${g.next} → ${g.fix} ${g.next}` };
+    case 'sport-the': return { msg: `Trước môn thể thao ${q(g.sport)} không dùng “the”,${tail}`, hint: 'play football / play badminton (không có the).', ans: `the ${g.sport} → ${g.sport}` };
+    case 'prep-at': return { msg: `Trước giờ phải dùng “at”, không dùng ${q(W)},${tail}`, hint: 'at + giờ: at 7 a.m., at 9 p.m.', ans: `${W} → at` };
+    case 'prep-in': return { msg: `Buổi trong ngày dùng “in the morning / afternoon / evening”, không dùng “at”,${tail}`, hint: 'in the morning, in the afternoon, in the evening, at night', ans: 'at the … → in the …' };
+    case 'prep-night': return { msg: `Ban đêm là “at night”, không dùng ${q(W)},${tail}`, hint: 'at night', ans: `${W} night → at night` };
+    case 'prep-day': return { msg: `Trước thứ trong tuần dùng “on”, không dùng ${q(W)},${tail}`, hint: 'on Monday, on Sunday, on weekends', ans: `${W} → on` };
+    case 'prep-missing': return { msg: `Trước giờ ${q(W)} còn thiếu “at”,${tail}`, hint: 'at + giờ: at 7 a.m., at 2:40 a.m.', ans: `${W} → at ${W}` };
+    case 'listen-to': return { msg: `${q(W)} phải đi với “to”,${tail}`, hint: 'listen to music / listen to songs', ans: `${W} → ${g.fix}` };
+    case 'go-home': return { msg: `“go home” không cần “to”,${tail}`, hint: 'go home, come home, get home', ans: 'go to home → go home' };
+    case 'go-ing': return { msg: `“go ${esc(g.act)}” không cần “to”,${tail}`, hint: 'go shopping, go swimming, go fishing…', ans: `go to ${g.act} → go ${g.act}` };
+    case 'tooth': return { msg: `Đánh răng là “brush my teeth” (răng số nhiều),${tail}`, hint: 'tooth = 1 cái răng, teeth = nhiều cái răng.', ans: 'tooth → teeth' };
+    case 'modal-to': return { msg: `Sau ${q(g.modal)} không dùng “to”,${tail}`, hint: `${esc(g.modal)} + động từ nguyên mẫu: can swim, will go.`, ans: `${g.modal} to → ${g.modal}` };
+    case 'to-inf': return { msg: `Sau ${q(g.prev)} cần thêm “to” trước động từ ${q(W)},${tail}`, hint: `${esc(g.prev)} + to + động từ: want to go, like to play.`, ans: `${g.prev} ${W} → ${g.prev} to ${W}` };
+    case 'pron-case': return { msg: `${q(W)} không làm chủ ngữ được, phải dùng ${q(g.fix)},${tail}`, hint: 'Chủ ngữ: I, you, he, she, it, we, they.', ans: `${W} → ${g.fix}` };
+    case 'past': return { msg: `Lịch trình hằng ngày dùng thì hiện tại đơn, không dùng ${q(W)} (quá khứ),${tail}`, hint: 'Thói quen hằng ngày → hiện tại đơn: I go, she goes.', ans: `${W} → ${g.fix}` };
+    case 'manual': return { msg: `Cô/thầy phát hiện câu này còn lỗi,${tail} Cả lớp cùng tìm lỗi và sửa nhé.`, hint: 'Kiểm tra: chủ ngữ – động từ (-s/-es), a / an / the, số nhiều (-s), giới từ (at / in / on), chính tả.', ans: '' };
     case 'nosubj': return { msg: `Câu thiếu chủ ngữ nên rất nhiều hiện tượng kỳ bí xảy ra trong nhà ${esc(cat)}!`, hint: `Thêm I / he / she trước ${q(W)}.`, ans: `→ I ${W} …` };
   }
   return { msg: 'Có lỗi ngữ pháp' + tail, hint: '', ans: '' };
@@ -1797,6 +1911,7 @@ function startReveal(raw, meta) {
       <div class="rv-title">Một ngày của <b>${esc(meta.cat)}</b> <span>${meta.className ? '· Lớp ' + esc(meta.className) : ''}</span></div>
       <div class="rv-progress" id="rvProg">0 / ${R.items.length}</div>
       <div class="rv-tools">
+        <button class="icon-btn" id="flagBtn" title="Câu này còn lỗi app chưa bắt được (phím G)" aria-label="Báo câu này còn lỗi">👻</button>
         <button class="icon-btn" id="muteBtn" title="Bật/tắt âm thanh" aria-label="Bật hoặc tắt âm thanh"></button>
         <button class="icon-btn" id="fsBtn" title="Toàn màn hình" aria-label="Toàn màn hình">⛶</button>
         <button class="icon-btn" id="exitBtn" title="Thoát" aria-label="Thoát">✕</button>
@@ -1823,6 +1938,7 @@ function startReveal(raw, meta) {
   $('#muteBtn').onclick = () => { Sound.init(); Sound.setMuted(!Sound.muted); setMuteIcon(); };
   $('#fsBtn').onclick = () => { try { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); } catch (e) {} setTimeout(fitStage, 300); };
   $('#exitBtn').onclick = exitReveal;
+  $('#flagBtn').onclick = flagMistake;
   $('#prevBtn').onclick = () => { if (R.i > 0) { Sound.pop(); showSlide(R.i - 1); } };
   $('#nextBtn').onclick = goNext;
   // intro
@@ -1854,6 +1970,7 @@ window.addEventListener('resize', fitStage);
 document.addEventListener('keydown', e => {
   if (!R.active || /INPUT|TEXTAREA/.test(e.target.tagName)) return;
   if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); const b = $('#nextBtn'); if (b && !b.disabled) goNext(); }
+  if (e.key === 'g' || e.key === 'G') { e.preventDefault(); flagMistake(); }
   if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); const b = $('#prevBtn'); if (b && !b.disabled) b.click(); }
 });
 function goNext() {
@@ -1866,7 +1983,12 @@ function clockSvg(h, mi) {
 }
 function renderCaption(it, text, g) {
   let html = esc(text);
-  if (g && g.wrong) { const a = g.wrong.i, b = a + g.wrong.raw.length; html = esc(text.slice(0, a)) + `<mark class="bad">${esc(text.slice(a, b))}</mark>` + esc(text.slice(b)); }
+  const marks = g ? (g.all || (g.wrong ? [g] : [])).filter(e => e.wrong) : [];
+  if (marks.length) {
+    html = ''; let pos = 0;
+    marks.forEach(e => { const a = e.wrong.i, b = a + e.wrong.raw.length; if (a < pos) return; html += esc(text.slice(pos, a)) + `<mark class="bad">${esc(text.slice(a, b))}</mark>`; pos = b; });
+    html += esc(text.slice(pos));
+  }
   const badge = it.fixed && !g ? ' <span class="fixed-badge">✓ đã sửa</span>' : '';
   $('#caption').innerHTML = `<div class="cap-time">${it.time ? it.time.label : '??:??'}</div><div class="cap-body"><p class="cap-sentence">${html}${badge}</p><p class="cap-author">— ${esc(it.name || 'Ẩn danh')}</p></div>`;
 }
@@ -1913,6 +2035,14 @@ function showSlide(i) {
   });
   if (g.error) R.timers.push(setTimeout(() => startHaunt(it, text, g), (acts.length - 1) * STEP + 1500));
 }
+// The teacher spots a mistake the app missed: same haunting, the class fixes it, the teacher judges.
+function flagMistake() {
+  if (!R.active || R.haunted || $('#modal').innerHTML || R.i == null || !R.items[R.i]) return;
+  const it = R.items[R.i], text = it.fixed || it.sentence;
+  clearTimers(); it.ok = false;
+  $('#nextBtn').disabled = true;
+  startHaunt(it, text, { error: true, kind: 'manual', wrong: null });
+}
 function startHaunt(it, text, g) {
   const st = $('#stage');
   R.haunted = true;
@@ -1928,7 +2058,7 @@ function showFix(it, text, g) {
   const layer = $('#fixLayer');
   layer.innerHTML = `<div class="fixcard" role="dialog" aria-labelledby="fixT">
     <h3 id="fixT">Ối! Hiện tượng kỳ bí xảy ra!</h3>
-    <p class="fix-msg" id="fixMsg">${m.msg}</p>
+    <p class="fix-msg" id="fixMsg">${g.count > 1 ? `Câu này có <b>${g.count} lỗi</b>. ` : ''}${m.msg}</p>
     <label for="fixInput">Cả lớp cùng sửa lại câu này:</label>
     <input id="fixInput" autocomplete="off" spellcheck="false" value="${esc(text)}">
     <p class="fix-hint" id="fixHint" hidden></p>
@@ -1944,19 +2074,20 @@ function showFix(it, text, g) {
   const shake = () => { card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake'); };
   $('#hintBtn').onclick = () => {
     const h = $('#fixHint'); hintStep++;
-    h.innerHTML = hintStep === 1 ? cur.hint : `${cur.hint}<br>Đáp án: <b>${esc(cur.ans)}</b>`;
+    h.innerHTML = hintStep === 1 || !cur.ans ? cur.hint : `${cur.hint}<br>Đáp án: <b>${esc(cur.ans)}</b>`;
     h.hidden = false;
-    if (hintStep >= 2) $('#hintBtn').disabled = true;
+    if (hintStep >= 2 || !cur.ans) $('#hintBtn').disabled = true;
   };
   $('#skipBtn').onclick = () => { it.ok = true; banish(); };
   const check = () => {
     const val = input.value.trim();
     if (!val) { shake(); return; }
+    if (g.kind === 'manual' && val === text) { shake(); $('#fixMsg').textContent = 'Câu chưa thay đổi. Cả lớp tìm lỗi rồi sửa nhé!'; return; }
     const g2 = checkGrammar(val);
     if (g2.error) {
       Sound.buzz(); shake();
       cur = errText(g2, R.meta.cat); hintStep = 0; $('#hintBtn').disabled = false; $('#fixHint').hidden = true;
-      $('#fixMsg').innerHTML = (val === (it.fixed || it.sentence) ? '' : 'Vẫn chưa đúng! ') + cur.msg;
+      $('#fixMsg').innerHTML = (val === (it.fixed || it.sentence) ? '' : 'Vẫn chưa đúng! ') + (g2.count > 1 ? `Còn <b>${g2.count} lỗi</b>. ` : '') + cur.msg;
       renderCaption(it, val, g2);
       return;
     }
