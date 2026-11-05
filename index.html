@@ -1267,8 +1267,130 @@ const Sound = {
     const id = setInterval(() => { o.frequency.exponentialRampToValueAtTime(rand(220, 520), c.currentTime + .8); }, 900);
     this.loops.push(() => { clearInterval(id); const t = c.currentTime; g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(Math.max(g.gain.value, .0002), t); g.gain.exponentialRampToValueAtTime(.0001, t + .35); o.stop(t + .4); lfo.stop(t + .4); });
   },
-  stopLoops() { this.loops.splice(0).forEach(f => { try { f(); } catch (e) {} }); }
+  stopLoops() { this.loops.splice(0).forEach(f => { try { f(); } catch (e) {} }); },
+
+  /* ---- activity sound effects (all synthesized, nothing downloaded) ---- */
+  every(ms, fn, times = Infinity, delay = 0) {
+    let n = 0, id = null;
+    const run = () => { if (!this.ok()) return; fn(this.ctx.currentTime, n++); if (n >= times) clearInterval(id); };
+    const t0 = setTimeout(() => { run(); if (n < times) id = setInterval(run, ms); }, delay);
+    this.loops.push(() => { clearTimeout(t0); clearInterval(id); });
+  },
+  later(ms, fn) { const id = setTimeout(() => { if (this.ok()) fn(this.ctx.currentTime); }, ms); this.loops.push(() => clearTimeout(id)); },
+  bed(type, freq, vol, q = 1) { // continuous filtered noise (water, sizzle, waves…)
+    const c = this.ctx, s = c.createBufferSource(); s.buffer = this.noiseBuf(); s.loop = true;
+    const f = c.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+    const g = c.createGain(); g.gain.setValueAtTime(0.0001, c.currentTime); g.gain.exponentialRampToValueAtTime(vol, c.currentTime + .4);
+    s.connect(f); f.connect(g); g.connect(this.master); s.start();
+    this.loops.push(() => { const t = c.currentTime; g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(Math.max(g.gain.value, .0002), t); g.gain.exponentialRampToValueAtTime(.0001, t + .25); s.stop(t + .3); });
+    return { f, g };
+  },
+  sweep(t, d, v, f1, f2, type = 'bandpass', q = 2) { // noise whose filter slides: slurp, swish, whoosh, page flip
+    const c = this.ctx, s = c.createBufferSource(); s.buffer = this.noiseBuf();
+    const f = c.createBiquadFilter(); f.type = type; f.Q.value = q; f.frequency.setValueAtTime(f1, t); f.frequency.exponentialRampToValueAtTime(f2, t + d);
+    const g = c.createGain(); this.env(g, t, d * .3, v, d * .7); s.connect(f); f.connect(g); g.connect(this.master); s.start(t); s.stop(t + d + .05);
+  },
+  step(t, v = .3) { this.tone(110, t, .08, 'sine', v, 55); this.noise(t, .05, v * .5, 500, 'lowpass'); },
+  chomp(t) { this.tone(170, t, .07, 'square', .07, 90); this.noise(t, .06, .2, 1400, 'bandpass'); },
+  ding(t, f = 1320, v = .16) { this.tone(f, t, .7, 'sine', v); this.tone(f * 2.01, t, .4, 'sine', v * .3); },
+  bell(t) { [784, 622, 784, 622].forEach((f, i) => this.ding(t + i * .45, f, .14)); },
+  whistle(t, d = .5) { const c = this.ctx, o = c.createOscillator(), l = c.createOscillator(), lg = c.createGain(), g = c.createGain(); o.frequency.value = 2300; l.frequency.value = 28; lg.gain.value = 90; l.connect(lg); lg.connect(o.frequency); this.env(g, t, .02, .07, d); o.connect(g); g.connect(this.master); o.start(t); l.start(t); o.stop(t + d + .05); l.stop(t + d + .05); },
+  kick(t) { this.tone(130, t, .16, 'sine', .7, 45); this.noise(t, .04, .3, 2000, 'bandpass'); },
+  cheer(t) { this.sweep(t, 1.8, .22, 700, 1400, 'bandpass', .6); this.sweep(t + .1, 1.6, .12, 2000, 2600, 'bandpass', .8); },
+  beep(t) { this.tone(2350, t, .09, 'square', .05); },
+  kaching(t) { this.noise(t, .05, .25, 3000, 'highpass'); this.tone(1568, t + .05, .5, 'triangle', .14); this.tone(2093, t + .12, .6, 'triangle', .14); },
+  click(t) { this.noise(t, .02, .22, 3500, 'highpass'); },
+  flip(t) { this.sweep(t, .3, .16, 900, 3500, 'bandpass', 1); },
+  slurp(t) { this.sweep(t, .45, .2, 400, 2200, 'bandpass', 6); },
+  swish(t) { this.sweep(t, .35, .14, 3000, 900, 'bandpass', 1.2); },
+  whoosh(t) { this.sweep(t, 1.1, .25, 200, 2600, 'bandpass', 1.5); },
+  plop(t) { this.tone(700, t, .14, 'sine', .25, 140); },
+  boing(t) { this.tone(180, t, .35, 'sine', .3, 520); },
+  coin(t) { this.tone(988, t, .08, 'square', .05); this.tone(1319, t + .08, .3, 'square', .05); },
+  blip(t) { this.tone([523, 587, 659, 784, 880, 1047][Math.floor(Math.random() * 6)], t, .07, 'square', .035); },
+  horn(t) { [0, .3].forEach(o => { this.tone(440, t + o, .2, 'square', .05); this.tone(554, t + o, .2, 'square', .05); }); },
+  bark(t) { [0, .28].forEach(o => { this.tone(620, t + o, .12, 'square', .07, 280); this.noise(t + o, .08, .15, 900, 'bandpass'); }); },
+  meow(t) { const c = this.ctx, o = c.createOscillator(), g = c.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(500, t); o.frequency.linearRampToValueAtTime(820, t + .25); o.frequency.linearRampToValueAtTime(450, t + .6); const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1600; this.env(g, t, .08, .06, .55); o.connect(f); f.connect(g); g.connect(this.master); o.start(t); o.stop(t + .7); },
+  tweet(t) { [0, .12, .24].forEach(o => this.tone(2800 + Math.random() * 900, t + o, .07, 'sine', .06, 3600)); },
+  cricket(t) { for (let i = 0; i < 4; i++) this.tone(4400, t + i * .045, .03, 'sine', .025); },
+  snore(t) { this.sweep(t, 1.4, .2, 220, 420, 'lowpass', 1); this.tone(70, t, 1.2, 'sawtooth', .025); this.sweep(t + 1.6, .9, .08, 1200, 500, 'bandpass', 1); },
+  crackle(t) { if (Math.random() < .6) this.noise(t, .015, .3 * Math.random(), 2500, 'highpass'); },
+  jingle(t) { [659, 784, 880, 784, 659, 523, 587, 659].forEach((f, i) => this.tone(f, t + i * .14, .13, 'triangle', .09)); },
+  fanfare(t) { [523, 659, 784, 1047].forEach((f, i) => { this.tone(f, t + i * .12, .4, 'sawtooth', .04); this.tone(f, t + i * .12, .4, 'triangle', .06); }); },
+  warble(t) { const c = this.ctx, o = c.createOscillator(), l = c.createOscillator(), lg = c.createGain(), g = c.createGain(); o.frequency.value = 700; l.frequency.value = 7; lg.gain.value = 260; l.connect(lg); lg.connect(o.frequency); this.env(g, t, .2, .05, 1.4); o.connect(g); g.connect(this.master); o.start(t); l.start(t); o.stop(t + 1.7); l.stop(t + 1.7); },
+  engine() { const c = this.ctx, o = c.createOscillator(), l = c.createOscillator(), lg = c.createGain(), f = c.createBiquadFilter(), g = c.createGain(); o.type = 'sawtooth'; o.frequency.value = 55; l.frequency.value = 9; lg.gain.value = 8; l.connect(lg); lg.connect(o.frequency); f.type = 'lowpass'; f.frequency.value = 320; g.gain.setValueAtTime(.0001, c.currentTime); g.gain.exponentialRampToValueAtTime(.09, c.currentTime + .4); o.connect(f); f.connect(g); g.connect(this.master); o.start(); l.start(); this.loops.push(() => { const t = c.currentTime; g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(Math.max(g.gain.value, .0002), t); g.gain.exponentialRampToValueAtTime(.0001, t + .25); o.stop(t + .3); l.stop(t + .3); }); },
+  waves() { const w = this.bed('lowpass', 500, .12, .7); this.every(2600, t => { w.g.gain.cancelScheduledValues(t); w.g.gain.setValueAtTime(.05, t); w.g.gain.linearRampToValueAtTime(.2, t + 1.1); w.g.gain.linearRampToValueAtTime(.05, t + 2.5); }); },
+  steps(n = 4, ms = 380, delay = 0) { this.every(ms, t => this.step(t), n, delay); }
 };
+// What each scene sounds like. Loops stop when the slide changes or the ghosts arrive.
+function sceneSound(act, c) {
+  const S = Sound; if (!S.ok()) return;
+  const night = skyOf(c.h).night;
+  const outdoors = ['school', 'walk', 'sport', 'exercise', 'travel'].includes(act) || (act === 'compose' && ['school', 'park', 'street', 'beach', 'zoo', 'gym', 'mountain', 'river', 'temple', 'hospital'].includes(c.place || PLACE_DEFAULT[c.vclass]));
+  if (outdoors && night) S.every(1100, t => S.cricket(t));
+  else if (outdoors) S.every(2600, t => S.tweet(t), Infinity, 700);
+  const friendHi = () => S.later(1400, t => S.ding(t, 1568, .12));
+  switch (act) {
+    case 'wakeup': S.alarm(); S.later(1500, t => S.boing(t)); S.steps(3, 300, 2200); break;
+    case 'brush': S.every(220, (t, n) => S.noise(t, .12, .16, n % 2 ? 2600 : 3400, 'bandpass')); S.bed('bandpass', 900, .03); break;
+    case 'shower': S.bed('bandpass', 1900, .1, .6); S.every(2400, t => S.tone(1300, t, .12, 'sine', .05, 1700), Infinity, 900); break;
+    case 'eat': S.every(420, t => S.chomp(t)); break;
+    case 'cook': S.bed('highpass', 5200, .05); S.every(90, t => S.crackle(t)); break;
+    case 'school': S.bell(S.ctx.currentTime); S.steps(4, 350); friendHi(); break;
+    case 'walk': S.steps(4, 350); friendHi(); break;
+    case 'work': S.every(110, t => { if (Math.random() < .7) S.click(t); }); break;
+    case 'study': S.every(1700, t => S.flip(t), Infinity, 300); S.every(160, t => { if (Math.random() < .5) S.noise(t, .05, .05, 6000, 'highpass'); }, 12, 1000); break;
+    case 'phone': case 'dance': case 'music': S.beat(); break;
+    case 'tv': S.every(2600, t => S.jingle(t)); break;
+    case 'game': S.every(150, t => { if (Math.random() < .6) S.blip(t); }); S.every(900, t => S.coin(t), Infinity, 400); break;
+    case 'sleep': S.every(3400, t => S.snore(t), Infinity, 300); S.every(1100, t => S.cricket(t)); break;
+    case 'sport': S.steps(3, 200); S.later(400, t => S.kick(t)); S.later(1900, t => S.whistle(t)); S.later(2000, t => S.cheer(t)); break;
+    case 'shop': S.every(550, t => S.beep(t), 3, 300); S.later(1600, t => S.kaching(t)); break;
+    case 'exercise': S.every(230, t => S.step(t, .22)); S.every(1800, t => S.whistle(t, .2), Infinity, 600); break;
+    case 'drink': S.later(300, t => S.slurp(t)); S.every(1700, t => S.slurp(t), Infinity, 1500); break;
+    case 'clean': S.every(600, t => S.swish(t)); break;
+    case 'travel': S.engine(); S.later(800, t => S.horn(t)); break;
+    case 'chat': S.every(800, t => S.ding(t, 1760, .1), 5, 600); break;
+    case 'compose': composeSound(c); break;
+  }
+}
+function composeSound(c) {
+  const S = Sound, P = c.place || PLACE_DEFAULT[c.vclass] || 'home';
+  if (P === 'beach') S.waves();
+  if (P === 'river' || P === 'pool') S.bed('bandpass', 1200, .05, .5);
+  if (P === 'space') S.every(2400, t => S.warble(t));
+  if (P === 'hospital') S.every(1000, t => S.tone(1000, t, .12, 'sine', .06), Infinity, 1500);
+  if (P === 'cinema') S.later(300, t => S.fanfare(t));
+  if (P === 'street') S.later(1800, t => S.horn(t));
+  switch (c.vclass) {
+    case 'move':
+      if (P === 'space') { S.whoosh(S.ctx.currentTime); S.later(1200, t => S.warble(t)); }
+      else if (c.vehicle) { S.engine(); S.later(900, t => S.horn(t)); }
+      else S.steps(4, 350);
+      if (c.comp) S.later(1800, t => S.ding(t, 1568, .12));
+      break;
+    case 'eat': S.every(420, t => S.chomp(t)); break;
+    case 'drink': S.later(300, t => S.slurp(t)); S.every(1700, t => S.slurp(t), Infinity, 1500); break;
+    case 'play': S.every(700, t => S.boing(t)); break;
+    case 'read': S.every(1700, t => S.flip(t), Infinity, 300); break;
+    case 'watch': S.every(2600, t => S.jingle(t), Infinity, P === 'cinema' ? 900 : 0); break;
+    case 'buy': S.every(550, t => S.beep(t), 3, 300); S.later(1600, t => S.kaching(t)); break;
+    case 'cook': S.bed('highpass', 5200, .05); S.every(90, t => S.crackle(t)); break;
+    case 'clean': S.every(600, t => S.swish(t)); break;
+    case 'sleep': S.every(3400, t => S.snore(t), Infinity, 300); break;
+    case 'music': S.beat(); break;
+    case 'care':
+      if (c.comp && /🐶/.test(c.comp.e)) S.every(2200, t => S.bark(t), Infinity, 500);
+      else if (c.comp && /🐱/.test(c.comp.e)) S.every(2400, t => S.meow(t), Infinity, 500);
+      else S.every(1500, t => S.ding(t, 1976, .1), Infinity, 400);
+      break;
+    case 'talk': S.every(1600, t => { S.tone(1400, t, .25, 'sine', .07); S.tone(1750, t + .3, .25, 'sine', .07); }, 3, 300); break;
+    case 'swim': S.later(200, t => S.plop(t)); S.every(900, t => S.sweep(t, .4, .12, 600, 1800, 'bandpass', 1), Infinity, 600); break;
+    case 'fish': S.every(2000, t => S.plop(t), Infinity, 800); break;
+    case 'camp': S.every(90, t => S.crackle(t)); S.every(1100, t => S.cricket(t)); break;
+    default: S.later(300, t => S.pop());
+  }
+}
 
 /* ================= shared bits ================= */
 const miniCat = (opts = {}) => `<svg viewBox="-130 -275 260 290" aria-hidden="true">${cat(Object.assign({ eyes: 'meh', mouth: 'chew', arms: 'up', prop: T(0, -64, taiyaki(), .9, ' rotate(-70)') }, opts))}</svg>`;
@@ -1762,8 +1884,7 @@ function drawScene(act, c0, last) {
   const gag = last && !c.err && !c.comp && !FRIEND_SCENES.has(act) && !NO_GAG.has(act) && c.gag ? gagSvg(c) : '';
   $('#sceneSvg').innerHTML = defs(c.h) + fn(c) + extra + gag;
   Sound.stopLoops();
-  if (['phone', 'dance', 'music'].includes(act)) Sound.beat();
-  if (act === 'wakeup') Sound.alarm();
+  try { sceneSound(act, c); } catch (e) {}
 }
 function unhauntNow() {
   const st = $('#stage'); if (!st) return;
