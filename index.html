@@ -175,6 +175,7 @@ mark.bad{background:none;color:#c62f24;text-decoration:underline wavy #c62f24;te
 
 /* ---------- SVG scene animation ---------- */
 svg text{font-family:var(--display);font-weight:800}
+svg text.emo{font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;font-weight:400}
 :where(svg g[class]){transform-box:fill-box;transform-origin:50% 100%}
 .a-bob{animation:bob 1.6s ease-in-out infinite}
 .a-waddle{animation:waddle .5s ease-in-out infinite}
@@ -517,7 +518,7 @@ const ACTS = [
   ['game', /\bgames?\b|\bgaming|minecraft|pubg|free fire|roblox|li[eê]n qu[aâ]n/],
   ['sleep', /\bsleep|\bslept|\bbed\b|\basleep|\bnaps?\b/],
   ['sport', /football|soccer|basketball|badminton|volleyball|tennis|\bsports?\b|\bswim|ping pong/],
-  ['shop', /\bshop|\bmarket|\bbuy|\bbuys|\bmall\b/],
+  ['shop', /\bshop|\bmarket|supermarket|grocery|\bstores?\b|minimart|\bbuy|\bbuys|\bmall\b/],
   ['music', /\bmusic|\bsing|\bsongs?\b|karaoke|guitar|piano|headphone/],
   ['drink', /coffee|\btea\b|milk tea|bubble tea|\bdrink|\bjuice|\bmilk\b|trà sữa/],
   ['clean', /\bclean|\bdishes|housework|laundry|\bsweep|\btidy|\bmop/],
@@ -645,7 +646,7 @@ function friendSvg(k) {
   return '';
 }
 function friendFig(f, x, y, s = 1, cls = 'a-appear', delay = 1.2, label = null) {
-  return `<g transform="translate(${x} ${y})">${A(cls, T(0, 0, A('a-bob', friendSvg(f.k)), s) + tag(0, 18, label || `${f.sp} tên ${f.name}`), D(delay))}</g>`;
+  return `<g transform="translate(${x} ${y})">${A(cls, T(0, 0, A('a-bob', friendArt(f)), s) + tag(0, 18, f.e ? f.name : (label || `${f.sp} tên ${f.name}`)), D(delay))}</g>`;
 }
 
 /* ---- props ---- */
@@ -755,9 +756,9 @@ SC.shower = c => `<rect width="1600" height="720" fill="url(#tiles)"/><rect y="7
   + T(1040, 690, A('a-bob', `<ellipse cx="0" cy="-20" rx="36" ry="24" fill="#ffd84d" ${SW3}/><circle cx="18" cy="-52" r="20" fill="#ffd84d" ${SW3}/><path d="M34,-52 l20,4 l-20,6z" fill="#ff9f43" ${SW3}/><circle cx="22" cy="-58" r="3.5" fill="${INK}"/>`));
 
 SC.eat = c => room(c, { wall: '#fff1dc', clockX: 300 })
-  + T(800, 730, cat({ eyes: 'happy', mouth: 'chew', arms: 'up', prop: T(0, -64, taiyaki(), .9, ' rotate(-14)') }), 1.15)
+  + T(800, 730, cat({ eyes: 'happy', mouth: 'chew', arms: 'up', prop: c.food ? heldEmo(c.food.e) : T(0, -64, taiyaki(), .9, ' rotate(-14)') }), 1.15)
   + T(800, 690, `<rect x="-470" y="0" width="940" height="44" rx="14" fill="#d39b6a" ${SW}/><rect x="-430" y="44" width="34" height="170" fill="#c08657" ${SW}/><rect x="396" y="44" width="34" height="170" fill="#c08657" ${SW}/>`)
-  + T(520, 684, `<ellipse rx="120" ry="24" fill="#fff" ${SW}/>` + T(0, -22, taiyaki(), .95))
+  + T(520, 684, `<ellipse rx="120" ry="24" fill="#fff" ${SW}/>` + (c.food ? emoText(c.food.e, 90, ' y="-40"') : T(0, -22, taiyaki(), .95)))
   + T(1080, 684, `<path d="M-74,-50 Q0,-40 74,-50 Q70,10 0,10 Q-70,10 -74,-50Z" fill="#7ec8e3" ${SW}/><path d="M-70,-50 Q-40,-90 0,-84 Q40,-92 70,-50Z" fill="#fff" ${SW3}/><path d="M40,-80 L90,-140 M54,-76 L104,-132" stroke="#c08657" stroke-width="8" stroke-linecap="round"/>`)
   + bigText(1180, 470, 'Nom nom!', 70, '#ffe14d', 'a-float')
   + [[700, 600, 0], [900, 610, .7], [760, 640, 1.3]].map(([x, y, d]) => T(x, y, A('a-rise', `<circle r="6" fill="#f4b04a"/>`, D(d)))).join('');
@@ -767,7 +768,7 @@ SC.cook = c => `<rect width="1600" height="720" fill="#fff4e4"/><rect width="160
   + `<rect x="-10" y="600" width="1620" height="320" fill="#e8c49c" ${SW}/><rect x="-10" y="586" width="1620" height="30" fill="#fff" ${SW}/>`
   + T(1000, 586, `<rect x="-190" y="0" width="380" height="30" rx="8" fill="#555" ${SW3}/>`)
   + T(1000, 588, A('a-flicker', `<path d="M-70,0 Q-60,-50 -40,-30 Q-30,-70 0,-40 Q30,-80 40,-30 Q60,-50 70,0Z" fill="#ff9f43"/><path d="M-36,0 Q-26,-30 0,-20 Q26,-36 36,0Z" fill="#ffe14d"/>`))
-  + T(1000, 560, `<path d="M-130,-20 Q-130,26 -90,30 L90,30 Q130,26 130,-20Z" fill="#555" ${SW}/><path d="M130,-6 L260,-30" stroke="${INK}" stroke-width="22" stroke-linecap="round"/><path d="M130,-6 L260,-30" stroke="#333" stroke-width="14" stroke-linecap="round"/><ellipse cx="0" cy="-22" rx="56" ry="20" fill="#fff" ${SW3}/><circle cx="6" cy="-24" r="16" fill="#ffc53d" ${SW3}/>`)
+  + T(1000, 560, `<path d="M-130,-20 Q-130,26 -90,30 L90,30 Q130,26 130,-20Z" fill="#555" ${SW}/><path d="M130,-6 L260,-30" stroke="${INK}" stroke-width="22" stroke-linecap="round"/><path d="M130,-6 L260,-30" stroke="#333" stroke-width="14" stroke-linecap="round"/>` + (c.food ? emoText(c.food.e, 80, ' y="-46"') : `<ellipse cx="0" cy="-22" rx="56" ry="20" fill="#fff" ${SW3}/><circle cx="6" cy="-24" r="16" fill="#ffc53d" ${SW3}/>`))
   + [[960, 500, 0], [1010, 490, .6], [1050, 506, 1.2]].map(([x, y, d]) => T(x, y, A('a-rise', `<circle r="22" fill="#fff" opacity=".85"/>`, D(d)))).join('')
   + T(640, 800, A('a-sway', cat({ hat: 'chef', arms: 'up', eyes: 'dot', mouth: 'open', anim: 'a-none', prop: P_.spatula })), 1.1)
   + (c.rnd < .5 ? T(1000, 540, A('a-flicker', `<path d="M-120,0 Q-110,-130 -60,-90 Q-50,-200 0,-130 Q40,-230 70,-110 Q120,-150 120,0Z" fill="#ff6a3d" opacity=".9"/><path d="M-60,0 Q-50,-80 0,-60 Q50,-110 60,0Z" fill="#ffe14d"/>`)) + bigText(1000, 300, 'Ối, cháy rồi!', 64, '#ff8a5b', 'a-blink') : bigText(1150, 330, 'Thơm quá!', 60, '#ffe14d', 'a-float'));
@@ -783,11 +784,11 @@ SC.school = c => outdoor(c)
   + T(1200, 700, `<rect x="-290" y="-390" width="580" height="390" fill="#ffd9a8" ${SW}/><path d="M-330,-390 L0,-530 L330,-390Z" fill="#e2726a" ${SW}/><circle cx="0" cy="-450" r="36" fill="#fff" ${SW3}/><path d="M0,-450 V-472 M0,-450 L14,-444" ${SW3}/><rect x="-160" y="-340" width="320" height="60" rx="14" fill="#fff" ${SW3}/><text x="0" y="-296" text-anchor="middle" font-size="46" fill="${INK}">SCHOOL</text>`
     + [-220, -110, 110, 220].map(x => `<rect x="${x - 40}" y="-250" width="80" height="80" rx="10" fill="#9fd6ff" ${SW3}/>`).join('')
     + `<rect x="-60" y="-140" width="120" height="140" rx="12" fill="#c08657" ${SW}/><path d="M250,-390 V-560" ${SW}/><path d="M250,-560 L320,-540 L250,-518Z" fill="#7cc59a" ${SW3}/>`)
-  + encounter(c, 470, 1000, `Chào ${c.cat}! Tớ là ${c.friend.name} nè!`, 'Hả?! 😳', { backpack: true });
+  + encounter(c, 470, 1000, c.friend.hi || `Chào ${c.cat}! Tớ là ${c.friend.name} nè!`, 'Hả?! 😳', { backpack: true });
 
 SC.walk = c => outdoor(c) + tree(160, 700) + tree(1460, 700, 1.1)
   + T(1230, 760, `<rect x="-110" y="-60" width="220" height="20" rx="8" fill="#c08657" ${SW3}/><rect x="-110" y="-30" width="220" height="20" rx="8" fill="#c08657" ${SW3}/><path d="M-90,-10 V40 M90,-10 V40" ${SW}/>`)
-  + encounter(c, 520, 1000, `Ê ${c.cat}! Đi đâu đó?`, 'Đi dạo thôi 😺');
+  + encounter(c, 520, 1000, c.friend.hi || `Ê ${c.cat}! Đi đâu đó?`, 'Đi dạo thôi 😺');
 
 SC.work = c => room(c, { wall: '#e8eef7', floor: '#b8c3d3', clockX: 300, winX: 640 })
   + T(660, 700, cat({ tie: true, arms: 'up', eyes: 'meh', mouth: 'w', anim: 'a-typing' }), 1.1)
@@ -838,7 +839,7 @@ SC.phone = c => room(c, { wall: '#3d3b6e', floor: '#54476b', night: true, winX: 
   + bigText(330, 300, c.clip === 'live' ? 'Chốt! Chốt!' : 'Hahaha 😹', 56, '#ffe14d', 'a-float');
 
 SC.tv = c => room(c, { wall: '#fdeee6', floor: '#d6a77f', winX: 1240, clockX: 860 })
-  + T(330, 360, `<rect x="-210" y="-150" width="420" height="270" rx="22" fill="#333" ${SW}/><svg x="-188" y="-130" width="376" height="230" viewBox="0 0 376 230"><rect width="376" height="230" fill="#6cc0ff"/><rect y="180" width="376" height="50" fill="#f4d06f"/>${T(0, 100, A('a-swim', taiyaki()))}${T(0, 170, A('a-swim', T(0, 0, taiyaki(), .6)), 1, '')}<rect width="376" height="230" fill="#fff" opacity=".12" class="a-twinkle"/></svg><rect x="-60" y="120" width="120" height="40" fill="#c08657" ${SW3}/><rect x="-140" y="160" width="280" height="200" rx="14" fill="#d39b6a" ${SW}/>`)
+  + T(330, 360, `<rect x="-210" y="-150" width="420" height="270" rx="22" fill="#333" ${SW}/><svg x="-188" y="-130" width="376" height="230" viewBox="0 0 376 230"><rect width="376" height="230" fill="#6cc0ff"/><rect y="180" width="376" height="50" fill="#f4d06f"/>${(c.thing || c.food || c.ball || c.vehicle) && (c.thing || c.food || c.ball || c.vehicle).e !== '🎬' ? T(188, 105, A('a-float', emoText((c.thing || c.food || c.ball || c.vehicle).e, 130))) : T(0, 100, A('a-swim', taiyaki())) + T(0, 170, A('a-swim', T(0, 0, taiyaki(), .6)))}<rect width="376" height="230" fill="#fff" opacity=".12" class="a-twinkle"/></svg><rect x="-60" y="120" width="120" height="40" fill="#c08657" ${SW3}/><rect x="-140" y="160" width="280" height="200" rx="14" fill="#d39b6a" ${SW}/>`)
   + `<path d="M540,260 L960,420 L960,700 L540,480Z" fill="#bfefff" opacity=".25" class="a-flicker"/>`
   + T(960, 720, `<rect x="-300" y="-250" width="600" height="200" rx="60" fill="#f6aaa4" ${SW}/>`)
   + T(960, 690, cat({ eyes: 'dot', mouth: 'open', arms: 'up', prop: P_.popcorn }), 1)
@@ -867,7 +868,7 @@ SC.sport = c => outdoor(c, { road: false, ground: '#8fd07a' })
   + T(1400, 800, `<path d="M-130,0 V-260 H130 V0" fill="none" stroke="#fff" stroke-width="16" stroke-linejoin="round"/>` + Array.from({ length: 9 }, (_, i) => `<path d="M${-120 + i * 30},-250 V0" stroke="#fff" stroke-width="3" opacity=".6"/>`).join('') + Array.from({ length: 8 }, (_, i) => `<path d="M-120,${-230 + i * 30} H120" stroke="#fff" stroke-width="3" opacity=".6"/>`).join(''))
   + friendFig(c.friend, 1400, 810, .8, 'a-shake', 0, `Thủ môn: ${c.friend.name}`)
   + T(500, 820, cat({ hat: 'sweatband', eyes: 'dot', mouth: 'open', anim: 'a-run' }), 1)
-  + `<g transform="translate(650 790)">${A('a-kick', A('a-spin', `<circle r="34" fill="#fff" ${SW}/><path d="M0,-12 L12,-4 L8,10 L-8,10 L-12,-4Z" fill="${INK}"/>`))}</g>`
+  + `<g transform="translate(650 790)">${A('a-kick', A('a-spin', c.ball ? emoText(c.ball.e, 76) : `<circle r="34" fill="#fff" ${SW}/><path d="M0,-12 L12,-4 L8,10 L-8,10 L-12,-4Z" fill="${INK}"/>`))}</g>`
   + bigText(800, 300, 'GOOOAL!', 110, '#ffe14d', 'a-pop', 2)
   + bubble(1060, 380, 'Ơ kìa!', { delay: 2.2, tail: 'right', size: 40 });
 
@@ -877,13 +878,13 @@ SC.shop = c => `<rect width="1600" height="720" fill="#fff4e0"/><rect y="700" wi
   + friendFig(c.friend, 1330, 640, .85, 'a-appear', .8, `Thu ngân: ${c.friend.name}`)
   + T(1330, 640, `<rect x="-200" y="0" width="400" height="200" rx="14" fill="#d39b6a" ${SW}/><rect x="-60" y="-50" width="120" height="50" rx="8" fill="#555" ${SW3}/>`)
   + T(640, 820, cat({ arms: 'up', eyes: 'dot', mouth: 'w', anim: 'a-waddle' }), 1)
-  + T(860, 820, `<path d="M-170,-240 L-140,-240 L-100,-80 L140,-80 L170,-200 L-130,-200" fill="#fff" fill-opacity=".6" ${SW}/><path d="M-110,-160 H155 M-95,-120 H145" ${SW3}/><circle cx="-80" cy="-30" r="22" fill="#555" ${SW3}/><circle cx="110" cy="-30" r="22" fill="#555" ${SW3}/><rect x="-60" y="-260" width="70" height="70" rx="10" fill="#f4b04a" ${SW3}/><circle cx="60" cy="-232" r="34" fill="#e2726a" ${SW3}/>`)
+  + T(860, 820, `<path d="M-170,-240 L-140,-240 L-100,-80 L140,-80 L170,-200 L-130,-200" fill="#fff" fill-opacity=".6" ${SW}/><path d="M-110,-160 H155 M-95,-120 H145" ${SW3}/><circle cx="-80" cy="-30" r="22" fill="#555" ${SW3}/><circle cx="110" cy="-30" r="22" fill="#555" ${SW3}/>` + (c.objs && c.objs.some(o => !['person', 'animal'].includes(o.cat)) ? c.objs.filter(o => !['person', 'animal'].includes(o.cat)).slice(0, 3).map((o, i) => emoText(o.e, 84, ` x="${-80 + i * 80}" y="-250"`)).join('') : `<rect x="-60" y="-260" width="70" height="70" rx="10" fill="#f4b04a" ${SW3}/><circle cx="60" cy="-232" r="34" fill="#e2726a" ${SW3}/>`))
   + bubble(1000, 230, 'Tổng cộng 999K nha!', { delay: 1.4, tail: 'right', size: 32 })
   + bubble(400, 300, 'Hả?! 😿', { delay: 2.6, tail: 'right', size: 42 });
 
 SC.music = c => room(c, { wall: '#ffe9f1' })
   + [300, 1300].map(x => T(x, 820, `<rect x="-90" y="-300" width="180" height="300" rx="20" fill="#555" ${SW}/>` + T(0, -200, A('a-pulse', `<circle r="56" fill="#888" ${SW3}/><circle r="22" fill="#333"/>`)) + T(0, -70, A('a-pulse', `<circle r="34" fill="#888" ${SW3}/>`, D(.2))))).join('')
-  + T(800, 810, cat({ hat: 'headphones', eyes: 'happy', mouth: 'open', anim: 'a-sway', arms: 'wave' }), 1.2)
+  + T(800, 810, cat({ hat: 'headphones', eyes: 'happy', mouth: 'open', anim: 'a-sway', arms: c.instr ? 'up' : 'wave', prop: c.instr ? heldEmo(c.instr.e, 110) : '' }), 1.2)
   + [['♪', 560, 330, 0], ['♫', 1040, 300, .5], ['♪', 1120, 470, 1], ['♫', 470, 480, 1.5]].map(([t, x, y, d]) => T(x, y, A('a-float', `<text font-size="80" fill="#e2726a" stroke="${INK}" stroke-width="6" paint-order="stroke">${t}</text>`, D(d)))).join('');
 
 SC.exercise = c => outdoor(c) + tree(150, 700) + tree(1480, 700)
@@ -895,7 +896,7 @@ SC.exercise = c => outdoor(c) + tree(150, 700) + tree(1480, 700)
 SC.drink = c => `<rect width="1600" height="720" fill="#f4dcc4"/><rect width="1600" height="720" fill="url(#dots)"/><rect y="700" width="1600" height="200" fill="#c99a72"/>`
   + T(1220, 300, `<rect x="-200" y="-200" width="400" height="360" rx="20" fill="#3c4a3e" stroke="#c08657" stroke-width="16"/><text y="-130" text-anchor="middle" font-size="50" fill="#fff">MENU</text><g font-size="30" fill="#fff" font-family="Nunito" font-weight="800"><text x="-160" y="-60">Trà sữa ..... 25K</text><text x="-160" y="0">Cà phê ...... 20K</text><text x="-160" y="60">Sữa cá ....... 99K</text></g>`)
   + T(330, 120, `<rect x="-150" y="-50" width="300" height="100" rx="24" fill="#e2726a" ${SW}/><text y="22" text-anchor="middle" font-size="60" fill="#fff">CAFÉ</text>`)
-  + T(760, 760, cat({ arms: 'up', eyes: 'happy', mouth: 'w', prop: P_.milktea }), 1.1)
+  + T(760, 760, cat({ arms: 'up', eyes: 'happy', mouth: 'w', prop: c.drink ? heldEmo(c.drink.e) : P_.milktea }), 1.1)
   + `<rect x="-10" y="690" width="1620" height="40" fill="#b07a52" ${SW}/>`
   + [[880, 440, 0], [940, 480, .7], [650, 460, 1.3]].map(([x, y, d]) => T(x, y, A('a-heart', `<text font-size="44">💖</text>`, D(d)))).join('');
 
@@ -913,7 +914,7 @@ SC.travel = c => `<svg x="0" y="0" width="1600" height="700" viewBox="0 0 1600 7
   + (skyOf(c.h).night ? `<rect width="1600" height="900" fill="#141a45" opacity=".3"/>` : '')
   + T(800, 830, A('a-drive', `<rect x="-340" y="-320" width="680" height="280" rx="44" fill="#ffd84d" ${SW}/><rect x="-300" y="-290" width="290" height="120" rx="16" fill="#bfe8ff" ${SW3}/><rect x="20" y="-290" width="170" height="120" rx="16" fill="#bfe8ff" ${SW3}/><rect x="216" y="-290" width="90" height="200" rx="12" fill="#bfe8ff" ${SW3}/>`
     + T(-150, -150, cat({ anim: 'a-none', eyes: 'happy', mouth: 'open' }), .55)
-    + T(106, -158, A('a-none', friendSvg(c.friend.k)), .45)
+    + T(106, -158, A('a-none', friendArt(c.friend)), .45)
     + `<rect x="-340" y="-176" width="550" height="136" rx="0" fill="#ffd84d"/><path d="M-340,-176 H210" ${SW3}/><path d="M-340,-176 V-80 Q-340,-40 -300,-40 H300" fill="none" ${SW}/><rect x="-320" y="-150" width="200" height="50" rx="10" fill="#e2726a" ${SW3}/><text x="-220" y="-112" text-anchor="middle" font-size="34" fill="#fff">BUS 07</text>`
     + [-210, 210].map(x => T(x, -40, A('a-spin', `<circle r="50" fill="#444" ${SW}/><circle r="20" fill="#ccc" ${SW3}/><path d="M0,-20 V20 M-20,0 H20" stroke="${INK}" stroke-width="4"/>`))).join('')))
   + bubble(560, 230, 'Brừm brừm!', { delay: 1, tail: 'left', size: 40 });
@@ -924,7 +925,7 @@ SC.chat = c => {
   return room(c, { wall: '#eef0ff', winX: 160, clockX: 600 })
     + T(500, 810, cat({ arms: 'up', eyes: 'dot', mouth: 'open', prop: P_.phone }), 1.15)
     + T(880, 110, `<rect width="600" height="640" rx="40" fill="#fff" ${SW}/><rect width="600" height="100" rx="40" fill="#7cc59a" ${SW}/><rect y="60" width="600" height="40" fill="#7cc59a"/><path d="M0,100 H600" ${SW}/>`
-      + T(64, 92, friendSvg(f.k), .32) + `<text x="120" y="64" font-size="32" fill="#fff">${esc(f.name)} (${esc(f.sp)})</text>`
+      + T(64, 92, friendArt(f), .32) + `<text x="120" y="64" font-size="32" fill="#fff">${esc(f.name)}${f.sp ? ` (${esc(f.sp)})` : ''}</text>`
       + msgs.map(([me, t], i) => { const w = t.length * 19 + 50, x = me ? 570 - w : 30, y = 130 + i * 98; return T(x, y, A('a-appear', `<rect width="${w}" height="70" rx="35" fill="${me ? '#f6aaa4' : '#eef0ff'}" ${SW3}/><text x="${w / 2}" y="46" text-anchor="middle" font-size="32" fill="${INK}">${esc(t)}</text>`, D(.6 + i * .8))); }).join(''));
 };
 
@@ -935,23 +936,271 @@ SC.dance = c => `<rect width="1600" height="900" fill="#251a45"/>`
   + T(800, 830, A('a-dance', cat({ eyes: 'happy', mouth: 'open', arms: 'wave', anim: 'a-none' })), 1.2)
   + [['♪', 420, 360, 0], ['♫', 1160, 320, .6], ['♪', 1240, 520, 1.2]].map(([t, x, y, d]) => T(x, y, A('a-float', `<text font-size="90" fill="#ffe14d">${t}</text>`, D(d)))).join('');
 
-SC.generic = c => room(c, {})
-  + T(470, 820, cat({ eyes: 'dot', mouth: 'w', arms: 'wave' }), 1.2)
-  + bubble(760, 180, c.pred || c.text, { tail: 'left', size: 46, max: 18, think: true, delay: .6 })
-  + T(1380, 620, A('a-float', `<text font-size="90" fill="#fff" stroke="${INK}" stroke-width="8" paint-order="stroke">?</text>`, D(1)));
+SC.generic = c => SC.compose(c);
 
 SC.intro = c => room(c, { wall: '#ffeedd' }) + T(800, 820, cat({ eyes: 'happy', mouth: 'open', arms: 'wave' }), 1.3);
 
-/* ---- random gags ---- */
+/* ---- random gags (kept to the edges so they never cover the cat) ---- */
 const pigeon = () => `<ellipse cx="0" cy="0" rx="46" ry="30" fill="#b7bdd0" ${SW3}/><circle cx="40" cy="-26" r="22" fill="#b7bdd0" ${SW3}/><path d="M60,-28 L80,-22 L60,-16Z" fill="#f2b24a" ${SW3}/><circle cx="46" cy="-31" r="4" fill="${INK}"/>${A('a-flap', `<path d="M-10,-8 Q-40,-72 -74,-40 Q-42,-30 -10,-8Z" fill="#9aa1b8" ${SW3}/>`)}<rect x="27" y="-78" width="28" height="32" fill="#333" ${SW3}/><rect x="18" y="-50" width="46" height="8" rx="3" fill="#333" ${SW3}/>`;
-const ufo = () => `<path d="M-40,40 L-120,330 L120,330 L40,40Z" fill="#fff59d" opacity=".35"/>` + T(0, 300, A('a-beam', T(0, 0, taiyaki(), .7))) + `<ellipse cx="0" cy="-10" rx="56" ry="44" fill="#bfefff" ${SW3}/><circle cx="0" cy="-14" r="16" fill="#93d28c" ${SW3}/><circle cx="-5" cy="-17" r="3" fill="${INK}"/><circle cx="6" cy="-17" r="3" fill="${INK}"/><ellipse cx="0" cy="22" rx="130" ry="36" fill="#c9d3d8" ${SW}/>` + [-80, -27, 27, 80].map((x, i) => A('a-twinkle', `<circle cx="${x}" cy="26" r="9" fill="${['#ffe14d', '#e2726a', '#7cc59a', '#9fd6ff'][i]}"/>`, D(i * .2))).join('');
 function gagSvg(c) {
-  if (c.gag === 'bird') return `<g transform="translate(0 150)">${A('a-fly', pigeon(), D(.8))}</g>`;
-  if (c.gag === 'ufo') return T(240, 150, A('a-float', ufo()));
-  if (c.gag === 'peek') return `<g transform="translate(90 900)">${A('a-peek', T(0, 40, friendSvg('mouse'), .8), D(1))}</g>` + bubble(160, 560, 'Tớ là chuột tên Voi, đi ngang qua thôi 👀', { delay: 1.8, tail: 'left', size: 26, max: 20 });
+  if (c.gag === 'bird') return `<g transform="translate(0 70) scale(.8)">${A('a-fly', pigeon(), D(.8))}</g>`;
+  if (c.gag === 'peek') return `<g transform="translate(1530 900)">${A('a-peek', T(0, 40, friendSvg('mouse'), .7), D(1))}</g>` + bubble(1240, 610, 'Voi đi ngang qua 👀', { delay: 1.8, tail: 'right', size: 24, max: 22 });
   return '';
 }
 const FRIEND_SCENES = new Set(['school', 'walk', 'work', 'sport', 'shop', 'exercise', 'chat', 'travel']);
+const NO_GAG = new Set(['compose', 'phone', 'wakeup', 'music', 'travel']);
+
+/* ================= reading the sentence: place, verb, objects, companions ================= */
+const OBJ = [
+  ['pizzas?', '🍕', 'food'], ['hamburgers?|burgers?', '🍔', 'food'], ['hot ?dogs?', '🌭', 'food'], ['sandwich(?:es)?', '🥪', 'food'], ['banh mi|bánh mì', '🥖', 'food'], ['bread', '🍞', 'food'],
+  ['cakes?', '🍰', 'food'], ['cookies?|biscuits?', '🍪', 'food'], ['cand(?:y|ies)|sweets', '🍬', 'food'], ['chocolates?', '🍫', 'food'], ['ice ?creams?', '🍦', 'food'],
+  ['noodles?|pho|phở|ramen', '🍜', 'food'], ['rice', '🍚', 'food'], ['sushi', '🍣', 'food'], ['eggs?', '🍳', 'food'], ['chicken', '🍗', 'food'], ['meat|beef|pork|steak', '🥩', 'food'],
+  ['soup|hot ?pot', '🍲', 'food'], ['apples?', '🍎', 'food'], ['bananas?', '🍌', 'food'], ['oranges?', '🍊', 'food'], ['mangos?|mangoes', '🥭', 'food'], ['watermelons?', '🍉', 'food'],
+  ['grapes?', '🍇', 'food'], ['strawberr(?:y|ies)', '🍓', 'food'], ['fruits?', '🍉', 'food'], ['vegetables?|veggies', '🥦', 'food'], ['salad', '🥗', 'food'], ['popcorn', '🍿', 'food'],
+  ['french fries|fries|chips|snacks?', '🍟', 'food'], ['spaghetti|pasta', '🍝', 'food'], ['dumplings?', '🥟', 'food'], ['fish', '🐟', 'food'],
+  ['milk ?tea|bubble tea|trà sữa', '🧋', 'drink'], ['coffee|cà phê', '☕', 'drink'], ['tea', '🍵', 'drink'], ['milk', '🥛', 'drink'], ['juice', '🧃', 'drink'], ['water', '💧', 'drink'], ['coke|cola|soda|pepsi|smoothies?', '🥤', 'drink'],
+  ['football|soccer', '⚽', 'ball'], ['basketball', '🏀', 'ball'], ['volleyball', '🏐', 'ball'], ['badminton', '🏸', 'ball'], ['tennis', '🎾', 'ball'], ['ping ?pong|table tennis', '🏓', 'ball'], ['baseball', '⚾', 'ball'], ['balls?', '⚽', 'ball'],
+  ['guitar', '🎸', 'instr'], ['piano', '🎹', 'instr'], ['drums?', '🥁', 'instr'], ['violin', '🎻', 'instr'], ['trumpet', '🎺', 'instr'], ['microphone|karaoke', '🎤', 'instr'],
+  ['books?|novels?|comics?|manga|stor(?:y|ies)', '📚', 'thing'], ['homework', '📝', 'thing'], ['newspapers?', '📰', 'thing'], ['phones?|smartphones?|iphone', '📱', 'thing'], ['computers?|laptops?', '💻', 'thing'],
+  ['tik ?tok|youtube|facebook|instagram', '📱', 'thing'], ['video games?|games?', '🎮', 'thing'], ['chess', '♟️', 'thing'], ['cameras?|photos?|pictures?|selfies?', '📷', 'thing'], ['kites?', '🪁', 'thing'],
+  ['flowers?', '🌸', 'thing'], ['trees?|plants?', '🪴', 'thing'], ['clothes|shirts?|t-shirts?|dress(?:es)?', '👕', 'thing'], ['shoes|sneakers', '👟', 'thing'], ['hats?', '🎩', 'thing'], ['bags?|backpacks?', '🎒', 'thing'],
+  ['toys?|teddy(?: bear)?|dolls?', '🧸', 'thing'], ['robots?', '🤖', 'thing'], ['lego', '🧱', 'thing'], ['gifts?|presents?', '🎁', 'thing'], ['money', '💰', 'thing'], ['umbrellas?', '☂️', 'thing'],
+  ['letters?|emails?', '✉️', 'thing'], ['pens?|pencils?', '✏️', 'thing'], ['paintings?|drawings?|pictures?', '🎨', 'thing'], ['songs?', '🎵', 'thing'], ['movies?|films?|cartoons?|anime', '🎬', 'thing'],
+  ['alarm|clocks?', '⏰', 'thing'], ['stars?', '⭐', 'thing'], ['dinosaurs?', '🦖', 'thing'], ['fireworks?', '🎆', 'thing'], ['snow(?:man)?', '⛄', 'thing'], ['candles?', '🕯️', 'thing'],
+  ['bikes?|bicycles?', '🚲', 'vehicle'], ['motorbikes?|scooters?', '🛵', 'vehicle'], ['cars?|taxis?', '🚗', 'vehicle'], ['bus(?:es)?', '🚌', 'vehicle'], ['trains?', '🚆', 'vehicle'], ['planes?|airplanes?', '✈️', 'vehicle'], ['boats?|ships?', '⛵', 'vehicle'], ['rockets?', '🚀', 'vehicle'],
+  ['dogs?|pupp(?:y|ies)', '🐶', 'animal', 'chó cưng'], ['cats?|kittens?', '🐱', 'animal', 'bạn mèo'], ['birds?|parrots?', '🐦', 'animal', 'chim'], ['rabbits?|bunn(?:y|ies)', '🐰', 'animal', 'thỏ'], ['hamsters?', '🐹', 'animal', 'hamster'],
+  ['mice|mouse', '🐭', 'animal', 'chuột'], ['pigs?', '🐷', 'animal', 'heo'], ['cows?', '🐮', 'animal', 'bò'], ['horses?', '🐴', 'animal', 'ngựa'], ['ducks?', '🦆', 'animal', 'vịt'], ['elephants?', '🐘', 'animal', 'voi'],
+  ['monkeys?', '🐵', 'animal', 'khỉ'], ['tigers?', '🐯', 'animal', 'hổ'], ['lions?', '🦁', 'animal', 'sư tử'], ['pandas?', '🐼', 'animal', 'gấu trúc'], ['bears?', '🐻', 'animal', 'gấu'], ['frogs?', '🐸', 'animal', 'ếch'],
+  ['snakes?', '🐍', 'animal', 'rắn'], ['unicorns?', '🦄', 'animal', 'kỳ lân'], ['ghosts?', '👻', 'animal', 'con ma'], ['aliens?', '👽', 'animal', 'người ngoài hành tinh'], ['monsters?', '👾', 'animal', 'quái vật'],
+  ['mom|mum|mother|mommy|mummy', '👩', 'person', 'mẹ'], ['dad|father|daddy', '👨', 'person', 'bố'], ['sisters?', '👧', 'person', 'chị/em gái'], ['brothers?', '👦', 'person', 'anh/em trai'],
+  ['grandma|grandmother|granny', '👵', 'person', 'bà'], ['grandpa|grandfather', '👴', 'person', 'ông'], ['bab(?:y|ies)', '👶', 'person', 'em bé'], ['friends?|classmates?|bff', '🧑‍🤝‍🧑', 'person', 'bạn bè'],
+  ['teachers?', '🧑‍🏫', 'person', 'thầy cô'], ['family|parents', '👨‍👩‍👧', 'person', 'cả nhà'], ['boyfriend|girlfriend|crush', '💑', 'person', 'người yêu'], ['doctors?|nurses?', '🧑‍⚕️', 'person', 'bác sĩ'],
+  ['police(?:man)?', '👮', 'person', 'chú công an'], ['boss', '🧑‍💼', 'person', 'sếp'], ['neighbou?rs?', '🧑', 'person', 'hàng xóm'], ['wife', '👩', 'person', 'vợ'], ['husband', '👨', 'person', 'chồng'],
+  ['uncle', '👨', 'person', 'chú/bác'], ['aunt', '👩', 'person', 'cô/dì'], ['cousins?', '🧒', 'person', 'anh chị em họ'], ['santa', '🎅', 'person', 'ông già Noel'], ['idol|singer', '🧑‍🎤', 'person', 'thần tượng']
+].map(([src, e, cat, vn]) => ({ re: new RegExp('\\b(?:' + src + ')\\b', 'i'), e, cat, vn }));
+const PLACES = [
+  ['shop', /supermarket|\bmarket|\bstores?\b|\bshops?\b|\bmall\b|grocery|minimart|circle k|7-eleven|\bwinmart|bách hoá/],
+  ['school', /\bschool|\bclass(?:room)?\b|universit|college|kindergarten/],
+  ['park', /\bpark\b|\bgarden|playground/],
+  ['beach', /\bbeach|\bsea\b|\bocean|seaside|\bisland/],
+  ['hospital', /hospital|\bclinic|dentist/],
+  ['cinema', /cinema|movie theat|\btheat(?:er|re)|\bcgv\b/],
+  ['cafe', /\bcaf[eé]|coffee shop|restaurant|food court|tea shop|\bbar\b|highlands|starbucks|kfc|lotteria|mcdonald/],
+  ['library', /library|bookstore|book store/],
+  ['zoo', /\bzoo\b|\bfarm\b/],
+  ['gym', /\bgym\b|stadium|football field|\bcourt\b/],
+  ['pool', /swimming pool|\bpool\b|\bswim/],
+  ['kitchen', /kitchen/],
+  ['bedroom', /bedroom|\bin bed\b|\bon (?:the|my) bed/],
+  ['bathroom', /bathroom|toilet/],
+  ['office', /\boffice|company/],
+  ['street', /street|\broad\b|bus stop|station|airport|\bcity\b|downtown|\btown\b/],
+  ['mountain', /mountain|\bhills?\b|forest|camping|\bcamp\b/],
+  ['temple', /pagoda|temple|church/],
+  ['river', /river|\blake\b|fishing/],
+  ['space', /\bmoon\b|\bspace\b|\bmars\b|planet/],
+  ['home', /\bhome\b|\bhouse\b|living room/]
+];
+const IRR = { went: 'go', ate: 'eat', had: 'have', drank: 'drink', saw: 'see', did: 'do', slept: 'sleep', woke: 'wake', got: 'get', made: 'make', came: 'come', ran: 'run', bought: 'buy', wrote: 'write', swam: 'swim', rode: 'ride', sang: 'sing', took: 'take', met: 'meet', fell: 'fall', drove: 'drive', flew: 'fly', left: 'leave', sat: 'sit', spent: 'spend', told: 'tell', said: 'say' };
+function mainVerb(text) {
+  const toks = tokenize(text).filter(t => t.i >= clauseStart(text));
+  let k = 0;
+  if (toks[0] && (PRON[toks[0].w] || (/^[A-Z]/.test(toks[0].raw) && !BASE.has(toks[0].w) && !baseOfS(toks[0].w)))) k = 1;
+  while (toks[k] && (ADV.has(toks[k].w) || ['am', 'is', 'are', 'do', 'does', "don't", "doesn't", 'can', 'will', 'not'].includes(toks[k].w))) k++;
+  const w = toks[k] && toks[k].w;
+  if (!w) return null;
+  const v = BASE.has(w) ? w : (baseOfS(w) || stemIng(w) || IRR[w] || null);
+  return v ? { v, next: toks.slice(k + 1).map(t => t.w) } : null;
+}
+const VCLASS = {
+  move: 'walk run travel visit return arrive leave ride drive fly jog hike cross climb wander explore come',
+  eat: 'eat snack taste', drink: 'drink', play: 'play kick throw catch jump', read: 'read study learn write review practice practise draw paint',
+  watch: 'watch see look', buy: 'buy shop order sell pay', cook: 'cook make bake fry boil prepare', clean: 'clean wash sweep mop tidy wipe fold iron',
+  sleep: 'sleep nap rest lie dream yawn', music: 'sing listen dance', care: 'feed pet hug kiss help', talk: 'talk chat call meet text tell say ask answer', swim: 'swim'
+};
+const VMAP = {}; Object.entries(VCLASS).forEach(([k, list]) => list.split(' ').forEach(v => { VMAP[v] = k; }));
+function verbClass(mv, an) {
+  if (!mv) return 'default';
+  const { v, next } = mv;
+  if (v === 'go') {
+    const n = next[0];
+    if (n === 'shopping') return 'buy'; if (n === 'swimming') return 'swim'; if (n === 'fishing') return 'fish'; if (n === 'camping') return 'camp';
+    if (n === 'to' && next[1] === 'bed') return 'sleep';
+    return 'move';
+  }
+  if (v === 'have' || v === 'take' || v === 'get') return an.food ? 'eat' : an.drink ? 'drink' : 'default';
+  if (v === 'make' && !an.food) return 'default';
+  if (v === 'play' && an.comp && an.comp.cat === 'animal') return 'care';
+  if (v === 'walk' && an.comp && an.comp.cat === 'animal') return 'care';
+  return VMAP[v] || 'default';
+}
+function analyze(text) {
+  const t = String(text), lo = t.toLowerCase();
+  const found = [];
+  OBJ.forEach(o => { const m = t.match(o.re); if (m) found.push(Object.assign({ i: m.index }, o)); });
+  found.sort((a, b) => a.i - b.i);
+  const seen = new Set(), objs = found.filter(o => !seen.has(o.e) && seen.add(o.e));
+  const first = cats => objs.find(o => cats.includes(o.cat)) || null;
+  let place = null, pi = 1e9;
+  PLACES.forEach(([k, re]) => { const m = lo.match(re); if (m && m.index < pi) { pi = m.index; place = k; } });
+  const an = { place, objs, food: first(['food']), drink: first(['drink']), ball: first(['ball']), instr: first(['instr']), thing: first(['thing']), vehicle: first(['vehicle']), comp: first(['person', 'animal']) };
+  an.vclass = verbClass(mainVerb(t), an);
+  return an;
+}
+// Which places each hand-drawn scene can stand for. Anywhere else → the composed scene.
+const SCENE_HOME = {
+  wakeup: ['bedroom', 'home'], brush: ['bathroom', 'home'], shower: ['bathroom', 'home'], eat: ['home', 'kitchen'], cook: ['kitchen', 'home'], school: ['school'],
+  walk: ['park', 'street'], work: ['office'], study: ['home', 'school', 'library'], phone: ['bedroom', 'home'], tv: ['home', 'bedroom'], game: ['home', 'bedroom'],
+  sleep: ['bedroom', 'home'], sport: ['gym', 'park', 'school'], shop: ['shop'], music: ['home', 'bedroom'], exercise: ['park', 'street', 'gym'], drink: ['cafe', 'home'],
+  clean: ['home', 'kitchen', 'bedroom', 'bathroom'], travel: ['street', 'school', 'shop', 'park', 'office', 'home'], chat: ['home', 'bedroom'], dance: ['home', 'bedroom']
+};
+const COMP_AS_FRIEND = new Set(['school', 'walk', 'exercise', 'chat', 'travel']);
+const COMP_SLOT = { wakeup: [1100, 860], brush: [1350, 880], shower: [1420, 880], eat: [1440, 860], cook: [1420, 880], study: [1440, 860], tv: [1470, 880], game: [1450, 880], sleep: [1320, 860], music: [560, 880], drink: [1400, 880], clean: [1460, 880], dance: [1260, 880], shop: [320, 860], work: [300, 860], sport: [240, 880] };
+function planActs(text, an) {
+  let acts = detectActs(text);
+  if (acts.includes('generic')) return ['compose'];
+  // "read comics in bed" is reading, not sleeping
+  if (acts.length > 1 && an.vclass !== 'sleep' && !/sleep|slept|asleep|\bnaps?\b|go(?:es)? to bed/i.test(text)) acts = acts.filter(a => a !== 'sleep');
+  const fits = a => !an.place || !SCENE_HOME[a] || SCENE_HOME[a].includes(an.place);
+  // the verb decides first: "sleep in class" is sleeping at school, not walking into school
+  const VACT = { sleep: 'sleep', eat: 'eat', drink: 'drink', cook: 'cook', clean: 'clean', read: 'study', music: 'music', buy: 'shop' };
+  const pa = VACT[an.vclass];
+  if (pa && acts.includes(pa) && !fits(pa)) return ['compose'];
+  // keep the scenes that match the place; if none do, draw the place itself
+  acts = acts.some(fits) ? acts.filter(fits) : acts.map(a => (fits(a) ? a : 'compose'));
+  return [...new Set(acts)];
+}
+
+/* ---- emoji helpers ---- */
+const emoText = (e, size, extra = '') => `<text class="emo" font-size="${size}" text-anchor="middle" dominant-baseline="central"${extra}>${e}</text>`;
+const emo = (x, y, e, size, cls = '', delay = 0) => T(x, y, cls ? A(cls, emoText(e, size), D(delay)) : emoText(e, size));
+const heldEmo = (e, size = 96) => T(0, -66, emoText(e, size));
+function compFig(x, y, comp, delay = .8) {
+  return T(x, y, A('a-appear', A('a-bob', `<text class="emo" font-size="190" text-anchor="middle" y="-18">${comp.e}</text>`) + tag(0, -258, comp.vn || ''), D(delay)));
+}
+function friendArt(f) { return f.e ? `<text class="emo" font-size="210" text-anchor="middle" y="-14">${f.e}</text>` : friendSvg(f.k); }
+const compAsFriend = (comp, catName) => ({ e: comp.e, name: comp.vn, sp: '', hi: `${catName} ơi, đi cùng nhau nha!` });
+
+/* ---- backgrounds for the composed scene ---- */
+const schoolBuilding = () => T(1200, 700, `<rect x="-290" y="-390" width="580" height="390" fill="#ffd9a8" ${SW}/><path d="M-330,-390 L0,-530 L330,-390Z" fill="#e2726a" ${SW}/><circle cx="0" cy="-450" r="36" fill="#fff" ${SW3}/><path d="M0,-450 V-472 M0,-450 L14,-444" ${SW3}/><rect x="-160" y="-340" width="320" height="60" rx="14" fill="#fff" ${SW3}/><text x="0" y="-296" text-anchor="middle" font-size="46" fill="${INK}">SCHOOL</text>`
+  + [-220, -110, 110, 220].map(x => `<rect x="${x - 40}" y="-250" width="80" height="80" rx="10" fill="#9fd6ff" ${SW3}/>`).join('') + `<rect x="-60" y="-140" width="120" height="140" rx="12" fill="#c08657" ${SW}/>`);
+const signBoard = (x, y, text, fill = '#e2726a') => { const w = text.length * 30 + 70; return T(x, y, `<rect x="${-w / 2}" y="-48" width="${w}" height="96" rx="22" fill="${fill}" ${SW}/><text y="18" text-anchor="middle" font-size="52" fill="#fff">${esc(text)}</text>`); };
+const shelves = (x0 = 60, w = 820) => [190, 360, 530].map((y, r) => `<rect x="${x0}" y="${y}" width="${w}" height="18" rx="6" fill="#c08657" ${SW3}/>` + Array.from({ length: Math.floor(w / 92) }, (_, i) => { const col = ['#e2726a', '#7cc59a', '#9fd6ff', '#f4b04a', '#f6aaa4', '#b9a7d6'][(i + r * 2) % 6]; const hgt = 60 + ((i * 37 + r * 13) % 50); return `<rect x="${x0 + 12 + i * 88}" y="${y - hgt}" width="58" height="${hgt}" rx="8" fill="${col}" ${SW3}/>`; }).join('')).join('');
+const BG = {
+  home: c => room(c, { wall: '#fdeee6', floor: '#d6a77f' }) + T(1480, 820, `<path d="M-40,0 L-50,-90 L50,-90 L40,0Z" fill="#e2726a" ${SW3}/>` + emoText('🪴', 150, ' y="-150"')),
+  bedroom: c => room(c, { wall: '#f3e8ff', floor: '#cdb6e0', winX: 1180 }) + T(1000, 600, bedFrame(520)) + T(1000, 600, blanket(160, 330)),
+  bathroom: c => `<rect width="1600" height="720" fill="url(#tiles)"/><rect y="700" width="1600" height="200" fill="#bfe0e8"/>` + T(1250, 260, `<ellipse rx="130" ry="150" fill="#eaf8ff" stroke="#d39b6a" stroke-width="14"/>`),
+  kitchen: c => `<rect width="1600" height="720" fill="#fff4e4"/><rect width="1600" height="440" fill="url(#tiles)" opacity=".55"/>` + windowBox(c.h, 160, 110, 260, 210) + `<rect x="900" y="560" width="720" height="360" fill="#e8c49c" ${SW}/><rect x="900" y="546" width="720" height="30" fill="#fff" ${SW}/><rect y="760" width="900" height="140" fill="#e9d8c3"/>`,
+  shop: c => `<rect width="1600" height="720" fill="#fff4e0"/><rect y="700" width="1600" height="200" fill="#e9d8c3"/>` + shelves(760, 800) + signBoard(330, 120, 'SIÊU THỊ'),
+  school: c => outdoor(c) + schoolBuilding(),
+  classroom: c => room(c, { wall: '#eef4e4', floor: '#d7b48e', winX: 1240, clockX: 1080 }) + T(560, 330, `<rect x="-330" y="-190" width="660" height="330" rx="14" fill="#3c5a46" stroke="#c08657" stroke-width="16"/><text x="0" y="-60" text-anchor="middle" font-size="64" fill="#fff">English</text><text x="0" y="40" text-anchor="middle" font-size="44" fill="#fff" font-family="Nunito">I go → she goes</text>`) + [300, 820, 1340].map(x => T(x, 900, `<rect x="-150" y="-140" width="300" height="34" rx="8" fill="#d39b6a" ${SW3}/><rect x="-130" y="-106" width="24" height="106" fill="#c08657"/><rect x="106" y="-106" width="24" height="106" fill="#c08657"/>`)).join(''),
+  park: c => outdoor(c) + tree(160, 700) + tree(1460, 700, 1.1) + T(1230, 760, `<rect x="-110" y="-60" width="220" height="20" rx="8" fill="#c08657" ${SW3}/><rect x="-110" y="-30" width="220" height="20" rx="8" fill="#c08657" ${SW3}/><path d="M-90,-10 V40 M90,-10 V40" ${SW}/>`),
+  street: c => `<svg x="0" y="0" width="1600" height="700" viewBox="0 0 1600 700">${skyScape(c.h)}</svg>` + buildings(0) + `<rect y="700" width="1600" height="200" fill="#a6d98a"/><rect y="770" width="1600" height="130" fill="#8f8a86"/>` + Array.from({ length: 10 }, (_, i) => `<rect x="${i * 160 + 20}" y="830" width="80" height="10" rx="5" fill="#fff"/>`).join('') + (skyOf(c.h).night ? `<rect width="1600" height="900" fill="#141a45" opacity=".3"/>` : ''),
+  beach: c => `<svg x="0" y="0" width="1600" height="600" viewBox="0 0 1600 600" preserveAspectRatio="xMidYMid slice">${skyScape(c.h)}</svg><rect y="520" width="1600" height="140" fill="#5ab4e6"/>` + A('a-bob', `<path d="M0,540 Q100,520 200,540 T400,540 T600,540 T800,540 T1000,540 T1200,540 T1400,540 T1600,540" fill="none" stroke="#fff" stroke-width="8"/>`) + `<path d="M0,640 Q800,600 1600,650 L1600,900 L0,900Z" fill="#f6dfa8"/>` + T(1280, 860, `<path d="M0,0 L0,-300" ${SW}/><path d="M-170,-290 Q0,-400 170,-290Z" fill="#e2726a" ${SW}/>`) + emo(1420, 820, '🦀', 80, 'a-shake') + (skyOf(c.h).night ? `<rect width="1600" height="900" fill="#141a45" opacity=".35"/>` : ''),
+  hospital: c => outdoor(c) + T(1200, 700, `<rect x="-280" y="-420" width="560" height="420" fill="#fff" ${SW}/><rect x="-40" y="-390" width="80" height="80" fill="#e2726a"/><rect x="-80" y="-350" width="160" height="0" fill="none"/><path d="M-30,-350 H30 M0,-380 V-320" stroke="#fff" stroke-width="22"/><rect x="-200" y="-280" width="400" height="56" rx="12" fill="#e2726a" ${SW3}/><text y="-238" text-anchor="middle" font-size="40" fill="#fff">HOSPITAL</text>` + [-180, -60, 60, 180].map(x => `<rect x="${x - 36}" y="-200" width="72" height="72" rx="8" fill="#9fd6ff" ${SW3}/>`).join('') + `<rect x="-60" y="-110" width="120" height="110" fill="#9fd6ff" ${SW}/>`),
+  cinema: c => `<rect width="1600" height="900" fill="#2a1f3d"/><rect x="250" y="60" width="1100" height="420" rx="16" fill="#fff8e6" ${SW}/>` + A('a-twinkle', emoText(c.thingE || '🎬', 220, ' x="800" y="270"'), 'animation-duration:2.4s') + Array.from({ length: 2 }, (_, r) => Array.from({ length: 9 }, (_, i) => `<rect x="${120 + i * 160}" y="${640 + r * 120}" width="120" height="110" rx="24" fill="#c0392b" ${SW3}/>`).join('')).join('') + `<path d="M250,480 L60,900 M1350,480 L1540,900" stroke="#fff" stroke-opacity=".08" stroke-width="80"/>`,
+  cafe: c => `<rect width="1600" height="720" fill="#f4dcc4"/><rect width="1600" height="720" fill="url(#dots)"/><rect y="700" width="1600" height="200" fill="#c99a72"/>` + signBoard(330, 120, 'CAFÉ') + T(1220, 300, `<rect x="-200" y="-200" width="400" height="360" rx="20" fill="#3c4a3e" stroke="#c08657" stroke-width="16"/><text y="-130" text-anchor="middle" font-size="50" fill="#fff">MENU</text><g font-size="30" fill="#fff" font-family="Nunito" font-weight="800"><text x="-160" y="-60">Trà sữa ..... 25K</text><text x="-160" y="0">Cà phê ...... 20K</text><text x="-160" y="60">Sữa cá ....... 99K</text></g>`),
+  library: c => room(c, { wall: '#f1e6d6', floor: '#c9a27c', win: false, clockX: 800 }) + shelves(60, 560) + shelves(980, 560) + signBoard(800, 300, 'LIBRARY', '#7cc59a'),
+  zoo: c => outdoor(c, { road: false }) + [['🦒', 240, 560], ['🐘', 520, 600], ['🦁', 1180, 610], ['🦓', 1430, 600]].map(([e, x, y], i) => emo(x, y, e, 170, 'a-bob', i * .3)).join('') + `<rect y="640" width="1600" height="14" fill="#c08657"/><rect y="700" width="1600" height="14" fill="#c08657"/>` + Array.from({ length: 21 }, (_, i) => `<rect x="${i * 80}" y="610" width="16" height="130" rx="6" fill="#b07a52"/>`).join('') + signBoard(800, 120, 'ZOO', '#7cc59a'),
+  gym: c => outdoor(c, { road: false, ground: '#8fd07a' }) + `<path d="M0,760 H1600 M800,680 V900" stroke="#fff" stroke-width="8" opacity=".8"/>` + T(1400, 800, `<path d="M-130,0 V-260 H130 V0" fill="none" stroke="#fff" stroke-width="16"/>`),
+  pool: c => `<rect width="1600" height="900" fill="url(#tiles)"/><rect y="560" width="1600" height="340" fill="#5ab4e6"/>` + A('a-bob', `<path d="M0,580 Q100,560 200,580 T400,580 T600,580 T800,580 T1000,580 T1200,580 T1400,580 T1600,580" fill="none" stroke="#fff" stroke-width="10"/>`) + `<path d="M1300,200 V560 M1400,200 V560 M1300,300 H1400 M1300,400 H1400 M1300,500 H1400" stroke="#9aa7ad" stroke-width="12"/>`,
+  office: c => room(c, { wall: '#e8eef7', floor: '#b8c3d3', clockX: 300, winX: 640 }) + T(1260, 650, `<rect x="-240" y="0" width="480" height="40" rx="12" fill="#d39b6a" ${SW}/><rect x="-14" y="-40" width="28" height="40" fill="#9aa7ad" ${SW3}/><rect x="-140" y="-230" width="280" height="190" rx="14" fill="#2e3550" ${SW}/>`),
+  mountain: c => `<svg x="0" y="0" width="1600" height="700" viewBox="0 0 1600 700">${skyScape(c.h)}</svg><path d="M-100,700 L350,200 L800,700Z M500,700 L1000,140 L1500,700Z M1100,700 L1450,300 L1800,700Z" fill="#8fa8c9" ${SW}/><path d="M350,200 L290,270 L410,270Z M1000,140 L930,220 L1070,220Z" fill="#fff"/><rect y="680" width="1600" height="220" fill="#8cc97a"/>` + tree(150, 760, .8) + emo(1330, 760, '⛺', 200) + (skyOf(c.h).night ? `<rect width="1600" height="900" fill="#141a45" opacity=".35"/>` : ''),
+  temple: c => outdoor(c) + T(1200, 700, [0, 1, 2].map(i => `<rect x="${-200 + i * 40}" y="${-130 - i * 130}" width="${400 - i * 80}" height="120" fill="#ffd9a8" ${SW}/><path d="M${-260 + i * 40},${-130 - i * 130} Q0,${-190 - i * 130} ${260 - i * 40},${-130 - i * 130}" fill="#e2726a" ${SW}/>`).join('') + `<rect x="-40" y="-100" width="80" height="100" fill="#c08657" ${SW3}/>`),
+  river: c => outdoor(c, { road: false }) + `<path d="M0,720 Q400,690 800,730 T1600,720 L1600,860 Q1200,830 800,870 T0,860Z" fill="#5ab4e6"/>` + A('a-bob', `<path d="M100,780 q40,-14 80,0 M600,800 q40,-14 80,0 M1100,790 q40,-14 80,0" fill="none" stroke="#fff" stroke-width="6"/>`) + tree(1450, 700),
+  space: c => `<rect width="1600" height="900" fill="#14123a"/>` + STARS.map(([x, y, r], i) => A('a-twinkle', `<circle cx="${x}" cy="${y + 40}" r="${r}" fill="#fff8d6"/>`, `animation-delay:${(i % 7) * .3}s`)).join('') + emo(1300, 200, '🪐', 220, 'a-float') + emo(260, 160, '🌍', 140) + `<path d="M0,760 Q800,640 1600,760 L1600,900 L0,900Z" fill="#c9c3cf" ${SW}/><circle cx="400" cy="820" r="40" fill="#b1aab8"/><circle cx="1100" cy="800" r="26" fill="#b1aab8"/>`
+};
+const PLACE_DEFAULT = { sleep: 'bedroom', cook: 'kitchen', buy: 'shop', swim: 'pool', fish: 'river', camp: 'mountain', clean: 'home', care: 'park', move: 'street', play: 'park' };
+
+/* ---- the composed scene: place + what the cat does + the things and people in the sentence ---- */
+SC.compose = c => {
+  let P = BG[c.place] ? c.place : (PLACE_DEFAULT[c.vclass] || 'home');
+  if (P === 'school' && c.vclass !== 'move') P = 'classroom';
+  const main = c.thing || c.food || c.drink || c.ball || c.instr || c.vehicle;
+  const e = main ? main.e : null;
+  const others = (c.objs || []).filter(o => !['person', 'animal'].includes(o.cat) && o !== main).slice(0, 2);
+  const inBed = P === 'bedroom' && !['move', 'clean', 'cook', 'play', 'buy', 'swim', 'fish', 'camp'].includes(c.vclass);
+  const CX = inBed ? 1180 : 600, GY = inBed ? 640 : 830;
+  let s = BG[P](Object.assign({}, c, { thingE: e }));
+  const catAt = (opts, scale = 1.1, x = CX, y = GY) => T(x, y, cat(opts), scale);
+  switch (c.vclass) {
+    case 'move':
+      s += `<g transform="translate(${CX} ${GY})">${A('a-walkin', T(0, 0, cat({ anim: 'a-waddle', eyes: 'dot', backpack: P === 'school' }), 1.05))}</g>`;
+      if (c.vehicle || P === 'space') s += emo(CX + 250, GY - 90, c.vehicle ? c.vehicle.e : '🚀', 170, 'a-drive');
+      else if (e) s += emo(CX + 210, GY - 160, e, 110, 'a-float');
+      break;
+    case 'eat':
+      s += catAt({ eyes: 'happy', mouth: 'chew', arms: 'up', prop: c.food ? heldEmo(c.food.e) : T(0, -64, taiyaki(), .9, ' rotate(-14)') });
+      s += T(CX + 260, GY - 20, `<ellipse rx="110" ry="22" fill="#fff" ${SW}/>` + (c.food ? emoText(c.food.e, 90, ' y="-40"') : T(0, -22, taiyaki(), .9)));
+      s += bigText(CX + 330, 330, 'Nom nom!', 64, '#ffe14d', 'a-float');
+      break;
+    case 'drink':
+      s += catAt({ eyes: 'happy', mouth: 'w', arms: 'up', prop: c.drink ? heldEmo(c.drink.e) : P_.milktea });
+      s += [0, .7, 1.3].map((d, i) => emo(CX + 140 + i * 60, 420 + i * 30, '💖', 44, 'a-heart', d)).join('');
+      break;
+    case 'play':
+      s += catAt({ eyes: 'happy', mouth: 'open', anim: 'a-run', arms: 'wave' });
+      if (e) s += emo(CX + 250, GY - 130, e, 130, 'a-float');
+      break;
+    case 'read':
+      s += catAt({ hat: 'glasses', eyes: 'meh', mouth: 'w', arms: 'up', prop: e ? heldEmo(e, 100) : P_.book });
+      s += emo(CX + 260, 380, '❓', 70, 'a-float') + emo(CX - 230, 420, '💡', 70, 'a-float', .8);
+      break;
+    case 'watch': {
+      if (P !== 'cinema') s += T(inBed ? 420 : 1180, 380, `<rect x="-230" y="-150" width="460" height="290" rx="22" fill="#333" ${SW}/><rect x="-206" y="-128" width="412" height="246" rx="8" fill="#bfefff"/>` + A('a-float', emoText(e || '🎬', 150, ' y="-6"')) + `<rect x="-60" y="140" width="120" height="30" fill="#555" ${SW3}/>`);
+      s += catAt({ eyes: 'star', mouth: 'open', arms: 'up', prop: P_.popcorn });
+      break;
+    }
+    case 'buy':
+      s += catAt({ arms: 'up', eyes: 'dot', mouth: 'w', anim: 'a-waddle' }, 1);
+      s += T(CX + 230, GY, `<path d="M-170,-240 L-140,-240 L-100,-80 L140,-80 L170,-200 L-130,-200" fill="#fff" fill-opacity=".6" ${SW}/><path d="M-110,-160 H155 M-95,-120 H145" ${SW3}/><circle cx="-80" cy="-30" r="22" fill="#555" ${SW3}/><circle cx="110" cy="-30" r="22" fill="#555" ${SW3}/>`
+        + ([main, ...others].filter(Boolean).length ? [main, ...others].filter(Boolean).map((o, i) => emoText(o.e, 90, ` x="${-70 + i * 80}" y="-250"`)).join('') : `<rect x="-60" y="-280" width="70" height="70" rx="10" fill="#f4b04a" ${SW3}/><circle cx="60" cy="-250" r="34" fill="#e2726a" ${SW3}/>`));
+      break;
+    case 'cook':
+      s += T(CX + 330, GY - 160, `<rect x="-150" y="0" width="300" height="26" rx="8" fill="#555" ${SW3}/>` + A('a-flicker', `<path d="M-60,0 Q-50,-40 -30,-24 Q-20,-60 0,-34 Q24,-64 34,-24 Q50,-40 60,0Z" fill="#ff9f43"/>`) + `<path d="M-120,-30 Q-120,14 -80,18 L80,18 Q120,14 120,-30Z" fill="#555" ${SW}/>` + emoText(c.food ? c.food.e : '🍳', 80, ' y="-50"'));
+      s += catAt({ hat: 'chef', arms: 'up', eyes: 'dot', mouth: 'open', prop: P_.spatula, anim: 'a-sway' });
+      break;
+    case 'clean':
+      s += catAt({ hat: 'bandana', arms: 'up', eyes: 'meh', mouth: 'w', anim: 'a-sway', prop: P_.broom }, 1.05);
+      s += [[CX + 180, GY + 10, 0], [CX + 240, GY - 10, .5]].map(([x, y, d]) => T(x, y, A('a-puff', `<circle r="34" fill="#d8cfc8" opacity=".85"/>`, D(d)))).join('');
+      if (e) s += emo(CX + 300, GY - 80, e, 100, 'a-bob');
+      break;
+    case 'sleep':
+      s += catAt({ eyes: 'sleep', mouth: 'w' }) + zzz(CX + 80, 420);
+      break;
+    case 'music':
+      s += catAt({ hat: 'headphones', eyes: 'happy', mouth: 'open', anim: 'a-sway', arms: c.instr ? 'up' : 'wave', prop: c.instr ? heldEmo(c.instr.e, 110) : '' }, 1.15);
+      s += [['🎵', CX - 260, 380, 0], ['🎶', CX + 280, 340, .6]].map(([m, x, y, d]) => emo(x, y, m, 80, 'a-float', d)).join('');
+      break;
+    case 'care':
+      s += catAt({ eyes: 'happy', mouth: 'open', arms: 'up', prop: c.food ? heldEmo(c.food.e, 80) : '' });
+      if (c.comp && c.comp.cat === 'animal') s += T(CX + 270, GY, A('a-bob', `<text class="emo" font-size="170" text-anchor="middle" y="-14">${c.comp.e}</text>`)) + [0, .8].map((d, i) => emo(CX + 140 + i * 90, 470, '💕', 54, 'a-heart', d)).join('');
+      else if (e) s += emo(CX + 250, GY - 120, e, 120, 'a-bob');
+      break;
+    case 'talk':
+      s += catAt({ eyes: 'dot', mouth: 'open', arms: 'up', prop: P_.phone });
+      break;
+    case 'swim':
+      s += T(CX, 720, cat({ eyes: 'happy', mouth: 'open', anim: 'a-bob', arms: 'wave' }), 1) + `<rect x="${CX - 200}" y="640" width="400" height="140" fill="#5ab4e6" opacity=".85"/>` + emo(CX + 180, 610, '🛟', 100, 'a-bob');
+      break;
+    case 'fish':
+      s += catAt({ eyes: 'meh', mouth: 'w', arms: 'up' }) + T(CX, GY, stick(30, -70, 300, -260, '#c08657', 8) + `<path d="M300,-260 Q330,-120 320,-40" fill="none" stroke="${INK}" stroke-width="3"/>`) + emo(CX + 320, GY - 10, '🐟', 80, 'a-shake');
+      break;
+    case 'camp':
+      s += catAt({ eyes: 'happy', mouth: 'w', arms: 'wave' }) + emo(CX + 280, GY - 40, '🔥', 110, 'a-flicker');
+      break;
+    default:
+      s += catAt({ eyes: 'dot', mouth: 'open', arms: 'wave' }, 1.15);
+      if (e) s += emo(CX + 270, GY - 200, e, 150, 'a-float');
+      if (c.vehicle && c.vehicle !== main) s += emo(CX + 300, GY - 60, c.vehicle.e, 150);
+  }
+  if (inBed) s += T(1000, 600, blanket(160, 330));
+  if (c.comp && !(c.vclass === 'care' && c.comp.cat === 'animal')) {
+    s += compFig(inBed ? (c.vclass === 'watch' ? 760 : 420) : 1130, inBed ? 870 : GY + 40, c.comp, .9);
+    if (c.vclass === 'talk' || c.vclass === 'move') s += bubble(820, 470, c.vclass === 'talk' ? `Alo ${c.cat} hả?` : `${c.cat} ơi, đợi với!`, { delay: 1.8, tail: 'right', size: 34 });
+  }
+  return s;
+};
 
 /* ---- ghosts ---- */
 function ghost(kind) {
@@ -1418,7 +1667,7 @@ function startReveal(raw, meta) {
   R.meta = meta; R.i = 0; R.active = true;
   R.items = raw.map(it => {
     const time = parseTime(it.fixed || it.sentence);
-    return Object.assign(it, { time, ok: false, ctx: { friend: pick(FRIENDS), clip: pick(['live', 'dance']), gag: Math.random() < .45 ? pick(['bird', 'ufo', 'peek']) : null, rnd: Math.random() } });
+    return Object.assign(it, { time, ok: false, ctx: { friend: pick(FRIENDS), clip: pick(['live', 'dance']), gag: Math.random() < .35 ? pick(['bird', 'peek']) : null, rnd: Math.random() } });
   }).sort((a, b) => (a.time ? a.time.key : 9999) - (b.time ? b.time.key : 9999));
   app.innerHTML = `
   <div class="reveal">
@@ -1502,10 +1751,16 @@ function renderCaption(it, text, g) {
 function slideCtx(it, text) {
   return Object.assign({}, it.ctx, { h: it.time ? it.time.h : null, mi: it.time ? it.time.mi : 0, cat: R.meta.cat, text, pred: predicate(text) });
 }
-function drawScene(act, c, last) {
-  const fn = SC[act] || SC.generic;
-  const gag = last && !c.err && !FRIEND_SCENES.has(act) && c.gag ? gagSvg(c) : '';
-  $('#sceneSvg').innerHTML = defs(c.h) + fn(c) + gag;
+function drawScene(act, c0, last) {
+  const fn = SC[act] || SC.compose;
+  const c = Object.assign({}, c0);
+  let extra = '';
+  if (c.comp && act !== 'compose') {
+    if (COMP_AS_FRIEND.has(act)) c.friend = compAsFriend(c.comp, c.cat);
+    else if (COMP_SLOT[act]) extra = compFig(COMP_SLOT[act][0], COMP_SLOT[act][1], c.comp, 1);
+  }
+  const gag = last && !c.err && !c.comp && !FRIEND_SCENES.has(act) && !NO_GAG.has(act) && c.gag ? gagSvg(c) : '';
+  $('#sceneSvg').innerHTML = defs(c.h) + fn(c) + extra + gag;
   Sound.stopLoops();
   if (['phone', 'dance', 'music'].includes(act)) Sound.beat();
   if (act === 'wakeup') Sound.alarm();
@@ -1521,7 +1776,8 @@ function showSlide(i) {
   const text = it.fixed || it.sentence;
   const g = it.ok ? { error: false } : checkGrammar(text);
   const c = slideCtx(it, text); c.err = g.error;
-  const acts = detectActs(text);
+  const an = analyze(text); Object.assign(c, an);
+  const acts = planActs(text, an);
   $('#rvProg').textContent = `${i + 1} / ${R.items.length}`;
   const cb = $('#clockBox'); cb.hidden = false;
   cb.innerHTML = it.time ? `${clockSvg(it.time.h, it.time.mi)}<span>${it.time.label}</span>` : '<span>??:??</span>';
@@ -1701,6 +1957,7 @@ async function studentView(code, db) {
       const nm = $('#stName').value.trim(), tx = $('#stText').value.trim().replace(/\s+/g, ' ');
       const fail = m => { err.textContent = m; err.hidden = false; };
       if (!nm) return fail('Bạn quên ghi tên rồi.');
+      if (/\d/.test(nm) || parseTime(nm)) return fail('Ô tên chỉ ghi tên của bạn thôi nhé. Giờ viết trong câu.');
       if (tx.split(' ').length < 3) return fail('Viết một câu đầy đủ nhé, ví dụ: I go to school at 2am.');
       if (!parseTime(tx)) return fail('Câu cần có mốc thời gian nhé! Ví dụ: I go to school at 2am.');
       const btn = $('#stBtn'); btn.disabled = true; btn.textContent = 'Đang gửi…';
