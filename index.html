@@ -372,7 +372,7 @@ const PRON = { i: 'non', you: 'non', we: 'non', they: 'non', he: '3', she: '3', 
 const ADV = new Set('always usually often sometimes never rarely seldom normally generally also still just even really frequently occasionally hardly then first'.split(' '));
 const MODAL = new Set("can could will would should must may might shall can't won't cannot couldn't shouldn't".split(' '));
 const STRONG = new Set('get go brush wash take have eat drink watch play do make cook read sleep fall listen sing dance swim ride scroll study learn write clean run walk come sit buy meet chat call talk use check feed wake leave arrive return jog practice practise surf sweep fly'.split(' '));
-const BASE = new Set([...STRONG, ...'help visit see look like love want need open close start finish stay relax rest nap dream think try wear put bring send pay find lose kick throw paint draw mop wipe fold hang plant grow feel hear say tell ask answer teach shower bathe comb dress shave pray exercise hike travel shop order upload film record stream type print fix wait hurry yell scream hide bite scratch lick snack wander explore lie enjoy spend begin keep give show turn move follow pick choose build cut prepare fry boil bake stretch yawn sneeze cry laugh smile jump climb catch chase hunt kiss hug miss cross pass carry stand work live text'.split(' ')]);
+const BASE = new Set([...STRONG, ...'help visit see look like love want need open close start finish stay relax rest nap dream think try wear put bring send pay find lose kick throw paint draw mop wipe fold hang plant grow feel hear say tell ask answer teach shower bathe comb dress shave pray exercise hike travel shop order upload film record stream type print fix wait hurry yell scream hide bite scratch lick snack wander explore lie enjoy spend begin keep give show turn move follow pick choose build cut prepare fry boil bake stretch yawn sneeze cry laugh smile jump climb catch chase hunt kiss hug miss cross pass carry stand work live text drive share shout skip smell stop touch win wish worry ski skate cycle decide hope forget remember collect design edit knit sew mix pour taste chop dry fill greet lock pray post rent repeat ring save shut sign smoke solve sort spell steal stay sweep swing tidy trust visit vote wake walk wonder yell zip'.split(' ')]);
 function sForm(v) {
   if (v === 'have') return 'has'; if (v === 'be') return 'is'; if (v === 'do') return 'does'; if (v === 'go') return 'goes';
   if (/(s|x|z|ch|sh|o)$/.test(v)) return v + 'es';
@@ -425,7 +425,22 @@ function checkAgreement(text) {
   let subj = null, type = null, k = 0;
   const isCap = t => /^[A-Z]/.test(t.raw);
   if (PRON[t0.w]) { subj = t0; type = PRON[t0.w]; k = 1; }
-  else if (SUBJ_FIX[t0.w]) { subj = t0; type = PRON[SUBJ_FIX[t0.w].toLowerCase()]; k = 1; } // "Me go…": reported separately
+  else if (SUBJ_FIX[t0.w] && toks[1] && isVerbish(toks[1].w)) { subj = t0; type = PRON[SUBJ_FIX[t0.w].toLowerCase()]; k = 1; } // "Me go…": reported separately
+  else if (/^(everyone|everybody|someone|somebody|nobody|everything)$/.test(t0.w)) { subj = t0; type = '3'; k = 1; }
+  else if (/^(my|his|her|our|their|your|the|a|an|this|that|these|those)$/.test(t0.w) && toks[1] && !isVerbish(toks[1].w)) {
+    // noun-phrase subject: "My mom", "My little brother", "The dog", "My friends"
+    let e = 1;
+    // stop at the verb; an -s word after the noun ("My dad drives to…") is the verb too
+    while (e < Math.min(toks.length, 4) && !isVerbish(toks[e].w) && !(e >= 2 && /s$/.test(toks[e].w) && !(toks[e + 1] && isVerbish(toks[e + 1].w)))) e++;
+    if (toks[e] && !isVerbish(toks[e].w) && /s$/.test(toks[e].w)) { const hd = toks[e - 1].w; subj = { raw: text.slice(t0.i, toks[e - 1].i + toks[e - 1].raw.length), w: hd }; type = '3'; k = e; }
+    else {
+    if (!toks[e] || !isVerbish(toks[e].w)) return { error: false };
+    const head = toks[e - 1].w;
+    const many = /^(these|those)$/.test(t0.w) || /^(people|children|men|women|parents|friends|kids|students|teachers|classmates|brothers|sisters|cats|dogs|grandparents)$/.test(head) || (/s$/.test(head) && !/(ss|us|is)$/.test(head));
+    subj = { raw: text.slice(t0.i, toks[e - 1].i + toks[e - 1].raw.length), w: head };
+    type = many ? 'non' : '3'; k = e;
+    }
+  }
   else if (isCap(t0) && !BASE.has(t0.w) && !baseOfS(t0.w) && !['at', 'in', 'on', 'every', 'my', 'our', 'the', 'a', 'then', 'after', 'before'].includes(t0.w)) {
     if (toks[1] && toks[1].w === 'and') return { error: false };
     subj = t0; type = '3'; k = 1;
@@ -455,8 +470,12 @@ function checkAgreement(text) {
     if (w === 'are' && sw === 'i') return E('be', { wrong: v, fix: 'am' });
     if (w === "doesn't" || (w === 'does' && toks[j + 1] && toks[j + 1].w === 'not')) return E('aux', { wrong: v, fix: "don't" });
   }
+  // "do / does" agree with the subject whether it is the main verb ("She do her makeup") or a helper
+  if (type === '3' && w === 'do') return E('3sg-base', { wrong: v, fix: 'does' });
+  if (type !== '3' && w === 'does') return E('non3-s', { wrong: v, fix: 'do' });
+  const doMain = ['do', 'does'].includes(w) && !(toks[j + 1] && (toks[j + 1].w === 'not' || BASE.has(toks[j + 1].w) || baseOfS(toks[j + 1].w)));
   // aux / modal + verb
-  if (["don't", "doesn't", "didn't", 'do', 'does', 'did'].includes(w) || MODAL.has(w)) {
+  if (!doMain && (["don't", "doesn't", "didn't", 'do', 'does', 'did'].includes(w) || MODAL.has(w))) {
     const n = after();
     if (n) { const b = baseOfS(n.w); if (b && !BASE.has(n.w)) return E('aux-s', { wrong: n, fix: b, aux: v.raw }); }
     return { error: false };
