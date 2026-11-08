@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="vi">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>A Day in the Life of Dog</title>
+<title>Một ngày của Chó</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
@@ -129,12 +129,20 @@ details.sub summary{font:800 19px var(--display);cursor:pointer}
 .layer{position:absolute;inset:0;width:100%;height:100%;display:block}
 #fxSvg{pointer-events:none}
 .clock{position:absolute;top:3%;right:2.2%;display:flex;align-items:center;gap:.45em;background:#fff;border:3px solid var(--ink);border-radius:999px;padding:.22em .8em .22em .25em;font:800 calc(var(--u)*2.1)/1 var(--display);font-variant-numeric:tabular-nums;z-index:2}
-.vi{display:block;font-size:.8em;font-weight:600;opacity:.72;margin-top:.12em;font-style:normal;letter-spacing:0}
-.btn .vi{font-size:.66em;margin-top:.05em;opacity:.8}
-h1 .vi{font-size:.4em;margin-top:.2em}
-h2 .vi,h3 .vi{font-size:.62em}
-.eyebrow .vi,legend .vi,.chk .vi,summary .vi{display:inline;margin-left:.35em}
-.cap-sentence .vi{font-size:.6em}
+.vi{position:absolute;left:0;top:calc(100% + 6px);transform:translateY(4px);z-index:50;width:max-content;max-width:min(320px,86vw);padding:.35em .7em;border-radius:10px;background:rgba(74,52,40,.86);color:#fff;font:600 13px/1.35 var(--body,Nunito),sans-serif;text-align:center;white-space:normal;letter-spacing:0;text-transform:none;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s,transform .2s,visibility .2s;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+:where(h1,h2,h3,p,li,label,legend,summary,button,.btn,.tip,span,em,b,div,code):has(> .vi){position:relative}
+:where(h1,h2,h3,p,li,label,legend,summary,button,.btn,.tip,span,div):hover > .vi,.show-vi > .vi{opacity:.92;visibility:visible;transform:translateY(0)}
+:where(button,.btn) > .vi{left:50%;transform:translate(-50%,4px)}
+:where(button,.btn):hover > .vi,:where(button,.btn).show-vi > .vi{transform:translate(-50%,0)}
+:where(.fixcard,.rv-bottom,.actions,.fix-actions) .vi{top:auto;bottom:calc(100% + 6px)}
+@media (hover:hover){[class]:has(> .vi):hover{cursor:help}button:has(> .vi):hover,.btn:has(> .vi):hover{cursor:pointer}}
+/* split screen: one cat, walking from activity 1 to activity 2 and back, on a loop */
+.stage.split .pane-a .cat{animation:paneA 6.4s ease-in-out infinite}
+.stage.split .pane-b .cat{animation:paneB 6.4s ease-in-out infinite}
+.stage.split:is(.haunted,.tripped,.fainted) .pane-a .cat{animation:none;opacity:0}
+.stage.split:is(.haunted,.tripped,.fainted) .pane-b .cat{animation:none;opacity:1;transform:none}
+@keyframes paneA{0%,40%{opacity:1;transform:none}50%{opacity:0;transform:translateX(220px)}90%{opacity:0;transform:translateX(-220px)}100%{opacity:1;transform:none}}
+@keyframes paneB{0%,40%{opacity:0;transform:translateX(-220px)}50%,90%{opacity:1;transform:none}100%{opacity:0;transform:translateX(220px)}}
 .stage.split .clock{right:auto;left:50%;transform:translateX(-50%)}
 .clock svg{width:1.7em;height:1.7em;display:block}
 .rv-bottom{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center}
@@ -154,6 +162,7 @@ mark.bad{background:none;color:#c62f24;text-decoration:underline wavy #c62f24;te
 .fixcard .fix-msg{font-weight:800}
 .fixcard input{font-size:1.05em;padding:.5em .7em}
 .fixcard .fix-hint{background:#f1edff;border:2px dashed var(--ghost);border-radius:12px;padding:.45em .7em;font-weight:700}
+.fixcard .fix-rule{display:inline-block;margin-top:.3em;font-weight:600;opacity:.85}
 .fixcard .btn{font-size:1em;padding:.6em 1.1em .5em}
 .fixcard .fix-actions{display:flex;gap:.6em;flex-wrap:wrap;justify-content:flex-end;align-items:center}
 .fixcard .fix-actions .linkbtn{margin-right:auto;font-size:.85em}
@@ -252,6 +261,19 @@ svg text.emo{font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji'
 #sceneSvg{transition:filter .8s}
 .haunted #sceneSvg{filter:brightness(.55) saturate(.55) hue-rotate(215deg)}
 .leaving .gin{animation:ghostOut .9s ease-in forwards!important}
+/* the other mishaps: the cat trips over a banana peel, or faints */
+.eyes-dizzy,.dizzy-stars,.trip-prop{opacity:0}
+.tripped .cat .eyes-main,.fainted .cat .eyes-main{opacity:0}
+.tripped .cat .eyes-dizzy,.fainted .cat .eyes-dizzy{opacity:1;transition:opacity .1s .45s}
+.tripped .cat .dizzy-stars,.fainted .cat .dizzy-stars{opacity:1;transition:opacity .3s .9s}
+.fainted .cat .dizzy-stars{transition-delay:1.5s}
+.tripped .trip-prop{opacity:1}
+.tripped .shaker{animation:tripFall 1.1s cubic-bezier(.45,0,.55,1) forwards;transform-origin:50% 100%}
+.fainted .shaker{animation:faintFall 1.9s ease-in forwards;transform-origin:50% 100%}
+.a-orbit{animation:spin 1.4s linear infinite;transform-origin:50% 50%}
+.tripped #sceneSvg,.fainted #sceneSvg{filter:saturate(.75) brightness(.88)}
+@keyframes tripFall{0%{transform:none}22%{transform:translate(30px,-50px) rotate(14deg)}55%{transform:translate(-40px,-95px) rotate(-92deg)}68%{transform:translate(-40px,-112px) rotate(-84deg)}82%,100%{transform:translate(-40px,-95px) rotate(-88deg)}}
+@keyframes faintFall{0%{transform:none}15%{transform:rotate(-7deg)}30%{transform:rotate(6deg)}45%{transform:rotate(-5deg)}58%{transform:rotate(3deg)}84%{transform:translate(0,-95px) rotate(-94deg)}91%{transform:translate(0,-108px) rotate(-86deg)}100%{transform:translate(0,-95px) rotate(-90deg)}}
 @keyframes bob{50%{transform:translateY(-8px)}}
 @keyframes waddle{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg) translateY(-8px)}}
 @keyframes walkIn{from{transform:translateX(-700px)}to{transform:translateX(0)}}
@@ -306,8 +328,8 @@ svg text.emo{font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji'
 <script>
 'use strict';
 /* ================= CONFIG =================
-   Optional: paste your Firebase Database URL here so students can
-   type the room code without scanning the QR. */
+   Không bắt buộc: dán Firebase Database URL vào đây nếu muốn học viên
+   tự gõ mã phòng mà không cần quét QR. */
 const CONFIG = { DB_URL: '' };
 
 /* ================= helpers ================= */
@@ -489,23 +511,25 @@ function partBase(w) {
 }
 const NOUNY = new Set('work rest snack nap dream drink help plan call chat text test talent lunch fun class'.split(' '));
 const isPPish = w => !!partBase(w) || !!BADPAST[w] || !!pastBase(w) || (BASE.has(w) && !NOUNY.has(w));
-const TENSES = [{ id: 'ps', vn: 'Present simple' }, { id: 'past', vn: 'Past simple' }, { id: 'pp', vn: 'Present perfect' }];
-const TENSE_VN = { ps: 'present simple', past: 'past simple', pp: 'present perfect' };
-const TENSE_VI = { ps: 'hiện tại đơn', past: 'quá khứ đơn', pp: 'hiện tại hoàn thành' };
-// Vietnamese subtitle under English text
+const TENSES = [{ id: 'ps', vn: 'Hiện tại đơn', en: 'Present simple' }, { id: 'past', vn: 'Quá khứ đơn', en: 'Past simple' }, { id: 'pp', vn: 'Hiện tại hoàn thành', en: 'Present perfect' }];
+const TENSE_VN = { ps: 'hiện tại đơn', past: 'quá khứ đơn', pp: 'hiện tại hoàn thành' };
+const TENSE_VI = TENSE_VN;
+// English text with a faded Vietnamese translation that shows on hover / tap
 const VS = vi => `<span class="vi">${vi}</span>`;
 const VI = (en, vi) => en + VS(vi);
 let TENSE_SEL = ['ps'];
 const TENSE_TIP = {
-  ps: { rule: 'a daily habit or routine' + VS('thói quen, lịch trình hằng ngày'), ex: 'I go to school at 2am.' },
-  past: { rule: 'something that already happened' + VS('việc đã xảy ra'), ex: 'Yesterday I ate ten bananas.' },
-  pp: { rule: 'something the cat has done: <b>have / has + V3</b>' + VS('điều đã làm được: have / has + V3'), ex: 'I have just won a scholarship.' }
+  ps: { rule: 'a daily habit or routine', vi: 'thói quen, lịch trình hằng ngày', ex: 'I go to school at 2am.' },
+  past: { rule: 'something that already happened', vi: 'việc đã xảy ra', ex: 'Yesterday I ate ten bananas.' },
+  pp: { rule: 'something the cat has done: <b>have / has + V3</b>', vi: 'điều đã làm được: have / has + V3', ex: 'I have just won a scholarship.' }
 };
 const normTenses = t => { const a = (Array.isArray(t) ? t : t ? Object.values(t) : []).filter(x => TENSE_TIP[x]); return a.length ? a : ['ps']; };
 function tenseTipHtml(sel) {
   sel = normTenses(sel);
-  if (sel.length === 1 && sel[0] === 'ps') return `<b>How to play:</b> Write one habit or routine of the cat. Any correct sentence is fine.<br>Example: <i>I go to school at 2am.</i>` + VS('Hướng dẫn: Viết 1 thói quen hoặc lịch trình của chú mèo. Câu đúng ngữ pháp là được.');
-  return `<b>How to play:</b> Write one correct sentence about the cat, using one of these tenses:` + VS('Hướng dẫn: Viết 1 câu đúng ngữ pháp về chú mèo, dùng 1 trong các thì sau:') + TENSES.filter(t => sel.includes(t.id)).map(t => `<span style="display:block;margin-top:.5em">• <b>${t.vn}</b> (${TENSE_VI[t.id]}): ${TENSE_TIP[t.id].rule}<i>${TENSE_TIP[t.id].ex}</i></span>`).join('');
+  const line = (html, vi, top = 0) => `<span style="display:block${top ? ';margin-top:.5em' : ''}">${html}${VS(vi)}</span>`;
+  if (sel.length === 1 && sel[0] === 'ps') return line('<b>How to play:</b> Write one habit or routine of the cat. Any correct sentence is fine.', 'Hướng dẫn: Viết 1 thói quen hoặc lịch trình của chú mèo. Câu đúng ngữ pháp là được.') + line('Example: <i>I go to school at 2am.</i>', 'Ví dụ: Tôi đi học lúc 2 giờ sáng.', 1);
+  return line('<b>How to play:</b> Write one correct sentence about the cat, using one of these tenses:', 'Hướng dẫn: Viết 1 câu đúng ngữ pháp về chú mèo, dùng 1 trong các thì sau:')
+    + TENSES.filter(t => sel.includes(t.id)).map(t => line(`• <b>${t.vn}</b>: ${TENSE_TIP[t.id].rule}<br><i>${TENSE_TIP[t.id].ex}</i>`, `${t.en}: ${TENSE_TIP[t.id].vi}`, 1)).join('');
 }
 const PAST_SIG = /\b(yesterday|last\s+(?:night|week(?:end)?|month|year|summer|winter|spring|autumn|fall|monday|tuesday|wednesday|thursday|friday|saturday|sunday|time|semester|term|holiday|tet|sunday)|(?:a|an|one|two|three|four|five|six|seven|eight|nine|ten|\d+|many|a\s+few|several)\s+(?:minutes?|hours?|days?|weeks?|months?|years?)\s+ago|ago|in\s+(?:19|20)\d\d|when\s+(?:i|he|she|we|they|you|it|my\s+\w+)\s+(?:was|were)\b|the\s+other\s+day|in\s+the\s+past)\b/i;
 const PP_FOR_PAST_BAD = /\b(since|so\s+far|yet|ever|lately|up\s+to\s+now|until\s+now)\b/i;
@@ -781,61 +805,59 @@ function checkGrammar(text, sel = TENSE_SEL) {
     .sort((x, y) => (x.wrong ? x.wrong.i : 0) - (y.wrong ? y.wrong.i : 0));
   return Object.assign({}, list[0], { count: list.length, all: list });
 }
-const SIG_HINT = sel => sel.map(t => ({ ps: 'Present simple (hiện tại đơn): every day, at 7 a.m. + I go / she goes', past: 'Past simple (quá khứ đơn): yesterday, last …, … ago + V2 / V-ed', pp: 'Present perfect (hiện tại hoàn thành): just, already, ever, never, since, for + have / has + V3' })[t]).join('<br>');
+const SIG_HINT = sel => sel.map(t => ({ ps: 'Hiện tại đơn: every day, at 7 a.m. + I go / she goes', past: 'Quá khứ đơn: yesterday, last …, … ago + V2 / V-ed', pp: 'Hiện tại hoàn thành: just, already, ever, never, since, for + have / has + V3' })[t]).join('<br>');
 function errText(g, cat) {
   const q = s => `<b>“${esc(s)}”</b>`;
   const W = g.wrong ? g.wrong.raw : '';
-  const tail = ' so spooky things start happening!', tailVi = ' nên rất nhiều hiện tượng kỳ bí xảy ra!';
   switch (g.kind) {
     case 'tense-off': {
       const names = g.sel.map(t => TENSE_VN[t]).join(', ');
-      const namesVi = g.sel.map(t => TENSE_VI[t]).join(', ');
-      if (g.sigw) return { msg: `Today we only practise the ${esc(names)}, but ${q(W)} is a signal word for the ${esc(TENSE_VN[g.tense])},${tail}` + VS(`Hôm nay lớp mình chỉ luyện ${esc(namesVi)}, mà ${q(W)} là dấu hiệu của thì ${esc(TENSE_VI[g.tense])},${tailVi}`), hint: SIG_HINT(g.sel), ans: '' };
-      return { msg: `Today we only practise the ${esc(names)}, but ${q(W)} is the ${esc(TENSE_VN[g.tense])},${tail}` + VS(`Hôm nay lớp mình chỉ luyện ${esc(namesVi)}, mà ${q(W)} là thì ${esc(TENSE_VI[g.tense])},${tailVi}`), hint: SIG_HINT(g.sel), ans: g.fix ? `${W} → ${g.fix}` : '' };
+      if (g.sigw) return { msg: `Hôm nay lớp mình chỉ luyện ${esc(names)}, mà ${q(W)} là dấu hiệu của thì ${esc(TENSE_VN[g.tense])}.`, hint: SIG_HINT(g.sel), ans: '' };
+      return { msg: `Hôm nay lớp mình chỉ luyện ${esc(names)}, mà ${q(W)} là thì ${esc(TENSE_VN[g.tense])}.`, hint: SIG_HINT(g.sel), ans: g.fix ? `${W} → ${g.fix}` : '' };
     }
-    case '3sg-base': return { msg: `${q(g.subj)} is singular, but the verb ${q(W)} has no -s,${tail}` + VS(`${q(g.subj)} là ngôi số ít mà bạn lại chia số nhiều ${q(W)},${tailVi}`), hint: 'He / she / it / one person’s name → verb + -s or -es.' + VS('He / she / it / tên 1 người → động từ thêm -s hoặc -es.'), ans: `${W} → ${g.fix}` };
-    case 'non3-s': return { msg: `${q(g.subj)} is not he / she / it, but ${q(W)} has -s/-es,${tail}` + VS(`${q(g.subj)} không phải ngôi số ít mà bạn lại thêm -s/-es vào ${q(W)},${tailVi}`), hint: 'I / you / we / they → base verb, no -s/-es.' + VS('I / you / we / they → động từ giữ nguyên, không thêm -s/-es.'), ans: `${W} → ${g.fix}` };
-    case 'be': return { msg: `${q(g.subj)} doesn’t go with ${q(W)},${tail}` + VS(`${q(g.subj)} không đi với ${q(W)},${tailVi}`), hint: 'I → am · he / she / it → is · you / we / they → are', ans: `${W} → ${g.fix}` };
-    case 'aux': return { msg: `${q(g.subj)} needs ${q(g.fix)}, not ${q(W)},${tail}` + VS(`${q(g.subj)} phải dùng ${q(g.fix)} chứ không phải ${q(W)},${tailVi}`), hint: "I / you / we / they → don't · he / she / it → doesn't", ans: `${W} → ${g.fix}` };
-    case 'aux-s': return { msg: `After ${q(g.aux)} the verb must be in the base form, but it says ${q(W)},${tail}` + VS(`Sau ${q(g.aux)} động từ phải để nguyên mẫu, mà bạn lại viết ${q(W)},${tailVi}`), hint: `${esc(g.aux)} + base verb (no -s/-es).` + VS(`${esc(g.aux)} + động từ nguyên mẫu (không thêm -s/-es).`), ans: `${W} → ${g.fix}` };
-    case 'be-base': return { msg: `The sentence has both ${q(g.be)} and the verb ${q(W)},${tail}` + VS(`Câu có cả ${q(g.be)} lẫn động từ ${q(W)},${tailVi}`), hint: `Present simple: remove “${esc(g.be)}”. Or use ${esc(g.be)} + ${esc(g.ing)}.` + VS(`Hiện tại đơn: bỏ “${esc(g.be)}” đi. Hoặc dùng ${esc(g.be)} + ${esc(g.ing)}.`), ans: `${g.be} ${W} → ${g.fix}` };
-    case 'ing': return { msg: `${q(W)} is there but ${q(g.be)} is missing,${tail}` + VS(`Có ${q(W)} mà thiếu ${q(g.be)},${tailVi}`), hint: `Present simple: ${esc(g.subj)} + ${esc(g.fix)}. Or: ${esc(g.subj)} ${esc(g.be)} ${esc(W)}.` + VS(`Hiện tại đơn: ${esc(g.subj)} + ${esc(g.fix)}. Hoặc: ${esc(g.subj)} ${esc(g.be)} ${esc(W)}.`), ans: `${W} → ${g.fix}` };
-    case 'noun-bare': return { msg: `${q(W)} is a countable noun standing alone (no a/an/the, no -s),${tail}` + VS(`${q(W)} là danh từ đếm được mà lại đứng một mình (không có a/an/the, không thêm -s),${tailVi}`), hint: 'Countable nouns: add -s/-es, or put a / an / the / my… in front.' + VS('Danh từ đếm được: thêm -s/-es, hoặc thêm a / an / the / my… phía trước.'), ans: `${g.phrase} → ${g.phraseFix}` };
-    case 'place-the': return { msg: `The place ${q(W)} needs “the”,${tail}` + VS(`Trước nơi chốn ${q(W)} còn thiếu “the”,${tailVi}`), hint: 'go to the park / the zoo / the supermarket / the beach…', ans: `${W} → the ${W}` };
-    case 'noun-num': return { msg: `${q(g.num)} means more than one, but ${q(W)} has no -s,${tail}` + VS(`Có ${q(g.num)} (nhiều) mà ${q(W)} chưa thêm -s,${tailVi}`), hint: `${esc(g.num)} + plural noun.` + VS(`${esc(g.num)} + danh từ số nhiều.`), ans: `${W} → ${g.fix}` };
-    case 'a-plural': return { msg: `${q(g.art)} is for one thing only, but ${q(W)} is plural,${tail}` + VS(`${q(g.art)} chỉ dùng cho 1 thứ, mà ${q(W)} là số nhiều,${tailVi}`), hint: 'a / an + singular noun. Plural → no a / an.' + VS('a / an + danh từ số ít. Số nhiều thì bỏ a / an.'), ans: `${g.art} ${W} → ${W}` };
-    case 'uncount-a': return { msg: `${q(g.noun)} is uncountable, so no ${q(W)},${tail}` + VS(`${q(g.noun)} không đếm được nên không đi với ${q(W)},${tailVi}`), hint: 'homework, music, bread, rice, money… never take a / an.' + VS('homework, music, bread, rice, money… không đi với a / an.'), ans: `${W} ${g.noun} → ${g.noun}` };
-    case 'uncount-s': return { msg: `${q(g.fix)} is uncountable, so no -s,${tail}` + VS(`${q(g.fix)} không đếm được nên không thêm -s,${tailVi}`), hint: 'homework, music, bread, rice, money… have no plural.' + VS('homework, music, bread, rice, money… không có số nhiều.'), ans: `${W} → ${g.fix}` };
-    case 'meal': return { msg: `Meals like ${q(g.noun)} don’t take ${q(W)},${tail}` + VS(`Trước bữa ăn ${q(g.noun)} không dùng ${q(W)},${tailVi}`), hint: 'have breakfast / have lunch / have dinner', ans: `${W} ${g.noun} → ${g.noun}` };
-    case 'a-an': return { msg: `Before ${q(g.next)} we use ${q(g.fix)},${tail}` + VS(`Trước ${q(g.next)} phải dùng ${q(g.fix)},${tailVi}`), hint: 'an + vowel sound: an apple, an egg, an hour. Otherwise a: a banana, a university.' + VS('an + từ bắt đầu bằng âm nguyên âm: an apple, an egg, an hour. Còn lại dùng a: a banana, a university.'), ans: `${W} ${g.next} → ${g.fix} ${g.next}` };
-    case 'sport-the': return { msg: `Sports like ${q(g.sport)} don’t take “the”,${tail}` + VS(`Trước môn thể thao ${q(g.sport)} không dùng “the”,${tailVi}`), hint: 'play football / play badminton (no “the”).' + VS('play football / play badminton (không có the).'), ans: `the ${g.sport} → ${g.sport}` };
-    case 'prep-at': return { msg: `Clock times take “at”, not ${q(W)},${tail}` + VS(`Trước giờ phải dùng “at”, không dùng ${q(W)},${tailVi}`), hint: 'at + time: at 7 a.m., at 9 p.m.' + VS('at + giờ: at 7 a.m., at 9 p.m.'), ans: `${W} → at` };
-    case 'prep-in': return { msg: `Parts of the day take “in the morning / afternoon / evening”, not “at”,${tail}` + VS(`Buổi trong ngày dùng “in the morning / afternoon / evening”, không dùng “at”,${tailVi}`), hint: 'in the morning, in the afternoon, in the evening, at night', ans: 'at the … → in the …' };
-    case 'prep-night': return { msg: `We say “at night”, not ${q(W)},${tail}` + VS(`Ban đêm là “at night”, không dùng ${q(W)},${tailVi}`), hint: 'at night', ans: `${W} night → at night` };
-    case 'prep-day': return { msg: `Days of the week take “on”, not ${q(W)},${tail}` + VS(`Trước thứ trong tuần dùng “on”, không dùng ${q(W)},${tailVi}`), hint: 'on Monday, on Sunday, on weekends', ans: `${W} → on` };
-    case 'prep-missing': return { msg: `The time ${q(W)} needs “at”,${tail}` + VS(`Trước giờ ${q(W)} còn thiếu “at”,${tailVi}`), hint: 'at + time: at 7 a.m., at 2:40 a.m.' + VS('at + giờ: at 7 a.m., at 2:40 a.m.'), ans: `${W} → at ${W}` };
-    case 'listen-to': return { msg: `${q(W)} needs “to”,${tail}` + VS(`${q(W)} phải đi với “to”,${tailVi}`), hint: 'listen to music / listen to songs', ans: `${W} → ${g.fix}` };
-    case 'go-home': return { msg: `“go home” doesn’t need “to”,${tail}` + VS(`“go home” không cần “to”,${tailVi}`), hint: 'go home, come home, get home', ans: 'go to home → go home' };
-    case 'go-ing': return { msg: `“go ${esc(g.act)}” doesn’t need “to”,${tail}` + VS(`“go ${esc(g.act)}” không cần “to”,${tailVi}`), hint: 'go shopping, go swimming, go fishing…', ans: `go to ${g.act} → go ${g.act}` };
-    case 'tooth': return { msg: `We say “brush my teeth” (plural),${tail}` + VS(`Đánh răng là “brush my teeth” (răng số nhiều),${tailVi}`), hint: 'tooth = one, teeth = many.' + VS('tooth = 1 cái răng, teeth = nhiều cái răng.'), ans: 'tooth → teeth' };
-    case 'modal-to': return { msg: `No “to” after ${q(g.modal)},${tail}` + VS(`Sau ${q(g.modal)} không dùng “to”,${tailVi}`), hint: `${esc(g.modal)} + base verb: can swim, will go.` + VS(`${esc(g.modal)} + động từ nguyên mẫu: can swim, will go.`), ans: `${g.modal} to → ${g.modal}` };
-    case 'to-inf': return { msg: `After ${q(g.prev)} we need “to” before ${q(W)},${tail}` + VS(`Sau ${q(g.prev)} cần thêm “to” trước động từ ${q(W)},${tailVi}`), hint: `${esc(g.prev)} + to + verb: want to go, like to play.` + VS(`${esc(g.prev)} + to + động từ: want to go, like to play.`), ans: `${g.prev} ${W} → ${g.prev} to ${W}` };
-    case 'pron-case': return { msg: `${q(W)} can’t be the subject, use ${q(g.fix)},${tail}` + VS(`${q(W)} không làm chủ ngữ được, phải dùng ${q(g.fix)},${tailVi}`), hint: 'Subjects: I, you, he, she, it, we, they.' + VS('Chủ ngữ: I, you, he, she, it, we, they.'), ans: `${W} → ${g.fix}` };
-    case 'past': return { msg: `${g.sig ? `${q(g.sig)} shows a habit` : 'A daily routine'}, so use the present simple, not ${q(W)} (past),${tail}` + VS(`${g.sig ? `Có ${q(g.sig)} (thói quen)` : 'Lịch trình hằng ngày'} nên dùng thì hiện tại đơn, không dùng ${q(W)} (quá khứ),${tailVi}`), hint: 'Daily habits → present simple: I go, she goes.' + VS('Thói quen hằng ngày → hiện tại đơn: I go, she goes.'), ans: `${W} → ${g.fix}` };
-    case 'need-past': return { msg: `${q(g.sig)} means it already happened, but ${q(W)} is not in the past,${tail}` + VS(`Có ${q(g.sig)} (đã xảy ra) mà động từ ${q(W)} chưa chia quá khứ,${tailVi}`), hint: 'Past simple: V2 / V-ed. go → went, eat → ate, play → played.' + VS('Quá khứ đơn: V2 / V-ed. go → went, eat → ate, play → played.'), ans: `${W} → ${g.fix}` };
-    case 'pp-past': return { msg: `${q(g.sig)} is a finished time in the past, so no ${q(W)} (present perfect),${tail}` + VS(`Có ${q(g.sig)} (thời điểm đã qua, rõ ràng) nên không dùng ${q(W)} (hiện tại hoàn thành),${tailVi}`), hint: 'yesterday / last … / … ago → past simple (V2 / V-ed).' + VS('yesterday / last … / … ago → quá khứ đơn (V2 / V-ed).'), ans: `${W} → ${g.fix}` };
-    case 'need-pp': return { msg: `${q(g.sig)} needs the present perfect, not ${q(W)},${tail}` + VS(`Có ${q(g.sig)} nên phải dùng hiện tại hoàn thành, không dùng ${q(W)},${tailVi}`), hint: 'Present perfect: have / has + V3. I have eaten, she has gone.' + VS('Hiện tại hoàn thành: have / has + V3. I have eaten, she has gone.'), ans: `${W} → ${g.fix}` };
-    case 'past-and': return { msg: `Both actions already happened, but ${q(W)} is not in the past,${tail}` + VS(`Hai việc đều đã xảy ra mà ${q(W)} chưa chia quá khứ,${tailVi}`), hint: 'Verbs joined by and / then are all in the past: went home and ate dinner.' + VS('Các động từ nối bằng and / then cùng chia quá khứ: went home and ate dinner.'), ans: `${W} → ${g.fix}` };
-    case 'have': return { msg: `${q(g.subj)} goes with ${q(g.fix)}, not ${q(W)},${tail}` + VS(`${q(g.subj)} phải đi với ${q(g.fix)}, không dùng ${q(W)},${tailVi}`), hint: 'I / you / we / they → have · he / she / it → has', ans: `${W} → ${g.fix}` };
-    case 'pp-form': return { msg: `After ${q(g.aux)} we need V3 (past participle), but it says ${q(W)},${tail}` + VS(`Sau ${q(g.aux)} phải là V3 (quá khứ phân từ), mà bạn lại viết ${q(W)},${tailVi}`), hint: 'have / has + V3: eaten, gone, done, written, played…', ans: `${W} → ${g.fix}` };
-    case 'irr': return { msg: `${q(W)}: this verb is irregular, its past form has no -ed,${tail}` + VS(`${q(W)} là động từ bất quy tắc, quá khứ không thêm -ed,${tailVi}`), hint: 'go → went, eat → ate, buy → bought, make → made…', ans: `${W} → ${g.fix}` };
-    case 'be-past': return { msg: `${q(g.subj)} doesn’t go with ${q(W)},${tail}` + VS(`${q(g.subj)} không đi với ${q(W)},${tailVi}`), hint: 'I / he / she / it → was · you / we / they → were', ans: `${W} → ${g.fix}` };
-    case 'was-base': return { msg: `The sentence has both ${q(g.be)} and the verb ${q(W)},${tail}` + VS(`Câu có cả ${q(g.be)} lẫn động từ ${q(W)},${tailVi}`), hint: `Past simple: remove “${esc(g.be)}”, use only V2 / V-ed.` + VS(`Quá khứ đơn: bỏ “${esc(g.be)}”, chỉ dùng V2 / V-ed.`), ans: `${g.be} ${W} → ${g.fix}` };
-    case 'did-past': return { msg: `After ${q(g.aux)} the verb must be in the base form, but it says ${q(W)},${tail}` + VS(`Sau ${q(g.aux)} động từ phải để nguyên mẫu, mà bạn lại viết ${q(W)},${tailVi}`), hint: `${esc(g.aux)} + base verb: didn't go, didn't eat.` + VS(`${esc(g.aux)} + động từ nguyên mẫu: didn't go, didn't eat.`), ans: `${W} → ${g.fix}` };
-    case 'manual': return { msg: `The teacher found a mistake in this sentence,${tail} Let’s find it and fix it together.` + VS(`Cô/thầy phát hiện câu này còn lỗi,${tailVi} Cả lớp cùng tìm lỗi và sửa nhé.`), hint: 'Check: subject – verb (-s/-es), a / an / the, plurals (-s), prepositions (at / in / on), spelling.' + VS('Kiểm tra: chủ ngữ – động từ (-s/-es), a / an / the, số nhiều (-s), giới từ (at / in / on), chính tả.'), ans: '' };
-    case 'nosubj': return { msg: `The sentence has no subject, so spooky things start happening in ${esc(cat)}’s house!` + VS(`Câu thiếu chủ ngữ nên rất nhiều hiện tượng kỳ bí xảy ra trong nhà ${esc(cat)}!`), hint: `Add I / he / she before ${q(W)}.` + VS(`Thêm I / he / she trước ${q(W)}.`), ans: `→ I ${W} …` };
+    case '3sg-base': return { msg: `${q(g.subj)} là ngôi số ít mà bạn lại chia số nhiều ${q(W)}.`, hint: 'He / she / it / tên 1 người → động từ thêm -s hoặc -es.', ans: `${W} → ${g.fix}` };
+    case 'non3-s': return { msg: `${q(g.subj)} không phải ngôi số ít mà bạn lại thêm -s/-es vào ${q(W)}.`, hint: 'I / you / we / they → động từ giữ nguyên, không thêm -s/-es.', ans: `${W} → ${g.fix}` };
+    case 'be': return { msg: `${q(g.subj)} không đi với ${q(W)}.`, hint: 'I → am · he / she / it → is · you / we / they → are', ans: `${W} → ${g.fix}` };
+    case 'aux': return { msg: `${q(g.subj)} phải dùng ${q(g.fix)} chứ không phải ${q(W)}.`, hint: "I / you / we / they → don't · he / she / it → doesn't", ans: `${W} → ${g.fix}` };
+    case 'aux-s': return { msg: `Sau ${q(g.aux)} động từ phải để nguyên mẫu, mà bạn lại viết ${q(W)}.`, hint: `${esc(g.aux)} + động từ nguyên mẫu (không thêm -s/-es).`, ans: `${W} → ${g.fix}` };
+    case 'be-base': return { msg: `Câu có cả ${q(g.be)} lẫn động từ ${q(W)}.`, hint: `Hiện tại đơn: bỏ “${esc(g.be)}” đi. Hoặc dùng ${esc(g.be)} + ${esc(g.ing)}.`, ans: `${g.be} ${W} → ${g.fix}` };
+    case 'ing': return { msg: `Có ${q(W)} mà thiếu ${q(g.be)}.`, hint: `Hiện tại đơn: ${esc(g.subj)} + ${esc(g.fix)}. Hoặc: ${esc(g.subj)} ${esc(g.be)} ${esc(W)}.`, ans: `${W} → ${g.fix}` };
+    case 'noun-bare': return { msg: `${q(W)} là danh từ đếm được mà lại đứng một mình (không có a/an/the, không thêm -s).`, hint: 'Danh từ đếm được: thêm -s/-es, hoặc thêm a / an / the / my… phía trước.', ans: `${g.phrase} → ${g.phraseFix}` };
+    case 'place-the': return { msg: `Trước nơi chốn ${q(W)} còn thiếu “the”.`, hint: 'go to the park / the zoo / the supermarket / the beach…', ans: `${W} → the ${W}` };
+    case 'noun-num': return { msg: `Có ${q(g.num)} (nhiều) mà ${q(W)} chưa thêm -s.`, hint: `${esc(g.num)} + danh từ số nhiều.`, ans: `${W} → ${g.fix}` };
+    case 'a-plural': return { msg: `${q(g.art)} chỉ dùng cho 1 thứ, mà ${q(W)} là số nhiều.`, hint: 'a / an + danh từ số ít. Số nhiều thì bỏ a / an.', ans: `${g.art} ${W} → ${W}` };
+    case 'uncount-a': return { msg: `${q(g.noun)} không đếm được nên không đi với ${q(W)}.`, hint: 'homework, music, bread, rice, money… không đi với a / an.', ans: `${W} ${g.noun} → ${g.noun}` };
+    case 'uncount-s': return { msg: `${q(g.fix)} không đếm được nên không thêm -s.`, hint: 'homework, music, bread, rice, money… không có số nhiều.', ans: `${W} → ${g.fix}` };
+    case 'meal': return { msg: `Trước bữa ăn ${q(g.noun)} không dùng ${q(W)}.`, hint: 'have breakfast / have lunch / have dinner', ans: `${W} ${g.noun} → ${g.noun}` };
+    case 'a-an': return { msg: `Trước ${q(g.next)} phải dùng ${q(g.fix)}.`, hint: 'an + từ bắt đầu bằng âm nguyên âm: an apple, an egg, an hour. Còn lại dùng a: a banana, a university.', ans: `${W} ${g.next} → ${g.fix} ${g.next}` };
+    case 'sport-the': return { msg: `Trước môn thể thao ${q(g.sport)} không dùng “the”.`, hint: 'play football / play badminton (không có the).', ans: `the ${g.sport} → ${g.sport}` };
+    case 'prep-at': return { msg: `Trước giờ phải dùng “at”, không dùng ${q(W)}.`, hint: 'at + giờ: at 7 a.m., at 9 p.m.', ans: `${W} → at` };
+    case 'prep-in': return { msg: `Buổi trong ngày dùng “in the morning / afternoon / evening”, không dùng “at”.`, hint: 'in the morning, in the afternoon, in the evening, at night', ans: 'at the … → in the …' };
+    case 'prep-night': return { msg: `Ban đêm là “at night”, không dùng ${q(W)}.`, hint: 'at night', ans: `${W} night → at night` };
+    case 'prep-day': return { msg: `Trước thứ trong tuần dùng “on”, không dùng ${q(W)}.`, hint: 'on Monday, on Sunday, on weekends', ans: `${W} → on` };
+    case 'prep-missing': return { msg: `Trước giờ ${q(W)} còn thiếu “at”.`, hint: 'at + giờ: at 7 a.m., at 2:40 a.m.', ans: `${W} → at ${W}` };
+    case 'listen-to': return { msg: `${q(W)} phải đi với “to”.`, hint: 'listen to music / listen to songs', ans: `${W} → ${g.fix}` };
+    case 'go-home': return { msg: `“go home” không cần “to”.`, hint: 'go home, come home, get home', ans: 'go to home → go home' };
+    case 'go-ing': return { msg: `“go ${esc(g.act)}” không cần “to”.`, hint: 'go shopping, go swimming, go fishing…', ans: `go to ${g.act} → go ${g.act}` };
+    case 'tooth': return { msg: `Đánh răng là “brush my teeth” (răng số nhiều).`, hint: 'tooth = 1 cái răng, teeth = nhiều cái răng.', ans: 'tooth → teeth' };
+    case 'modal-to': return { msg: `Sau ${q(g.modal)} không dùng “to”.`, hint: `${esc(g.modal)} + động từ nguyên mẫu: can swim, will go.`, ans: `${g.modal} to → ${g.modal}` };
+    case 'to-inf': return { msg: `Sau ${q(g.prev)} cần thêm “to” trước động từ ${q(W)}.`, hint: `${esc(g.prev)} + to + động từ: want to go, like to play.`, ans: `${g.prev} ${W} → ${g.prev} to ${W}` };
+    case 'pron-case': return { msg: `${q(W)} không làm chủ ngữ được, phải dùng ${q(g.fix)}.`, hint: 'Chủ ngữ: I, you, he, she, it, we, they.', ans: `${W} → ${g.fix}` };
+    case 'past': return { msg: `${g.sig ? `Có ${q(g.sig)} (thói quen)` : 'Lịch trình hằng ngày'} nên dùng thì hiện tại đơn, không dùng ${q(W)} (quá khứ).`, hint: 'Thói quen hằng ngày → hiện tại đơn: I go, she goes.', ans: `${W} → ${g.fix}` };
+    case 'need-past': return { msg: `Có ${q(g.sig)} (đã xảy ra) mà động từ ${q(W)} chưa chia quá khứ.`, hint: 'Quá khứ đơn: V2 / V-ed. go → went, eat → ate, play → played.', ans: `${W} → ${g.fix}` };
+    case 'pp-past': return { msg: `Có ${q(g.sig)} (thời điểm đã qua, rõ ràng) nên không dùng ${q(W)} (hiện tại hoàn thành).`, hint: 'yesterday / last … / … ago → quá khứ đơn (V2 / V-ed).', ans: `${W} → ${g.fix}` };
+    case 'need-pp': return { msg: `Có ${q(g.sig)} nên phải dùng hiện tại hoàn thành, không dùng ${q(W)}.`, hint: 'Hiện tại hoàn thành: have / has + V3. I have eaten, she has gone.', ans: `${W} → ${g.fix}` };
+    case 'past-and': return { msg: `Hai việc đều đã xảy ra mà ${q(W)} chưa chia quá khứ.`, hint: 'Các động từ nối bằng and / then cùng chia quá khứ: went home and ate dinner.', ans: `${W} → ${g.fix}` };
+    case 'have': return { msg: `${q(g.subj)} phải đi với ${q(g.fix)}, không dùng ${q(W)}.`, hint: 'I / you / we / they → have · he / she / it → has', ans: `${W} → ${g.fix}` };
+    case 'pp-form': return { msg: `Sau ${q(g.aux)} phải là V3 (quá khứ phân từ), mà bạn lại viết ${q(W)}.`, hint: 'have / has + V3: eaten, gone, done, written, played…', ans: `${W} → ${g.fix}` };
+    case 'irr': return { msg: `${q(W)} là động từ bất quy tắc, quá khứ không thêm -ed.`, hint: 'go → went, eat → ate, buy → bought, make → made…', ans: `${W} → ${g.fix}` };
+    case 'be-past': return { msg: `${q(g.subj)} không đi với ${q(W)}.`, hint: 'I / he / she / it → was · you / we / they → were', ans: `${W} → ${g.fix}` };
+    case 'was-base': return { msg: `Câu có cả ${q(g.be)} lẫn động từ ${q(W)}.`, hint: `Quá khứ đơn: bỏ “${esc(g.be)}”, chỉ dùng V2 / V-ed.`, ans: `${g.be} ${W} → ${g.fix}` };
+    case 'did-past': return { msg: `Sau ${q(g.aux)} động từ phải để nguyên mẫu, mà bạn lại viết ${q(W)}.`, hint: `${esc(g.aux)} + động từ nguyên mẫu: didn't go, didn't eat.`, ans: `${W} → ${g.fix}` };
+    case 'manual': return { msg: 'Cô/thầy phát hiện câu này còn lỗi. Cả lớp cùng tìm lỗi và sửa nhé.', hint: 'Kiểm tra: chủ ngữ – động từ (-s/-es), a / an / the, số nhiều (-s), giới từ (at / in / on), chính tả.', ans: '' };
+    case 'nosubj': return { msg: 'Câu thiếu chủ ngữ.', hint: `Thêm I / he / she trước ${q(W)}.`, ans: `→ I ${W} …` };
   }
-  return { msg: 'There is a grammar mistake,' + tail + VS('Có lỗi ngữ pháp' + tailVi), hint: '', ans: '' };
+  return { msg: 'Có lỗi ngữ pháp.', hint: '', ans: '' };
 }
 
 /* ================= activity detection ================= */
@@ -905,34 +927,30 @@ function wrapText(text, n) {
   if (cur) lines.push(cur);
   return lines.slice(0, 4);
 }
-function bubble(x, y, text, { tail = 'left', size = 34, delay = 0, max = 22, think = false, sub = '' } = {}) {
+function bubble(x, y, text, { tail = 'left', size = 34, delay = 0, max = 22, think = false } = {}) {
   const lines = wrapText(text, max);
-  const ss = Math.round(size * 0.68), subs = sub ? wrapText(sub, Math.round(max * 1.3)) : [];
-  const longest = Math.max(...lines.map(l => l.length), 4), longSub = Math.max(0, ...subs.map(l => l.length));
-  const w = Math.min(680, Math.max(150, longest * size * 0.55 + 56, longSub * ss * 0.55 + 56));
-  const h = lines.length * size * 1.22 + (subs.length ? subs.length * ss * 1.22 + 6 : 0) + 34;
+  const longest = Math.max(...lines.map(l => l.length), 4);
+  const w = Math.min(620, Math.max(150, longest * size * 0.55 + 56));
+  const h = lines.length * size * 1.22 + 34;
+  x = Math.max(14, Math.min(1586 - w, x)); // keep it on screen
   const tx = tail === 'left' ? 46 : w - 46;
   const tailP = think
     ? `<circle cx="${tx}" cy="${h + 22}" r="12" fill="#fff" ${SW3}/><circle cx="${tx + (tail === 'left' ? -18 : 18)}" cy="${h + 48}" r="8" fill="#fff" ${SW3}/>`
     : `<path d="M${tx - 18},${h - 3} L${tx + (tail === 'left' ? -22 : 22)},${h + 36} L${tx + 18},${h - 3}" fill="#fff" ${SW3}/><path d="M${tx - 15},${h - 4} L${tx + 15},${h - 4}" stroke="#fff" stroke-width="6"/>`;
-  const y0 = 17 + lines.length * size * 1.22 + 6;
-  const txt = lines.map((l, i) => `<tspan x="${w / 2}" y="${(17 + size * 0.95 + i * size * 1.22).toFixed(1)}">${esc(l)}</tspan>`).join('')
-    + subs.map((l, i) => `<tspan x="${w / 2}" y="${(y0 + ss * 0.95 + i * ss * 1.22).toFixed(1)}" font-size="${ss}" fill="#8a7466" font-family="Nunito" font-weight="800">${esc(l)}</tspan>`).join('');
+  const txt = lines.map((l, i) => `<tspan x="${w / 2}" y="${(17 + size * 0.95 + i * size * 1.22).toFixed(1)}">${esc(l)}</tspan>`).join('');
   return T(x, y, A('a-appear', `<rect width="${w}" height="${h}" rx="28" fill="#fff" ${SW3}/>${tailP}<text text-anchor="middle" font-size="${size}" fill="${INK}">${txt}</text>`, D(delay) + ';transform-origin:50% 100%'));
 }
 function tag(x, y, text, size = 26) {
   const w = text.length * size * 0.55 + 40;
   return T(x, y, `<rect x="${-w / 2}" y="0" width="${w}" height="${size + 20}" rx="${(size + 20) / 2}" fill="#fff" ${SW3}/><text x="0" y="${((size + 20) / 2 + size * 0.36).toFixed(1)}" text-anchor="middle" font-size="${size}" fill="${INK}">${esc(text)}</text>`);
 }
-function bigText(x, y, text, size = 72, fill = '#fff', cls = 'a-pop', delay = 0, sub = '') {
-  const ss = Math.round(size * 0.42);
-  return T(x, y, A(cls, `<text text-anchor="middle" font-size="${size}" fill="${fill}" stroke="${INK}" stroke-width="${size / 9}" paint-order="stroke" stroke-linejoin="round">${esc(text)}</text>`
-    + (sub ? `<text y="${Math.round(size * 0.5 + 6)}" text-anchor="middle" font-size="${ss}" fill="#fff" stroke="${INK}" stroke-width="${ss / 5}" paint-order="stroke" stroke-linejoin="round" font-family="Nunito" font-weight="900">${esc(sub)}</text>` : ''), D(delay)));
+function bigText(x, y, text, size = 72, fill = '#fff', cls = 'a-pop', delay = 0) {
+  return T(x, y, A(cls, `<text text-anchor="middle" font-size="${size}" fill="${fill}" stroke="${INK}" stroke-width="${size / 9}" paint-order="stroke" stroke-linejoin="round">${esc(text)}</text>`, D(delay)));
 }
 
 /* ---- the cat ---- */
 function cat(o = {}) {
-  const { eyes = 'dot', mouth = 'w', arms = 'down', hat = '', prop = '', first = '', anim = 'a-bob', color = '#bfb7b3', stripes = false, tie = false, backpack = false, gown = false } = o;
+  const { eyes = 'dot', mouth = 'w', arms = 'down', hat = '', prop = '', first = '', anim = 'a-bob', color = '#f5b05c', stripes = !o.pal, tie = false, backpack = false, gown = false } = o;
   const C = color, P = '#f6aaa4';
   const ear = `<path d="M-86,-160 Q-96,-236 -78,-250 Q-66,-256 -24,-212 Z" fill="${C}" ${SW}/><path d="M-74,-186 Q-80,-226 -72,-234 Q-62,-234 -42,-212 Z" fill="${P}"/>`;
   const ears = ear + `<g transform="scale(-1 1)">${ear}</g>`;
@@ -974,20 +992,25 @@ function cat(o = {}) {
   const eyesMain = first ? `<g class="e-first">${EY[first]}</g><g class="e-second">${EY[eyes]}</g>` : EY[eyes];
   const shock = `<circle cx="-38" cy="-152" r="16" fill="#fff" ${SW3}/><circle cx="38" cy="-152" r="16" fill="#fff" ${SW3}/><circle cx="-38" cy="-149" r="5.5" fill="${INK}"/><circle cx="38" cy="-149" r="5.5" fill="${INK}"/><ellipse cx="0" cy="-118" rx="9" ry="12" fill="#c4544b" ${SW3}/><path d="M80,-206 q9,15 0,22 q-9,-7 0,-22z" fill="#9fd6ff" ${SW3}/>`;
   const gownS = gown ? `<path d="M-66,-100 C-84,-56 -82,-2 -46,2 L46,2 C82,-2 84,-56 66,-100 Q0,-84 -66,-100Z" fill="#2e3550" ${SW}/><path d="M-28,-96 L0,-58 L28,-96" fill="none" stroke="#f4b04a" stroke-width="8" stroke-linecap="round"/>` : '';
+  const dizzy = `<path d="M-52,-164 l26,26 M-26,-164 l-26,26 M26,-164 l26,26 M52,-164 l-26,26" stroke="${INK}" stroke-width="8" stroke-linecap="round"/><path d="M-16,-120 q8,-9 16,0 q8,9 16,0" fill="none" ${SW3}/>`;
+  const star = (x, y) => `<path transform="translate(${x} ${y})" d="M0,-20 L6,-6 L21,-6 L9,4 L13,19 L0,10 L-13,19 L-9,4 L-21,-6 L-6,-6Z" fill="#ffe14d" ${SW3}/>`;
+  const stars = `<g transform="translate(0 -250)"><g class="a-orbit">${star(-70, 0)}${star(35, -40)}${star(35, 40)}</g></g>`;
   const inner = bp + tail + body + gownS + straps + tieS + feet + ears + head + stripeS + blush
-    + `<g class="eyes-main">${eyesMain}${MO[mouth] || MO.w}</g><g class="eyes-shock">${shock}</g>`
-    + (HAT[hat] || '') + armsS + prop;
-  return `<g class="cat">${A('shaker', A(anim, inner))}</g>`;
+    + `<g class="eyes-main">${eyesMain}${MO[mouth] || MO.w}</g><g class="eyes-shock">${shock}</g><g class="eyes-dizzy">${dizzy}</g>`
+    + (HAT[hat] || '') + armsS + prop + `<g class="dizzy-stars">${stars}</g>`;
+  const peel = `<g class="trip-prop"><g transform="translate(70 -8)"><path d="M-40,8 Q-30,-30 0,-34 Q30,-30 40,8 Q22,-6 12,-2 Q0,-16 -12,-2 Q-22,-6 -40,8Z" fill="#ffd84d" ${SW3}/><path d="M-6,-34 q4,-14 12,-16" fill="none" stroke="#8a6a2a" stroke-width="6" stroke-linecap="round"/></g></g>`;
+  if (o.pal) return `<g class="pal">${A(anim, inner)}</g>`; // a cat companion (mom, dad…): not the hero, so no trip / faint / split-screen loop
+  return `<g class="cat">${peel}${A('shaker', A(anim, inner))}</g>`;
 }
 
 /* ---- friends ---- */
 const FRIENDS = [
-  { k: 'dog', sp: 'a dog', name: 'Cat' },
-  { k: 'mouse', sp: 'a mouse', name: 'Elephant' },
-  { k: 'elephant', sp: 'an elephant', name: 'Mouse' },
-  { k: 'pig', sp: 'a pig', name: 'Chicken' },
-  { k: 'frog', sp: 'a frog', name: 'Tiger' },
-  { k: 'duck', sp: 'a duck', name: 'Shark' }
+  { k: 'dog', sp: 'chú chó', name: 'Mèo' },
+  { k: 'mouse', sp: 'chú chuột', name: 'Voi' },
+  { k: 'elephant', sp: 'chú voi', name: 'Chuột' },
+  { k: 'pig', sp: 'bạn heo', name: 'Gà' },
+  { k: 'frog', sp: 'bạn ếch', name: 'Hổ' },
+  { k: 'duck', sp: 'bạn vịt', name: 'Cá Mập' }
 ];
 function friendSvg(k) {
   const eyes = (y = -150, dx = 26) => `<circle cx="${-dx}" cy="${y}" r="8" fill="${INK}"/><circle cx="${dx}" cy="${y}" r="8" fill="${INK}"/><circle cx="${-dx + 3}" cy="${y - 3}" r="2.5" fill="#fff"/><circle cx="${dx + 3}" cy="${y - 3}" r="2.5" fill="#fff"/>`;
@@ -1006,8 +1029,86 @@ function friendSvg(k) {
   return '';
 }
 function friendFig(f, x, y, s = 1, cls = 'a-appear', delay = 1.2, label = null) {
-  return `<g transform="translate(${x} ${y})">${A(cls, T(0, 0, A('a-bob', friendArt(f)), s) + tag(0, 18, f.e ? f.name : (label || `${f.sp} named ${f.name}`)), D(delay))}</g>`;
+  return `<g transform="translate(${x} ${y})">${A(cls, T(0, 0, A('a-bob', friendArt(f)), s) + tag(0, y > 830 ? -Math.round(270 * s) - 50 : 18, f.e ? f.name : (label || `${f.sp} tên ${f.name}`)), D(delay))}</g>`;
 }
+
+/* ---- companions (mom, friends, pets…): always drawn, never an emoji ---- */
+function critter(o) {
+  const { col, belly = '#fff', ears = 'round', earIn = '#f3c3cd', earCol = col, mane = '', stripes = false, spots = false, horns = '', muzzle = '', patches = false, cheeks = false, horn = false } = o;
+  const body = `<path d="M-52,-92 C-64,-40 -48,-6 -28,-6 L28,-6 C48,-6 64,-40 52,-92Z" fill="${col}" ${SW}/><ellipse cx="0" cy="-44" rx="26" ry="24" fill="${belly}" opacity=".6"/><ellipse cx="-24" cy="-6" rx="19" ry="10" fill="${col}" ${SW}/><ellipse cx="24" cy="-6" rx="19" ry="10" fill="${col}" ${SW}/>`;
+  const E = {
+    round: `<circle cx="-56" cy="-198" r="24" fill="${earCol}" ${SW}/><circle cx="-56" cy="-198" r="12" fill="${earIn}"/><circle cx="56" cy="-198" r="24" fill="${earCol}" ${SW}/><circle cx="56" cy="-198" r="12" fill="${earIn}"/>`,
+    small: `<circle cx="-50" cy="-196" r="17" fill="${earCol}" ${SW}/><circle cx="50" cy="-196" r="17" fill="${earCol}" ${SW}/>`,
+    side: `<circle cx="-78" cy="-150" r="26" fill="${earCol}" ${SW}/><circle cx="-78" cy="-150" r="13" fill="${earIn}"/><circle cx="78" cy="-150" r="26" fill="${earCol}" ${SW}/><circle cx="78" cy="-150" r="13" fill="${earIn}"/>`,
+    pointy: `<path d="M-64,-180 L-62,-236 L-22,-206Z M64,-180 L62,-236 L22,-206Z" fill="${earCol}" ${SW}/>`,
+    floppy: `<path d="M-66,-190 C-104,-176 -96,-120 -76,-120 C-66,-140 -60,-170 -54,-192Z M66,-190 C104,-176 96,-120 76,-120 C66,-140 60,-170 54,-192Z" fill="${earCol}" ${SW}/>`
+  };
+  const face = (o.face || `<ellipse cx="0" cy="-150" rx="74" ry="64" fill="${col}" ${SW}/>`);
+  const eyes = `<circle cx="-27" cy="-156" r="8" fill="${INK}"/><circle cx="27" cy="-156" r="8" fill="${INK}"/><circle cx="-24" cy="-159" r="2.5" fill="#fff"/><circle cx="30" cy="-159" r="2.5" fill="#fff"/>`;
+  return body
+    + (mane ? `<circle cx="0" cy="-150" r="102" fill="${mane}" ${SW}/>` + Array.from({ length: 12 }, (_, i) => { const a = i * Math.PI / 6; return `<circle cx="${(Math.cos(a) * 96).toFixed(0)}" cy="${(-150 + Math.sin(a) * 96).toFixed(0)}" r="22" fill="${mane}" ${SW3}/>`; }).join('') : '')
+    + (horns ? `<path d="M-46,-196 Q-70,-230 -50,-246 Q-44,-222 -28,-208Z M46,-196 Q70,-230 50,-246 Q44,-222 28,-208Z" fill="${horns}" ${SW3}/>` : '')
+    + (E[ears] || '') + face
+    + (horn ? `<path d="M-12,-208 L0,-280 L12,-208Z" fill="#ffd84d" ${SW3}/><path d="M-8,-226 L8,-232 M-5,-248 L6,-252" stroke="#e0a82e" stroke-width="4"/>` : '')
+    + (stripes ? `<path d="M-14,-212 L-8,-186 M0,-214 L0,-182 M14,-212 L8,-186 M-72,-160 L-50,-156 M-70,-140 L-50,-142 M72,-160 L50,-156 M70,-140 L50,-142" stroke="${INK}" stroke-width="7" stroke-linecap="round"/>` : '')
+    + (spots ? `<ellipse cx="-40" cy="-186" rx="20" ry="14" fill="${INK}"/><ellipse cx="46" cy="-120" rx="14" ry="11" fill="${INK}"/><ellipse cx="-30" cy="-50" rx="12" ry="10" fill="${INK}"/>` : '')
+    + (patches ? `<ellipse cx="-28" cy="-154" rx="20" ry="24" fill="${INK}" transform="rotate(20 -28 -154)"/><ellipse cx="28" cy="-154" rx="20" ry="24" fill="${INK}" transform="rotate(-20 28 -154)"/><circle cx="-26" cy="-158" r="5" fill="#fff"/><circle cx="30" cy="-158" r="5" fill="#fff"/>` : eyes)
+    + (muzzle ? `<ellipse cx="0" cy="-118" rx="34" ry="24" fill="${muzzle}" ${SW3}/>` : '')
+    + `<ellipse cx="0" cy="-${muzzle ? 128 : 130}" rx="10" ry="7" fill="${INK}"/><path d="M-10,-114 Q0,-104 10,-114" fill="none" ${SW3}/>`
+    + (cheeks ? `<circle cx="-50" cy="-120" r="20" fill="#ffd9a8" ${SW3}/><circle cx="50" cy="-120" r="20" fill="#ffd9a8" ${SW3}/>` : `<ellipse cx="-50" cy="-124" rx="10" ry="6" fill="#f4a08c" opacity=".7"/><ellipse cx="50" cy="-124" rx="10" ry="6" fill="#f4a08c" opacity=".7"/>`);
+}
+const birdie = () => `<path d="M-30,-10 L-30,0 M30,-10 L30,0" stroke="#f2b24a" stroke-width="8" stroke-linecap="round"/><ellipse cx="0" cy="-80" rx="70" ry="74" fill="#8fd0f0" ${SW}/><ellipse cx="0" cy="-56" rx="42" ry="38" fill="#fff" opacity=".6"/>`
+  + `<path d="M-66,-90 Q-110,-60 -70,-30Z M66,-90 Q110,-60 70,-30Z" fill="#6fb6db" ${SW3}/><path d="M-10,-156 q4,-30 20,-34 q-4,14 6,24" fill="#6fb6db" ${SW3}/>`
+  + `<circle cx="-24" cy="-100" r="8" fill="${INK}"/><circle cx="24" cy="-100" r="8" fill="${INK}"/><path d="M-14,-86 L0,-66 L14,-86Z" fill="#f2b24a" ${SW3}/>`;
+const snakeArt = () => `<path d="M-90,-20 C-90,-60 40,-40 40,-80 C40,-120 -60,-100 -60,-150 C-60,-200 40,-210 50,-170" fill="none" stroke="${INK}" stroke-width="44" stroke-linecap="round"/><path d="M-90,-20 C-90,-60 40,-40 40,-80 C40,-120 -60,-100 -60,-150 C-60,-200 40,-210 50,-170" fill="none" stroke="#93d28c" stroke-width="34" stroke-linecap="round"/>`
+  + `<ellipse cx="56" cy="-176" rx="44" ry="34" fill="#93d28c" ${SW}/><circle cx="46" cy="-188" r="7" fill="${INK}"/><circle cx="74" cy="-188" r="7" fill="${INK}"/><path d="M96,-168 l24,4 m-24,-4 l22,-10" stroke="#e2463c" stroke-width="5" stroke-linecap="round"/>`;
+// accessories drawn on top of a cat (cat coordinates: head centre 0,-150, top of head -222)
+const ACC = {
+  bow: `<g transform="translate(52 -214) rotate(15)"><path d="M0,0 L-34,-22 L-34,22Z M0,0 L34,-22 L34,22Z" fill="#f06a9a" ${SW3}/><circle r="10" fill="#f06a9a" ${SW3}/></g>`,
+  cap: `<path d="M-80,-196 C-80,-262 80,-262 80,-196Z" fill="#5b8def" ${SW3}/><path d="M60,-200 L140,-196 Q132,-182 60,-186Z" fill="#5b8def" ${SW3}/>`,
+  bun: `<circle cx="0" cy="-236" r="30" fill="#e8e4e2" ${SW3}/>`,
+  mustache: `<path d="M0,-118 C-20,-132 -50,-122 -56,-104 C-36,-112 -20,-108 0,-112 C20,-108 36,-112 56,-104 C50,-122 20,-132 0,-118Z" fill="#fff" ${SW3}/>`,
+  cane: `<path d="M84,-4 L84,-110 Q84,-140 110,-136" fill="none" stroke="#a8744a" stroke-width="10" stroke-linecap="round"/>`,
+  pacifier: `<circle cx="0" cy="-118" r="13" fill="#9fd6ff" ${SW3}/><ellipse cx="0" cy="-118" rx="24" ry="8" fill="#f6aaa4" ${SW3}/>`,
+  heart: `<g class="a-pulse"><path d="M0,-252 C-14,-276 -46,-266 -40,-240 C-36,-224 -12,-210 0,-200 C12,-210 36,-224 40,-240 C46,-266 14,-276 0,-252Z" fill="#e2463c" ${SW3}/></g>`,
+  nurse: `<path d="M-60,-206 L-54,-240 L54,-240 L60,-206 Q0,-218 -60,-206Z" fill="#fff" ${SW3}/><path d="M0,-236 V-212 M-12,-224 H12" stroke="#e2463c" stroke-width="6" stroke-linecap="round"/><path d="M-30,-94 C-24,-60 24,-60 30,-94" fill="none" stroke="#9aa7ad" stroke-width="6"/><circle cx="30" cy="-66" r="10" fill="#9aa7ad" ${SW3}/>`,
+  police: `<path d="M-74,-196 L-82,-238 Q0,-276 82,-238 L74,-196Z" fill="#2e3550" ${SW3}/><rect x="-78" y="-208" width="156" height="16" rx="6" fill="#1d2238" ${SW3}/><circle cx="0" cy="-236" r="12" fill="#ffd84d" ${SW3}/>`,
+  tie: `<path d="M0,-92 L-13,-82 L0,-75 L13,-82Z M0,-75 L-13,-34 L0,-20 L13,-34Z" fill="#e2726a" ${SW3}/>`,
+  santa: `<path d="M-90,-196 C-80,-280 40,-290 96,-250 L110,-206Z" fill="#e2463c" ${SW3}/><circle cx="104" cy="-246" r="18" fill="#fff" ${SW3}/><rect x="-96" y="-212" width="200" height="30" rx="15" fill="#fff" ${SW3}/><path d="M-70,-126 C-70,-40 70,-40 70,-126 Q40,-104 0,-108 Q-40,-104 -70,-126Z" fill="#fff" ${SW3}/>`,
+  mic: `<g transform="translate(64 -96) rotate(20)"><rect x="-8" y="0" width="16" height="56" rx="6" fill="#555" ${SW3}/><circle cy="-6" r="20" fill="#9aa7ad" ${SW3}/></g>`
+};
+const famCat = (o, acc = []) => cat(Object.assign({ anim: 'a-none', eyes: 'happy', mouth: 'w', pal: true }, o, { prop: acc.map(a => ACC[a]).join('') + (o.prop || '') }));
+const COMP_ART = {
+  'chó cưng': () => friendSvg('dog'), 'bạn mèo': () => cat({ color: '#bfb7b3', stripes: true, anim: 'a-none', pal: true }), 'chim': birdie, 'thỏ': () => friendSvg('rabbit'),
+  'hamster': () => critter({ col: '#f4c27a', ears: 'small', cheeks: true }), 'chuột': () => friendSvg('mouse'), 'heo': () => friendSvg('pig'),
+  'bò': () => critter({ col: '#fff', ears: 'side', earIn: '#f6b6c3', horns: '#f4e0b8', spots: true, muzzle: '#f6b6c3', belly: '#fff' }),
+  'ngựa': () => critter({ col: '#c08657', ears: 'pointy', muzzle: '#e9c49b', mane: '' }) + `<path d="M-30,-214 Q0,-236 30,-214 Q20,-196 0,-200 Q-20,-196 -30,-214Z" fill="#6b4226" ${SW3}/>`,
+  'vịt': () => friendSvg('duck'), 'voi': () => friendSvg('elephant'),
+  'khỉ': () => critter({ col: '#a8744a', ears: 'side', earIn: '#f1d2b0', muzzle: '#f1d2b0' }),
+  'hổ': () => critter({ col: '#f4a340', ears: 'pointy', stripes: true, muzzle: '#fff' }),
+  'sư tử': () => critter({ col: '#f4c060', ears: 'small', mane: '#c97a2a', muzzle: '#fff3d6' }),
+  'gấu trúc': () => critter({ col: '#fff', ears: 'round', earCol: INK, earIn: INK, patches: true }),
+  'gấu': () => critter({ col: '#b07a52', ears: 'round', earIn: '#e9c49b', muzzle: '#e9c49b' }),
+  'ếch': () => friendSvg('frog'), 'rắn': snakeArt,
+  'kỳ lân': () => critter({ col: '#fff', ears: 'pointy', horn: true, muzzle: '#fde6f0', mane: '' }) + `<path d="M40,-210 Q80,-200 76,-150 Q100,-120 80,-96" fill="none" stroke="#f06a9a" stroke-width="14" stroke-linecap="round"/>`,
+  'con ma': () => T(0, -90, ghost('g'), 1.6), 'người ngoài hành tinh': () => T(0, -60, ghost('a'), 1.5), 'quái vật': () => T(0, -80, ghost('b'), 1.4),
+  'mẹ': () => famCat({ color: '#d9c7bd' }, ['bow']), 'vợ': () => famCat({ color: '#d9c7bd' }, ['bow']), 'cô/dì': () => famCat({ color: '#e6cfc0' }, ['bow']),
+  'bố': () => famCat({ color: '#9e9590', hat: 'glasses', tie: true }), 'chồng': () => famCat({ color: '#9e9590', tie: true }), 'chú/bác': () => famCat({ color: '#a8a09b' }, ['cap']),
+  'chị/em gái': () => T(0, 0, famCat({ color: '#e8d5cb' }, ['bow']), .8), 'anh/em trai': () => T(0, 0, famCat({ color: '#c9c1bd' }, ['cap']), .8),
+  'anh chị em họ': () => T(0, 0, famCat({ color: '#c9c1bd', stripes: true }), .8),
+  'bà': () => famCat({ color: '#e1dcd9', hat: 'glasses' }, ['bun']), 'ông': () => famCat({ color: '#d2ccc8', hat: 'glasses' }, ['mustache', 'cane']),
+  'em bé': () => T(0, 0, famCat({ color: '#f0e6e0', eyes: 'sleep' }, ['pacifier']), .6),
+  'bạn bè': () => T(-70, 0, friendSvg('dog'), .8) + T(70, 0, friendSvg('pig'), .8),
+  'thầy cô': () => friendSvg('owl'),
+  'cả nhà': () => T(-90, 0, famCat({ color: '#d9c7bd' }, ['bow']), .75) + T(90, 0, famCat({ color: '#9e9590', hat: 'glasses', tie: true }), .75),
+  'người yêu': () => famCat({ color: '#fff2ec', eyes: 'happy' }, ['heart']),
+  'bác sĩ': () => famCat({ color: '#fff2ec' }, ['nurse']), 'chú công an': () => friendSvg('dog') + ACC.police,
+  'sếp': () => friendSvg('elephant') + ACC.tie, 'hàng xóm': () => friendSvg('pig'),
+  'ông già Noel': () => famCat({ color: '#e1dcd9' }, ['santa']), 'thần tượng': () => famCat({ color: '#c9c1bd', hat: 'sunglasses', mouth: 'open' }, ['mic'])
+};
+const COMP_EN = { 'chó cưng': 'dog', 'bạn mèo': 'cat', 'chim': 'bird', 'thỏ': 'rabbit', 'hamster': 'hamster', 'chuột': 'mouse', 'heo': 'pig', 'bò': 'cow', 'ngựa': 'horse', 'vịt': 'duck', 'voi': 'elephant', 'khỉ': 'monkey', 'hổ': 'tiger', 'sư tử': 'lion', 'gấu trúc': 'panda', 'gấu': 'bear', 'ếch': 'frog', 'rắn': 'snake', 'kỳ lân': 'unicorn', 'con ma': 'ghost', 'người ngoài hành tinh': 'alien', 'quái vật': 'monster', 'mẹ': 'mom', 'bố': 'dad', 'chị/em gái': 'sister', 'anh/em trai': 'brother', 'bà': 'grandma', 'ông': 'grandpa', 'em bé': 'baby', 'bạn bè': 'friends', 'thầy cô': 'teacher', 'cả nhà': 'family', 'người yêu': 'crush', 'bác sĩ': 'doctor', 'chú công an': 'police', 'sếp': 'boss', 'hàng xóm': 'neighbour', 'vợ': 'wife', 'chồng': 'husband', 'chú/bác': 'uncle', 'cô/dì': 'aunt', 'anh chị em họ': 'cousin', 'ông già Noel': 'Santa', 'thần tượng': 'idol' };
+const compName = comp => COMP_EN[comp && comp.vn] || (comp && comp.vn) || '';
+const compArt = comp => (COMP_ART[comp && comp.vn] || (() => friendSvg('rabbit')))();
 
 /* ---- props ---- */
 const taiyaki = () => `<path d="M-62,0 C-46,-34 26,-38 44,-8 L74,-30 Q84,-30 80,-18 L70,0 L80,18 Q84,30 74,30 L44,8 C26,38 -46,34 -62,0Z" fill="#f4b04a" ${SW3}/><circle cx="-38" cy="-6" r="4.5" fill="${INK}"/><path d="M-12,-14 q8,8 0,16 M6,-16 q8,9 0,18 M24,-14 q7,8 0,14" fill="none" stroke="#c9822a" stroke-width="3.5" stroke-linecap="round"/>`;
@@ -1097,7 +1198,7 @@ SC.wakeup = c => room(c, { wall: '#ffeedd' })
   + A('a-zfade', zzz(420, 420))
   + T(1290, 610, `<rect x="0" y="0" width="170" height="170" rx="14" fill="#d39b6a" ${SW}/><rect x="20" y="40" width="130" height="40" rx="10" fill="#c08657" ${SW3}/>`)
   + T(1375, 600, A('a-ring', `<circle cx="-32" cy="-96" r="18" fill="#f4b04a" ${SW3}/><circle cx="32" cy="-96" r="18" fill="#f4b04a" ${SW3}/><circle cx="0" cy="-50" r="52" fill="#e2726a" ${SW}/><circle cx="0" cy="-50" r="38" fill="#fff" ${SW3}/><path d="M0,-50 V-76 M0,-50 L16,-42" ${SW3}/><path d="M-30,-6 l-10,10 M30,-6 l10,10" ${SW}/>`))
-  + bigText(1375, 470, 'RING RING!', 52, '#ffe14d', 'a-blink', 0, 'Reng reng!');
+  + bigText(1375, 470, 'RENG RENG!', 52, '#ffe14d', 'a-blink');
 
 SC.brush = c => `<rect width="1600" height="720" fill="url(#tiles)"/><rect y="700" width="1600" height="200" fill="#bfe0e8"/>`
   + T(800, 250, `<ellipse rx="160" ry="180" fill="#eaf8ff" stroke="#d39b6a" stroke-width="16"/><path d="M-90,-80 L-50,-120 M-70,-30 L10,-110" stroke="#fff" stroke-width="12" stroke-linecap="round"/>`)
@@ -1120,7 +1221,7 @@ SC.eat = c => room(c, { wall: '#fff1dc', clockX: 300 })
   + T(800, 690, `<rect x="-470" y="0" width="940" height="44" rx="14" fill="#d39b6a" ${SW}/><rect x="-430" y="44" width="34" height="170" fill="#c08657" ${SW}/><rect x="396" y="44" width="34" height="170" fill="#c08657" ${SW}/>`)
   + T(520, 684, `<ellipse rx="120" ry="24" fill="#fff" ${SW}/>` + (c.food ? emoText(c.food.e, 90, ' y="-40"') : T(0, -22, taiyaki(), .95)))
   + T(1080, 684, `<path d="M-74,-50 Q0,-40 74,-50 Q70,10 0,10 Q-70,10 -74,-50Z" fill="#7ec8e3" ${SW}/><path d="M-70,-50 Q-40,-90 0,-84 Q40,-92 70,-50Z" fill="#fff" ${SW3}/><path d="M40,-80 L90,-140 M54,-76 L104,-132" stroke="#c08657" stroke-width="8" stroke-linecap="round"/>`)
-  + bigText(1180, 470, 'Nom nom!', 70, '#ffe14d', 'a-float', 0, 'Măm măm!')
+  + bigText(1180, 470, 'Nom nom!', 70, '#ffe14d', 'a-float')
   + [[700, 600, 0], [900, 610, .7], [760, 640, 1.3]].map(([x, y, d]) => T(x, y, A('a-rise', `<circle r="6" fill="#f4b04a"/>`, D(d)))).join('');
 
 SC.cook = c => `<rect width="1600" height="720" fill="#fff4e4"/><rect width="1600" height="440" fill="url(#tiles)" opacity=".55"/>`
@@ -1131,24 +1232,24 @@ SC.cook = c => `<rect width="1600" height="720" fill="#fff4e4"/><rect width="160
   + T(1000, 560, `<path d="M-130,-20 Q-130,26 -90,30 L90,30 Q130,26 130,-20Z" fill="#555" ${SW}/><path d="M130,-6 L260,-30" stroke="${INK}" stroke-width="22" stroke-linecap="round"/><path d="M130,-6 L260,-30" stroke="#333" stroke-width="14" stroke-linecap="round"/>` + (c.food ? emoText(c.food.e, 80, ' y="-46"') : `<ellipse cx="0" cy="-22" rx="56" ry="20" fill="#fff" ${SW3}/><circle cx="6" cy="-24" r="16" fill="#ffc53d" ${SW3}/>`))
   + [[960, 500, 0], [1010, 490, .6], [1050, 506, 1.2]].map(([x, y, d]) => T(x, y, A('a-rise', `<circle r="22" fill="#fff" opacity=".85"/>`, D(d)))).join('')
   + T(640, 800, A('a-sway', cat({ hat: 'chef', arms: 'up', eyes: 'dot', mouth: 'open', anim: 'a-none', prop: P_.spatula })), 1.1)
-  + (c.rnd < .5 ? T(1000, 540, A('a-flicker', `<path d="M-120,0 Q-110,-130 -60,-90 Q-50,-200 0,-130 Q40,-230 70,-110 Q120,-150 120,0Z" fill="#ff6a3d" opacity=".9"/><path d="M-60,0 Q-50,-80 0,-60 Q50,-110 60,0Z" fill="#ffe14d"/>`)) + bigText(1000, 300, 'Oops, it’s burning!', 64, '#ff8a5b', 'a-blink', 0, 'Ối, cháy rồi!') : bigText(1150, 330, 'Smells yummy!', 60, '#ffe14d', 'a-float', 0, 'Thơm quá!'));
+  + (c.rnd < .5 ? T(1000, 540, A('a-flicker', `<path d="M-120,0 Q-110,-130 -60,-90 Q-50,-200 0,-130 Q40,-230 70,-110 Q120,-150 120,0Z" fill="#ff6a3d" opacity=".9"/><path d="M-60,0 Q-50,-80 0,-60 Q50,-110 60,0Z" fill="#ffe14d"/>`)) + bigText(1000, 300, 'Ối, cháy rồi!', 64, '#ff8a5b', 'a-blink') : bigText(1150, 330, 'Thơm quá!', 60, '#ffe14d', 'a-float'));
 
 function encounter(c, catX, friendX, line, catLine, opts = {}) {
   const f = c.friend;
   return `<g transform="translate(${catX} 820)">${A('a-walkin', cat({ backpack: !!opts.backpack, anim: 'a-waddle', eyes: 'dot' }))}</g>`
     + friendFig(f, friendX, 820, 1, 'a-appear', 1.4)
-    + bubble(friendX - 60, 430, line, { delay: 2, tail: 'left', sub: opts.lineVi || '' })
-    + bubble(catX - 280, 410, catLine, { delay: 3.3, tail: 'right', size: 40, sub: opts.catVi || '' });
+    + bubble(friendX - 60, 440, line, { delay: 2, tail: 'left' })
+    + bubble(catX - 280, 420, catLine, { delay: 3.3, tail: 'right', size: 40 });
 }
 SC.school = c => outdoor(c)
   + T(1200, 700, `<rect x="-290" y="-390" width="580" height="390" fill="#ffd9a8" ${SW}/><path d="M-330,-390 L0,-530 L330,-390Z" fill="#e2726a" ${SW}/><circle cx="0" cy="-450" r="36" fill="#fff" ${SW3}/><path d="M0,-450 V-472 M0,-450 L14,-444" ${SW3}/><rect x="-160" y="-340" width="320" height="60" rx="14" fill="#fff" ${SW3}/><text x="0" y="-296" text-anchor="middle" font-size="46" fill="${INK}">SCHOOL</text>`
     + [-220, -110, 110, 220].map(x => `<rect x="${x - 40}" y="-250" width="80" height="80" rx="10" fill="#9fd6ff" ${SW3}/>`).join('')
     + `<rect x="-60" y="-140" width="120" height="140" rx="12" fill="#c08657" ${SW}/><path d="M250,-390 V-560" ${SW}/><path d="M250,-560 L320,-540 L250,-518Z" fill="#7cc59a" ${SW3}/>`)
-  + encounter(c, 470, 1000, c.friend.hi || `Hi ${c.cat}! I’m ${c.friend.name}!`, 'Huh?! 😳', { backpack: true, lineVi: c.friend.hi ? c.friend.hiVi : `Chào ${c.cat}! Tớ là ${c.friend.name} nè!`, catVi: 'Hả?!' });
+  + encounter(c, 470, 1000, c.friend.hi || `Chào ${c.cat}! Tớ là ${c.friend.name} nè!`, 'Hả?! 😳', { backpack: true });
 
 SC.walk = c => outdoor(c) + tree(160, 700) + tree(1460, 700, 1.1)
   + T(1230, 760, `<rect x="-110" y="-60" width="220" height="20" rx="8" fill="#c08657" ${SW3}/><rect x="-110" y="-30" width="220" height="20" rx="8" fill="#c08657" ${SW3}/><path d="M-90,-10 V40 M90,-10 V40" ${SW}/>`)
-  + encounter(c, 520, 1000, c.friend.hi || `Hey ${c.cat}! Where are you going?`, 'Just a walk 😺', { lineVi: c.friend.hi ? c.friend.hiVi : `Ê ${c.cat}! Đi đâu đó?`, catVi: 'Đi dạo thôi' });
+  + encounter(c, 520, 1000, c.friend.hi || `Ê ${c.cat}! Đi đâu đó?`, 'Đi dạo thôi 😺');
 
 SC.work = c => room(c, { wall: '#e8eef7', floor: '#b8c3d3', clockX: 300, winX: 640 })
   + T(660, 700, cat({ tie: true, arms: 'up', eyes: 'meh', mouth: 'w', anim: 'a-typing' }), 1.1)
@@ -1157,8 +1258,8 @@ SC.work = c => room(c, { wall: '#e8eef7', floor: '#b8c3d3', clockX: 300, winX: 6
     + [[-120, 60], [-70, 110], [-20, 80], [30, 140], [80, 120]].map(([x, hgt], i) => T(x, -62, A('a-pulse', `<rect x="0" y="${-hgt}" width="34" height="${hgt}" rx="5" fill="${['#f4b04a', '#7cc59a', '#f6aaa4', '#9fd6ff', '#ffe14d'][i]}"/>`, D(i * .15)))).join('')
     + `<text x="0" y="-216" text-anchor="middle" font-size="26" fill="#ff8a8a">DEADLINE!!</text>`)
   + [[420, 360, 0], [1240, 420, .8], [560, 300, 1.5]].map(([x, y, d]) => T(x, y, A('a-float', `<rect x="-34" y="-44" width="68" height="88" rx="6" fill="#fff" ${SW3} transform="rotate(${(d * 30) - 20})"/>`, D(d)))).join('')
-  + friendFig(c.friend, 1400, 820, .95, 'a-appear', 1.2, `Boss: ${c.friend.sp} named ${c.friend.name}`)
-  + bubble(1050, 300, `Deadline is today, ${c.cat}!`, { delay: 1.8, tail: 'right', size: 30, sub: `Hạn chót là hôm nay nha ${c.cat}!` });
+  + friendFig(c.friend, 1400, 820, .95, 'a-appear', 1.2, `Sếp: ${c.friend.sp} tên ${c.friend.name}`)
+  + bubble(1050, 300, `Deadline hôm nay nha ${c.cat}!`, { delay: 1.8, tail: 'right', size: 30 });
 
 SC.study = c => room(c, { wall: '#eef4e4', floor: '#d7b48e' })
   + T(1080, 650, `<circle cx="-30" cy="-180" r="130" fill="url(#glow)" class="a-flicker"/><rect x="-60" y="-14" width="120" height="16" rx="8" fill="#555" ${SW3}/><path d="M0,-14 L-40,-150 L40,-220" fill="none" stroke="${INK}" stroke-width="12" stroke-linecap="round"/><path d="M10,-250 L100,-230 L60,-170Z" fill="#f4b04a" ${SW3}/>`)
@@ -1169,26 +1270,26 @@ SC.study = c => room(c, { wall: '#eef4e4', floor: '#d7b48e' })
   + [['ABC', 360, 330, 0], ['?', 1240, 330, .5], ['x²', 1380, 470, 1], ['???', 520, 230, 1.5]].map(([t, x, y, d]) => T(x, y, A('a-float', `<text text-anchor="middle" font-size="64" fill="#fff" stroke="${INK}" stroke-width="7" paint-order="stroke">${t}</text>`, D(d)))).join('');
 
 function clipLive(c) {
-  const comments = [['Lan', 'I want 1, size M'], ['Huy', 'any left?? 😭'], [c.cat, 'BUY BUY BUY!!!'], ['Minh', 'ship to Hanoi?'], ['Vy', 'so pretty!'], ['An', 'I’ll take 2']];
+  const comments = [['Lan', 'chốt 1 áo size M'], ['Huy', 'shop ơi còn ko 😭'], [c.cat, 'chốt luôn!!!'], ['Minh', 'ship Hà Nội ko shop?'], ['Vy', 'đẹp quá anh ơi'], ['An', 'chốt 2 cái']];
   const list = [...comments, ...comments].map(([n, t], i) => `<g transform="translate(14 ${i * 46})"><rect width="${Math.min(300, (n.length + t.length) * 10 + 40)}" height="38" rx="19" fill="#000" opacity=".28"/><text x="14" y="26" font-size="17" fill="#ffe14d">${esc(n)}</text><text x="${n.length * 10 + 22}" y="26" font-size="17" fill="#fff">${esc(t)}</text></g>`).join('');
   return `<rect width="364" height="784" fill="url(#liveG)"/>`
     + `<rect x="16" y="60" width="72" height="34" rx="8" fill="#ff2d55"/><text x="52" y="84" font-size="22" fill="#fff" text-anchor="middle">LIVE</text><text x="100" y="84" font-size="20" fill="#fff">👁 12,5K</text>`
-    + `<circle cx="40" cy="132" r="22" fill="#f3dfc4" stroke="#fff" stroke-width="3"/><text x="72" y="128" font-size="20" fill="#fff">Shorthair Bro ✔</text><text x="72" y="150" font-size="15" fill="#fff" opacity=".9" font-family="Nunito">sales champion</text>`
+    + `<circle cx="40" cy="132" r="22" fill="#f3dfc4" stroke="#fff" stroke-width="3"/><text x="72" y="128" font-size="20" fill="#fff">Anh Lông Ngắn ✔</text><text x="72" y="150" font-size="15" fill="#fff" opacity=".9" font-family="Nunito">chiến thần chốt đơn</text>`
     + T(182, 548, A('a-sway', cat({ color: '#f3dfc4', eyes: 'happy', mouth: 'open', arms: 'up', anim: 'a-none', prop: P_.shirt + P_.mic })), .92)
-    + T(182, 220, A('a-pulse', `<rect x="-156" y="-38" width="312" height="76" rx="18" fill="#ffe14d" stroke="#d6261f" stroke-width="5"/><text y="17" text-anchor="middle" font-size="46" fill="#d6261f">BUY NOW!!!</text>`))
-    + T(292, 330, `<rect x="-62" y="-26" width="124" height="52" rx="12" fill="#fff" stroke="#d6261f" stroke-width="4" transform="rotate(8)"/><text x="0" y="10" text-anchor="middle" font-size="24" fill="#d6261f" transform="rotate(8)">only 99K</text>`)
+    + T(182, 220, A('a-pulse', `<rect x="-156" y="-38" width="312" height="76" rx="18" fill="#ffe14d" stroke="#d6261f" stroke-width="5"/><text y="17" text-anchor="middle" font-size="46" fill="#d6261f">CHỐT ĐƠN!!!</text>`))
+    + T(292, 330, `<rect x="-62" y="-26" width="124" height="52" rx="12" fill="#fff" stroke="#d6261f" stroke-width="4" transform="rotate(8)"/><text x="0" y="10" text-anchor="middle" font-size="24" fill="#d6261f" transform="rotate(8)">chỉ 99K</text>`)
     + `<svg x="0" y="572" width="364" height="200" viewBox="0 0 364 200">${A('a-scrollup', list)}</svg>`
     + [0, .5, 1, 1.6, 2.1].map((d, i) => T(320, 740, A('a-heart', `<text font-size="34">${['❤️', '💖', '😍', '🔥', '❤️'][i]}</text>`, D(d)))).join('');
 }
 function clipDance(c) {
   return `<rect width="364" height="784" fill="url(#danceG)"/>`
     + T(182, 0, A('a-beams', `<path d="M-20,0 L-180,600 L-60,600Z" fill="#fff59d" opacity=".25"/><path d="M20,0 L180,600 L60,600Z" fill="#9fffe0" opacity=".25"/>`))
-    + `<text x="182" y="88" text-anchor="middle" font-size="18" fill="#fff" opacity=".85" font-family="Nunito">Following  |  <tspan font-weight="900">For You</tspan></text>`
-    + T(170, 610, A('a-dance', cat({ color: '#f2a65a', stripes: true, eyes: 'happy', mouth: 'open', arms: 'wave', anim: 'a-none' })), .95)
+    + `<text x="182" y="88" text-anchor="middle" font-size="18" fill="#fff" opacity=".85" font-family="Nunito">Đang theo dõi  |  <tspan font-weight="900">Dành cho bạn</tspan></text>`
+    + T(170, 610, A('a-dance', cat({ color: '#bfb7b3', stripes: true, eyes: 'happy', mouth: 'open', arms: 'wave', anim: 'a-none', pal: true })), .95)
     + [['♪', 60, 300, 0], ['♫', 300, 240, .7], ['♪', 280, 420, 1.3]].map(([t, x, y, d]) => T(x, y, A('a-float', `<text font-size="44" fill="#fff">${t}</text>`, D(d)))).join('')
     + `<g fill="#fff" font-size="16" text-anchor="middle"><text x="330" y="430" font-size="34">❤️</text><text x="330" y="456">98K</text><text x="330" y="510" font-size="30">💬</text><text x="330" y="534">2.1K</text><text x="330" y="586" font-size="30">↪</text><text x="330" y="608">5K</text></g>`
-    + `<text x="18" y="690" font-size="22" fill="#fff">@tabbycat 💃</text><text x="18" y="718" font-size="16" fill="#fff" font-family="Nunito" font-weight="700">new dance trend #fyp #trend</text>`
-    + `<svg x="0" y="736" width="364" height="40" viewBox="0 0 364 40">${A('a-ticker', `<text x="18" y="26" font-size="16" fill="#fff" font-family="Nunito" font-weight="700">♫ trending sound — Tabby Cat remix   ♫ trending sound — Tabby Cat remix   ♫ trending sound — Tabby Cat remix   ♫ trending sound — Tabby Cat remix</text>`)}</svg>`;
+    + `<text x="18" y="690" font-size="22" fill="#fff">@meomuop 💃</text><text x="18" y="718" font-size="16" fill="#fff" font-family="Nunito" font-weight="700">nhảy trend mới nè #fyp #trend</text>`
+    + `<svg x="0" y="736" width="364" height="40" viewBox="0 0 364 40">${A('a-ticker', `<text x="18" y="26" font-size="16" fill="#fff" font-family="Nunito" font-weight="700">♫ nhạc trend — Mèo Mướp remix   ♫ nhạc trend — Mèo Mướp remix   ♫ nhạc trend — Mèo Mướp remix   ♫ nhạc trend — Mèo Mướp remix</text>`)}</svg>`;
 }
 SC.phone = c => room(c, { wall: '#3d3b6e', floor: '#54476b', night: true, winX: 600, clock: false })
   + T(80, 600, bedFrame(700))
@@ -1196,7 +1297,7 @@ SC.phone = c => room(c, { wall: '#3d3b6e', floor: '#54476b', night: true, winX: 
   + T(330, 690, cat({ arms: 'up', eyes: 'dot', mouth: c.clip === 'live' ? 'open' : 'w', prop: P_.phone }), 1)
   + T(80, 600, blanket(150, 540))
   + T(1020, 40, `<rect x="0" y="0" width="400" height="820" rx="56" fill="#222" ${SW}/><svg x="18" y="18" width="364" height="784" viewBox="0 0 364 784">${c.clip === 'live' ? clipLive(c) : clipDance(c)}</svg><rect x="150" y="28" width="100" height="24" rx="12" fill="#111"/>`)
-  + bigText(330, 300, c.clip === 'live' ? 'Buy! Buy!' : 'Hahaha 😹', 56, '#ffe14d', 'a-float', 0, c.clip === 'live' ? 'Chốt! Chốt!' : '');
+  + bigText(330, 300, c.clip === 'live' ? 'Chốt! Chốt!' : 'Hahaha 😹', 56, '#ffe14d', 'a-float');
 
 SC.tv = c => room(c, { wall: '#fdeee6', floor: '#d6a77f', winX: 1240, clockX: 860 })
   + T(330, 360, `<rect x="-210" y="-150" width="420" height="270" rx="22" fill="#333" ${SW}/><svg x="-188" y="-130" width="376" height="230" viewBox="0 0 376 230"><rect width="376" height="230" fill="#6cc0ff"/><rect y="180" width="376" height="50" fill="#f4d06f"/>${(c.thing || c.food || c.ball || c.vehicle) && (c.thing || c.food || c.ball || c.vehicle).e !== '🎬' ? T(188, 105, A('a-float', emoText((c.thing || c.food || c.ball || c.vehicle).e, 130))) : T(0, 100, A('a-swim', taiyaki())) + T(0, 170, A('a-swim', T(0, 0, taiyaki(), .6)))}<rect width="376" height="230" fill="#fff" opacity=".12" class="a-twinkle"/></svg><rect x="-60" y="120" width="120" height="40" fill="#c08657" ${SW3}/><rect x="-140" y="160" width="280" height="200" rx="14" fill="#d39b6a" ${SW}/>`)
@@ -1226,21 +1327,21 @@ SC.sleep = c => room(c, { wall: '#3d3b6e', floor: '#54476b', night: true, winX: 
 SC.sport = c => outdoor(c, { road: false, ground: '#8fd07a' })
   + `<path d="M0,760 H1600 M800,680 V900" stroke="#fff" stroke-width="8" opacity=".8"/><ellipse cx="800" cy="790" rx="120" ry="40" fill="none" stroke="#fff" stroke-width="8" opacity=".8"/>`
   + T(1400, 800, `<path d="M-130,0 V-260 H130 V0" fill="none" stroke="#fff" stroke-width="16" stroke-linejoin="round"/>` + Array.from({ length: 9 }, (_, i) => `<path d="M${-120 + i * 30},-250 V0" stroke="#fff" stroke-width="3" opacity=".6"/>`).join('') + Array.from({ length: 8 }, (_, i) => `<path d="M-120,${-230 + i * 30} H120" stroke="#fff" stroke-width="3" opacity=".6"/>`).join(''))
-  + friendFig(c.friend, 1400, 810, .8, 'a-shake', 0, `Goalkeeper: ${c.friend.name}`)
+  + friendFig(c.friend, 1400, 810, .8, 'a-shake', 0, `Thủ môn: ${c.friend.name}`)
   + T(500, 820, cat({ hat: 'sweatband', eyes: 'dot', mouth: 'open', anim: 'a-run' }), 1)
   + `<g transform="translate(650 790)">${A('a-kick', A('a-spin', c.ball ? emoText(c.ball.e, 76) : `<circle r="34" fill="#fff" ${SW}/><path d="M0,-12 L12,-4 L8,10 L-8,10 L-12,-4Z" fill="${INK}"/>`))}</g>`
-  + bigText(800, 300, 'GOOOAL!', 110, '#ffe14d', 'a-pop', 2, 'Vàoooo!')
-  + bubble(1060, 380, 'Whoa!', { delay: 2.2, tail: 'right', size: 40, sub: 'Ơ kìa!' });
+  + bigText(800, 300, 'GOOOAL!', 110, '#ffe14d', 'a-pop', 2)
+  + bubble(1060, 380, 'Ơ kìa!', { delay: 2.2, tail: 'right', size: 40 });
 
 SC.shop = c => `<rect width="1600" height="720" fill="#fff4e0"/><rect y="700" width="1600" height="200" fill="#e9d8c3"/>`
   + [190, 360, 530].map((y, r) => `<rect x="60" y="${y}" width="820" height="18" rx="6" fill="#c08657" ${SW3}/>` + Array.from({ length: 9 }, (_, i) => { const col = ['#e2726a', '#7cc59a', '#9fd6ff', '#f4b04a', '#f6aaa4', '#b9a7d6'][(i + r * 2) % 6]; const hgt = 60 + ((i * 37 + r * 13) % 50); return i % 3 === 1 ? `<circle cx="${100 + i * 88}" cy="${y - 32}" r="30" fill="${col}" ${SW3}/>` : `<rect x="${72 + i * 88}" y="${y - hgt}" width="58" height="${hgt}" rx="8" fill="${col}" ${SW3}/>`; }).join('')).join('')
-  + T(1250, 110, `<rect x="-200" y="-50" width="400" height="96" rx="20" fill="#e2726a" ${SW}/><text y="16" text-anchor="middle" font-size="46" fill="#fff">SUPERMARKET</text>`)
-  + friendFig(c.friend, 1330, 640, .85, 'a-appear', .8, `Cashier: ${c.friend.name}`)
+  + T(1250, 110, `<rect x="-170" y="-50" width="340" height="96" rx="20" fill="#e2726a" ${SW}/><text y="20" text-anchor="middle" font-size="44" fill="#fff">SUPERMARKET</text>`)
+  + friendFig(c.friend, 1330, 640, .85, 'a-appear', .8, `Thu ngân: ${c.friend.name}`)
   + T(1330, 640, `<rect x="-200" y="0" width="400" height="200" rx="14" fill="#d39b6a" ${SW}/><rect x="-60" y="-50" width="120" height="50" rx="8" fill="#555" ${SW3}/>`)
   + T(640, 820, cat({ arms: 'up', eyes: 'dot', mouth: 'w', anim: 'a-waddle' }), 1)
   + T(860, 820, `<path d="M-170,-240 L-140,-240 L-100,-80 L140,-80 L170,-200 L-130,-200" fill="#fff" fill-opacity=".6" ${SW}/><path d="M-110,-160 H155 M-95,-120 H145" ${SW3}/><circle cx="-80" cy="-30" r="22" fill="#555" ${SW3}/><circle cx="110" cy="-30" r="22" fill="#555" ${SW3}/>` + (c.objs && c.objs.some(o => !['person', 'animal'].includes(o.cat)) ? c.objs.filter(o => !['person', 'animal'].includes(o.cat)).slice(0, 3).map((o, i) => emoText(o.e, 84, ` x="${-80 + i * 80}" y="-250"`)).join('') : `<rect x="-60" y="-260" width="70" height="70" rx="10" fill="#f4b04a" ${SW3}/><circle cx="60" cy="-232" r="34" fill="#e2726a" ${SW3}/>`))
-  + bubble(1000, 230, 'That’s 999K in total!', { delay: 1.4, tail: 'right', size: 32, sub: 'Tổng cộng 999K nha!' })
-  + bubble(400, 300, 'What?! 😿', { delay: 2.6, tail: 'right', size: 42, sub: 'Hả?!' });
+  + bubble(1000, 230, 'Tổng cộng 999K nha!', { delay: 1.4, tail: 'right', size: 32 })
+  + bubble(400, 300, 'Hả?! 😿', { delay: 2.6, tail: 'right', size: 42 });
 
 SC.music = c => room(c, { wall: '#ffe9f1' })
   + [300, 1300].map(x => T(x, 820, `<rect x="-90" y="-300" width="180" height="300" rx="20" fill="#555" ${SW}/>` + T(0, -200, A('a-pulse', `<circle r="56" fill="#888" ${SW3}/><circle r="22" fill="#333"/>`)) + T(0, -70, A('a-pulse', `<circle r="34" fill="#888" ${SW3}/>`, D(.2))))).join('')
@@ -1248,13 +1349,13 @@ SC.music = c => room(c, { wall: '#ffe9f1' })
   + [['♪', 560, 330, 0], ['♫', 1040, 300, .5], ['♪', 1120, 470, 1], ['♫', 470, 480, 1.5]].map(([t, x, y, d]) => T(x, y, A('a-float', `<text font-size="80" fill="#e2726a" stroke="${INK}" stroke-width="6" paint-order="stroke">${t}</text>`, D(d)))).join('');
 
 SC.exercise = c => outdoor(c) + tree(150, 700) + tree(1480, 700)
-  + friendFig(c.friend, 1150, 830, .9, 'a-appear', 1, `${c.friend.sp} named ${c.friend.name}`)
+  + friendFig(c.friend, 1150, 830, .9, 'a-appear', 1, `${c.friend.sp} tên ${c.friend.name}`)
   + T(700, 830, cat({ hat: 'sweatband', eyes: 'meh', mouth: 'open', anim: 'a-run' }), 1.05)
   + [[600, 560, 0], [790, 550, .5], [640, 580, 1]].map(([x, y, d]) => T(x, y, A('a-drip', `<path d="M0,0 q8,14 0,22 q-8,-8 0,-22z" fill="#6cc0ff" ${SW3}/>`, D(d) + ';animation-duration:1.4s'))).join('')
   + bigText(800, 320, '1, 2! 1, 2!', 72, '#ffe14d', 'a-float');
 
 SC.drink = c => `<rect width="1600" height="720" fill="#f4dcc4"/><rect width="1600" height="720" fill="url(#dots)"/><rect y="700" width="1600" height="200" fill="#c99a72"/>`
-  + T(1220, 300, `<rect x="-200" y="-200" width="400" height="360" rx="20" fill="#3c4a3e" stroke="#c08657" stroke-width="16"/><text y="-130" text-anchor="middle" font-size="50" fill="#fff">MENU</text><g font-size="30" fill="#fff" font-family="Nunito" font-weight="800"><text x="-160" y="-60">Milk tea .... 25K</text><text x="-160" y="0">Coffee ...... 20K</text><text x="-160" y="60">Fish milk ... 99K</text></g>`)
+  + T(1220, 300, `<rect x="-200" y="-200" width="400" height="360" rx="20" fill="#3c4a3e" stroke="#c08657" stroke-width="16"/><text y="-130" text-anchor="middle" font-size="50" fill="#fff">MENU</text><g font-size="30" fill="#fff" font-family="Nunito" font-weight="800"><text x="-160" y="-60">Trà sữa ..... 25K</text><text x="-160" y="0">Cà phê ...... 20K</text><text x="-160" y="60">Sữa cá ....... 99K</text></g>`)
   + T(330, 120, `<rect x="-150" y="-50" width="300" height="100" rx="24" fill="#e2726a" ${SW}/><text y="22" text-anchor="middle" font-size="60" fill="#fff">CAFÉ</text>`)
   + T(760, 760, cat({ arms: 'up', eyes: 'happy', mouth: 'w', prop: c.drink ? heldEmo(c.drink.e) : P_.milktea }), 1.1)
   + `<rect x="-10" y="690" width="1620" height="40" fill="#b07a52" ${SW}/>`
@@ -1277,11 +1378,11 @@ SC.travel = c => `<svg x="0" y="0" width="1600" height="700" viewBox="0 0 1600 7
     + T(106, -158, A('a-none', friendArt(c.friend)), .45)
     + `<rect x="-340" y="-176" width="550" height="136" rx="0" fill="#ffd84d"/><path d="M-340,-176 H210" ${SW3}/><path d="M-340,-176 V-80 Q-340,-40 -300,-40 H300" fill="none" ${SW}/><rect x="-320" y="-150" width="200" height="50" rx="10" fill="#e2726a" ${SW3}/><text x="-220" y="-112" text-anchor="middle" font-size="34" fill="#fff">BUS 07</text>`
     + [-210, 210].map(x => T(x, -40, A('a-spin', `<circle r="50" fill="#444" ${SW}/><circle r="20" fill="#ccc" ${SW3}/><path d="M0,-20 V20 M-20,0 H20" stroke="${INK}" stroke-width="4"/>`))).join('')))
-  + bubble(560, 230, 'Vroom vroom!', { delay: 1, tail: 'left', size: 40, sub: 'Brừm brừm!' });
+  + bubble(560, 230, 'Brừm brừm!', { delay: 1, tail: 'left', size: 40 });
 
 SC.chat = c => {
   const f = c.friend;
-  const msgs = [[0, `Hey ${c.cat}!`], [1, 'What?'], [0, 'Have you eaten?'], [1, 'Not yet 😿'], [0, 'Me neither 😹']];
+  const msgs = [[0, `Ê ${c.cat} ơi!`], [1, 'Gì đó?'], [0, 'Ăn gì chưa?'], [1, 'Chưa 😿'], [0, 'Tớ cũng chưa 😹']];
   return room(c, { wall: '#eef0ff', winX: 160, clockX: 600 })
     + T(500, 810, cat({ arms: 'up', eyes: 'dot', mouth: 'open', prop: P_.phone }), 1.15)
     + T(880, 110, `<rect width="600" height="640" rx="40" fill="#fff" ${SW}/><rect width="600" height="100" rx="40" fill="#7cc59a" ${SW}/><rect y="60" width="600" height="40" fill="#7cc59a"/><path d="M0,100 H600" ${SW}/>`
@@ -1311,7 +1412,7 @@ const mortar = (x, y, s = 1) => T(x, y, `<path d="M-40,8 V30 Q0,46 40,30 V8" fil
 const diplomaProp = `<g transform="translate(0 -70) rotate(-18)"><rect x="-70" y="-16" width="140" height="32" rx="16" fill="#fff8e6" ${SW3}/><rect x="-8" y="-17" width="16" height="34" fill="#e2726a"/></g>`;
 const paperProp = `<g transform="translate(0 -96) rotate(-8)"><rect x="-40" y="-52" width="80" height="104" rx="8" fill="#fff" ${SW3}/><path d="M-26,-30 h52 M-26,-12 h52 M-26,6 h40" stroke="#c9b8ad" stroke-width="5" stroke-linecap="round"/></g>`;
 // a full test paper (440 × 560, centred on 0,0)
-function testPaper({ grade = 'A+', ok = true, title = 'TEST', name = 'Dog', score = '10/10' } = {}) {
+function testPaper({ grade = 'A+', ok = true, title = 'TEST', name = 'Chó', score = '10/10' } = {}) {
   const rows = [0, 1, 2, 3, 4].map(i => `<path d="M-180,${-90 + i * 66} h250" stroke="#c9b8ad" stroke-width="7" stroke-linecap="round"/>`
     + (ok ? `<path d="M110,${-100 + i * 66} l16,18 l30,-38" fill="none" stroke="#e2463c" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>`
       : `<path d="M112,${-108 + i * 66} l34,32 M146,${-108 + i * 66} l-34,32" stroke="#e2463c" stroke-width="9" stroke-linecap="round"/>`)).join('');
@@ -1321,10 +1422,10 @@ function testPaper({ grade = 'A+', ok = true, title = 'TEST', name = 'Dog', scor
 }
 // the cat's own big paw, coming in from off-screen
 function bigPaw(x, y, rot) {
-  const P = '#bfb7b3';
+  const P = '#f5b05c';
   return `<g transform="translate(${x} ${y}) rotate(${rot})"><path d="M-74,10 C-86,140 -66,420 -50,720 L170,720 C160,420 128,140 96,10 Z" fill="${P}" ${SW}/><ellipse cx="10" cy="0" rx="100" ry="74" fill="${P}" ${SW}/>`
     + [-60, -14, 34, 78].map(px => `<ellipse cx="${px}" cy="-58" rx="25" ry="31" fill="${P}" ${SW}/>`).join('')
-    + `<path d="M40,60 q30,40 0,90" fill="none" stroke="#a49c98" stroke-width="5" stroke-linecap="round"/></g>`;
+    + `<path d="M40,60 q30,40 0,90" fill="none" stroke="#c97f2e" stroke-width="5" stroke-linecap="round"/></g>`;
 }
 const stageBg = (c, banner, col = '#f4b04a') => `<rect width="1600" height="900" fill="#3b2a5c"/><rect width="1600" height="900" fill="url(#dots)"/>`
   + A('a-beams', `<path d="M700,0 L860,0 L1180,760 L380,760Z" fill="#fff6c8" opacity=".16"/>`)
@@ -1346,7 +1447,7 @@ SC.revise = c => {
   const cc = Object.assign({}, c, { h: c.h == null ? 23 : c.h });
   const words = ['go – went – gone', 'deadline', 'eat – ate – eaten', 'scholarship', 'A B C', '1 + 1 = 2'];
   return room(cc, { wall: '#e8e2f4', floor: '#bfa58c', winX: 1200, clockX: 150, night: true })
-    + T(530, 150, `<rect x="-150" y="-70" width="300" height="140" rx="12" fill="#fff" ${SW}/><rect x="-150" y="-70" width="300" height="44" rx="12" fill="#e2726a" ${SW3}/><text y="42" text-anchor="middle" font-size="46" fill="#e2463c">EXAM DAY!</text>`)
+    + T(530, 150, `<rect x="-130" y="-70" width="260" height="140" rx="12" fill="#fff" ${SW}/><rect x="-130" y="-70" width="260" height="44" rx="12" fill="#e2726a" ${SW3}/><text y="14" text-anchor="middle" font-size="34" fill="#e2463c">TEST</text><text y="54" text-anchor="middle" font-size="34" fill="#e2463c">TOMORROW!</text>`)
     + `<circle cx="1210" cy="560" r="300" fill="url(#glow)" opacity=".7"/>`
     + T(800, 724, cat({ eyes: 'meh', hat: 'glasses', arms: 'up', prop: P_.book, anim: 'a-typing' }), 1.12)
     + sweat(890, 420)
@@ -1355,7 +1456,7 @@ SC.revise = c => {
     + bookTower(480, 700, 7) + bookTower(1110, 700, 9, 'a-sway')
     + T(1290, 700, `<rect x="-60" y="-16" width="120" height="16" rx="6" fill="#555" ${SW3}/><path d="M0,-16 L-40,-150 L30,-220" fill="none" stroke="${INK}" stroke-width="10" stroke-linecap="round"/><path d="M0,-260 L90,-200 L-10,-160Z" fill="#f4b04a" ${SW3}/>`)
     + emo(640, 668, '☕', 54) + emo(960, 668, '☕', 54)
-    + bubble(700, 220, heart ? 'Learn it by heart… by heart…' : 'Revise, revise, revise…', { think: true, size: 34, sub: heart ? 'Học thuộc lòng… thuộc lòng…' : 'Ôn bài, ôn bài, ôn bài…' });
+    + bubble(700, 230, heart ? 'Learn it by heart… by heart…' : 'Revise my lessons… revise…', { think: true, size: 34 });
 };
 
 // 2. pass / fail a test — the cat's paw holds up the result
@@ -1367,32 +1468,32 @@ SC.exam = c => {
     + A(fail ? 'a-shake' : 'a-bob', T(800, 450, `<g transform="rotate(-5)">${testPaper({ grade, ok: !fail, score: fail ? '2/10' : '10/10', name: c.cat })}</g>`)
       + bigPaw(1020, 700, -32) + bigPaw(560, 720, 30))
     + (fail ? '' : sparkles([[330, 300], [1270, 280, 90], [420, 640], [1180, 620]]))
-    + bigText(800, 110, flying ? 'WITH FLYING COLOURS!' : fail ? 'FAILED…' : 'PASSED!', flying ? 60 : 84, fail ? '#c9d6e3' : '#ffe14d', 'a-pop', .3, flying ? 'Đỗ với điểm xuất sắc!' : fail ? 'Trượt rồi…' : 'Đỗ rồi!')
+    + bigText(800, 120, flying ? 'WITH FLYING COLOURS!' : fail ? 'FAILED…' : 'PASSED!', flying ? 60 : 84, fail ? '#c9d6e3' : '#ffe14d', 'a-pop', .3)
     + tag(1330, 800, `🐾 ${c.cat}’s paw`, 30);
 };
 
 // 3. skip class
 SC.skip = c => outdoor(c) + schoolBuilding()
-  + bigText(1200, 110, 'RING! CLASS TIME!', 46, '#ffe14d', 'a-blink', 0, 'Reng! Vào học!')
+  + bigText(1200, 130, 'RING! CLASS TIME!', 46, '#ffe14d', 'a-blink')
   + T(270, 840, `<rect x="-12" y="-300" width="24" height="300" fill="#b07a52" ${SW3}/><path d="M-10,-280 H-190 L-230,-240 L-190,-200 H-10Z" fill="#f4b04a" ${SW3}/><path d="M10,-180 H190 L230,-140 L190,-100 H10Z" fill="#9fd6ff" ${SW3}/>`
     + `<text x="-110" y="-226" text-anchor="middle" font-size="34" fill="${INK}">BEACH</text><text x="110" y="-126" text-anchor="middle" font-size="34" fill="${INK}">GAME</text>`)
   + T(560, 860, A('a-run', T(0, 0, cat({ eyes: 'happy', mouth: 'open', hat: 'sunglasses', backpack: true, arms: 'wave', anim: '' }))), 1)
-  + bubble(600, 400, 'Shh… skipping class!', { size: 32, sub: 'Suỵt… trốn học đi chơi!' })
-  + owlFig(1200, 760, .9, T(80, -60, `<g transform="rotate(8)"><rect x="-64" y="-90" width="128" height="160" rx="10" fill="#fff" ${SW3}/><text x="0" y="-52" text-anchor="middle" font-size="22" fill="${INK}">REGISTER</text><text x="-50" y="-14" font-size="20" fill="${INK}" font-family="Nunito" font-weight="800">Cat ✓</text><text x="-50" y="16" font-size="20" fill="${INK}" font-family="Nunito" font-weight="800">Elephant ✓</text><text x="-50" y="48" font-size="22" fill="#e2463c" font-family="Nunito" font-weight="900">${esc(c.cat)} ✗</text></g>`))
-  + bubble(1270, 430, `Where is ${c.cat}?!`, { tail: 'left', size: 34, sub: `${c.cat} đâu rồi?!` })
-  + tag(1200, 790, 'Ms Owl');
+  + bubble(600, 420, 'Shh… let’s skip class!', { size: 32 })
+  + owlFig(1200, 760, .9, T(80, -60, `<g transform="rotate(8)"><rect x="-64" y="-90" width="128" height="160" rx="10" fill="#fff" ${SW3}/><text x="0" y="-52" text-anchor="middle" font-size="22" fill="${INK}">ROLL CALL</text><text x="-50" y="-14" font-size="20" fill="${INK}" font-family="Nunito" font-weight="800">Mèo ✓</text><text x="-50" y="16" font-size="20" fill="${INK}" font-family="Nunito" font-weight="800">Voi ✓</text><text x="-50" y="48" font-size="22" fill="#e2463c" font-family="Nunito" font-weight="900">${esc(c.cat)} ✗</text></g>`))
+  + bubble(1270, 450, `Where is ${c.cat}?!`, { tail: 'left', size: 34 })
+  + tag(1200, 790, 'Ms. Owl');
 
 // 4. be a quick learner
 SC.quick = c => room(c, { wall: '#eef4e4', floor: '#d7b48e', win: false, clockX: 1420 })
   + T(800, 330, `<rect x="-380" y="-170" width="760" height="330" rx="14" fill="#3c5a46" stroke="#c08657" stroke-width="16"/><g font-size="46" fill="#fff" font-family="Nunito" font-weight="800"><text x="-340" y="-90">x² + 5x + 6 = 0</text><text x="-340" y="-20">go → went → gone</text><text x="-340" y="50">E = mc²</text></g><text x="300" y="110" text-anchor="middle" font-size="60" fill="#ffe14d">✓✓✓</text>`)
-  + bigText(800, 90, 'SUCH A QUICK LEARNER!', 56, '#ffe14d', 'a-pop', .2, 'Tiếp thu siêu nhanh!')
+  + bigText(800, 105, 'A QUICK LEARNER!', 60, '#ffe14d', 'a-pop', .2)
   + `<path d="M480,700 h-200 M500,760 h-260 M480,820 h-190" stroke="#fff" stroke-width="12" stroke-linecap="round" opacity=".8"/>`
   + T(800, 880, cat({ eyes: 'star', mouth: 'open', arms: 'up', hat: 'glasses' }), 1.12)
   + emo(800, 520, '💡', 120, 'a-pulse') + emo(650, 560, '⚡', 70, 'a-blink') + emo(950, 560, '⚡', 70, 'a-blink', .3)
   + T(1080, 640, `<circle r="64" fill="#fff" ${SW}/><rect x="-14" y="-88" width="28" height="20" rx="6" fill="${INK}"/>` + A('a-spin', `<path d="M0,0 V-48" stroke="#e2726a" stroke-width="8" stroke-linecap="round"/>`, 'animation-duration:.4s') + `<text y="40" text-anchor="middle" font-size="26" fill="${INK}">0.5s</text>`)
   + friendFig(FRIENDS[0], 260, 830, .8, 'a-appear', .6) + emo(260, 590, '😵', 70, 'a-shake')
-  + friendFig({ k: 'rabbit', sp: 'a rabbit', name: 'Turtle' }, 1360, 830, .8, 'a-appear', .9)
-  + bubble(1040, 380, 'What? Got it already?!', { size: 30, tail: 'right', sub: 'Hả? Hiểu luôn rồi á?!' });
+  + friendFig({ k: 'rabbit', sp: 'bạn thỏ', name: 'Rùa' }, 1360, 830, .8, 'a-appear', .9)
+  + bubble(1060, 400, 'What? You got it already?!', { size: 30, tail: 'right' });
 
 // 5. academic performance (report card)
 SC.grades = c => {
@@ -1402,14 +1503,14 @@ SC.grades = c => {
   const hs = bad ? [260, 200, 130, 70] : [80, 150, 220, 300];
   return room(c, { wall: '#fdf3e3', floor: '#e3c6a2', win: false, clockX: 1460 })
     + (bad ? rainCloud(960, 60) : sparkles([[920, 160], [240, 140, 60]]))
-    + T(560, 440, `<rect x="-260" y="-320" width="520" height="640" rx="20" fill="#fff" ${SW}/><rect x="-260" y="-320" width="520" height="96" rx="20" fill="${bad ? '#9aa3ad' : '#7cc59a'}" ${SW}/><text y="-256" text-anchor="middle" font-size="40" fill="#fff">REPORT CARD</text>`
+    + T(560, 440, `<rect x="-260" y="-320" width="520" height="640" rx="20" fill="#fff" ${SW}/><rect x="-260" y="-320" width="520" height="96" rx="20" fill="${bad ? '#9aa3ad' : '#7cc59a'}" ${SW}/><text y="-256" text-anchor="middle" font-size="34" fill="#fff">ACADEMIC PERFORMANCE</text>`
       + subj.map((s, i) => `<text x="-210" y="${-150 + i * 86}" font-size="40" fill="${INK}">${s}</text>` + T(170, -164 + i * 86, A('a-stamp', `<text text-anchor="middle" font-size="52" fill="${g[i].startsWith('A') ? '#2e9a5a' : '#e2463c'}">${g[i]}</text>`, D(.5 + i * .35)))
         + `<path d="M-210,${-130 + i * 86} h420" stroke="#eee" stroke-width="3"/>`).join('')
-      + T(150, 250, A('a-stamp', `<g transform="rotate(-12)"><rect x="-160" y="-44" width="320" height="88" rx="14" fill="none" stroke="${bad ? '#e2463c' : '#2e9a5a'}" stroke-width="8"/><text y="18" text-anchor="middle" font-size="46" fill="${bad ? '#e2463c' : '#2e9a5a'}">${bad ? 'TRY HARDER' : 'EXCELLENT'}</text></g>`, D(2.4))))
+      + T(150, 250, A('a-stamp', `<g transform="rotate(-12)"><rect x="-170" y="-44" width="340" height="88" rx="14" fill="none" stroke="${bad ? '#e2463c' : '#2e9a5a'}" stroke-width="8"/><text y="18" text-anchor="middle" font-size="46" fill="${bad ? '#e2463c' : '#2e9a5a'}">${bad ? 'TRY HARDER' : 'EXCELLENT'}</text></g>`, D(2.4))))
     + T(1320, 760, `<path d="M-180,0 H180 M-180,0 V-340" stroke="${INK}" stroke-width="8" stroke-linecap="round"/>` + hs.map((h, i) => A('a-grow', `<rect x="${-160 + i * 85}" y="${-h}" width="64" height="${h}" rx="8" fill="${bad ? '#e2726a' : '#7cc59a'}" ${SW3}/>`, D(.4 + i * .3))).join(''))
     + emo(1450, 360, bad ? '📉' : '📈', 110, 'a-pulse')
     + T(960, 880, cat({ eyes: bad ? 'meh' : 'star', mouth: bad ? 'w' : 'open', arms: bad ? 'down' : 'up', anim: bad ? 'a-shake' : 'a-bob' }), 1)
-    + bubble(980, 310, bad ? 'Boo hoo… bad grades!' : 'All A+!', { size: 32, sub: bad ? 'Huhu… điểm kém quá!' : 'Toàn A+ luôn nè!' });
+    + bubble(980, 330, bad ? 'Oh no… bad grades!' : 'All A+!', { size: 32 });
 };
 
 // 6. meet / miss a deadline
@@ -1418,43 +1519,43 @@ SC.deadline = c => {
   let s = room(c, { wall: '#e8eef7', floor: '#b8c3d3', win: false, clock: false })
     + T(800, 160, `<text y="-90" text-anchor="middle" font-size="40" fill="${INK}">DEADLINE</text><rect x="-230" y="-70" width="460" height="150" rx="22" fill="#222" ${SW}/>`
       + A(miss ? 'a-blink' : '', `<text y="45" text-anchor="middle" font-size="110" fill="${miss ? '#ff5a4e' : '#5dff8a'}" font-family="ui-monospace,Menlo,monospace">${miss ? '00:01' : '23:59'}</text>`))
-    + T(1200, 720, `<rect x="-220" y="0" width="440" height="190" rx="10" fill="#d39b6a" ${SW}/><rect x="-150" y="-200" width="300" height="200" rx="18" fill="#e2726a" ${SW}/><rect x="-90" y="-180" width="180" height="22" rx="10" fill="${INK}"/><text y="-80" text-anchor="middle" font-size="44" fill="#fff">HAND IN</text>`
+    + T(1200, 720, `<rect x="-220" y="0" width="440" height="190" rx="10" fill="#d39b6a" ${SW}/><rect x="-150" y="-200" width="300" height="200" rx="18" fill="#e2726a" ${SW}/><rect x="-90" y="-180" width="180" height="22" rx="10" fill="${INK}"/><text y="-80" text-anchor="middle" font-size="44" fill="#fff">SUBMIT</text>`
       + (miss ? A('a-stamp', `<g transform="rotate(-10)"><rect x="-170" y="-150" width="340" height="90" rx="14" fill="#fff" stroke="#e2463c" stroke-width="9"/><text y="-88" text-anchor="middle" font-size="44" fill="#e2463c">CLOSED ✗</text></g>`, D(.4)) : ''))
     + owlFig(1420, 860, .85);
   if (miss) s += rainCloud(640, 470)
     + T(640, 880, cat({ eyes: 'meh', arms: 'up', prop: paperProp, anim: 'a-shake' }), 1.1)
     + [0, 1].map(i => T(608 + i * 64, 720, A('a-drip', `<path d="M0,0 q10,18 0,26 q-10,-8 0,-26z" fill="#5ab4e6"/>`, D(i * .4)))).join('')
-    + bubble(1180, 400, 'Sorry, too late!', { size: 32, tail: 'right', sub: 'Hết hạn rồi em ơi!' })
-    + bigText(800, 370, 'MISSED IT!', 92, '#ff8a80', 'a-pop', .2, 'Trễ hạn rồi!');
+    + bubble(1200, 420, 'Sorry, it’s too late!', { size: 32, tail: 'right' })
+    + bigText(800, 380, 'MISSED THE DEADLINE!', 76, '#ff8a80', 'a-pop', .2);
   else s += T(640, 880, A('a-run', cat({ eyes: 'dot', mouth: 'open', arms: 'up', anim: '' })), 1.1) + sweat(720, 560)
     + T(700, 600, A('a-deliver', `<g transform="rotate(-8)"><rect x="-44" y="-56" width="88" height="112" rx="8" fill="#fff" ${SW3}/><path d="M-28,-30 h56 M-28,-10 h56 M-28,10 h40" stroke="#c9b8ad" stroke-width="5"/></g>`))
-    + bigText(800, 380, 'JUST IN TIME! ✓', 92, '#7cf0a0', 'a-pop', 1.8, 'Kịp hạn!')
-    + bubble(250, 420, 'Made it!!!', { size: 34, sub: 'Kịp rồi!!!' });
+    + bigText(800, 400, 'MET THE DEADLINE! ✓', 76, '#7cf0a0', 'a-pop', 1.8)
+    + bubble(250, 420, 'Just in time!!!', { size: 34 });
   return s;
 };
 
 // 7. get a scholarship
-SC.scholarship = c => stageBg(c, 'SCHOLARSHIP AWARD')
+SC.scholarship = c => stageBg(c, 'SCHOLARSHIP')
   + confetti(30)
   + T(680, 840, cat({ eyes: 'star', mouth: 'open', arms: 'up' }), 1.1) + emo(680, 760, '🏅', 70)
   + T(1080, 840, A('a-bob', friendSvg('elephant') + `<path d="M0,-92 L-13,-82 L0,-75 L13,-82Z M0,-75 L-13,-34 L0,-20 L13,-34Z" fill="#2e3550" ${SW3}/>`), 1)
-  + tag(1080, 860, 'Principal Mouse')
-  + T(880, 520, A('a-stamp', `<g transform="rotate(-5)"><rect x="-250" y="-100" width="500" height="200" rx="16" fill="#eafbe9" stroke="#2e9a5a" stroke-width="10"/><text y="-40" text-anchor="middle" font-size="38" fill="#2e9a5a">FULL SCHOLARSHIP</text><text y="20" text-anchor="middle" font-size="46" fill="${INK}">$1,000,000</text><text y="72" text-anchor="middle" font-size="30" fill="#8a7466" font-family="Nunito" font-weight="800">To: ${esc(c.cat)}</text></g>`, D(.5)))
-  + Array.from({ length: 9 }, (_, i) => T(110 + i * 172, 900, `<circle cy="-40" r="52" fill="#2a1f3d"/>` + emo(0, -96, '👏', 50, 'a-shake', i * .1))).join('');
+  + T(880, 520, A('a-stamp', `<g transform="rotate(-5)"><rect x="-250" y="-100" width="500" height="200" rx="16" fill="#eafbe9" stroke="#2e9a5a" stroke-width="10"/><text y="-40" text-anchor="middle" font-size="38" fill="#2e9a5a">100% SCHOLARSHIP</text><text y="20" text-anchor="middle" font-size="46" fill="${INK}">$1,000,000</text><text y="72" text-anchor="middle" font-size="30" fill="#8a7466" font-family="Nunito" font-weight="800">To: ${esc(c.cat)}</text></g>`, D(.5)))
+  + Array.from({ length: 9 }, (_, i) => T(110 + i * 172, 900, `<circle cy="-40" r="52" fill="#2a1f3d"/>` + emo(0, -96, '👏', 50, 'a-shake', i * .1))).join('')
+  + tag(1080, 846, 'Principal Chuột');
 
 // 8. sign up for a course
 SC.signup = c => {
   const m = (c.text || '').match(/\b(?:for|in|up\s+for|join(?:ed|s)?)\s+(?:an?\s+|the\s+|my\s+)?([a-z]+)(?:\s+[a-z]+)?\s+(?:course|class)/i);
   const course = m && !/^(new|online|short|free|summer)$/i.test(m[1]) ? m[1].toUpperCase() : 'IELTS';
   return room(c, { wall: '#eaf6ff', floor: '#c9d6e3', win: false, clockX: 1460 })
-    + T(330, 300, `<rect x="-220" y="-190" width="440" height="380" rx="18" fill="#fff" ${SW}/><rect x="-220" y="-190" width="440" height="110" rx="18" fill="#5b8def" ${SW}/><text y="-124" text-anchor="middle" font-size="34" fill="#fff">COURSE</text><text y="-20" text-anchor="middle" font-size="${course.length > 7 ? 46 : 64}" fill="${INK}">${esc(course)}</text><text y="50" text-anchor="middle" font-size="30" fill="#8a7466" font-family="Nunito" font-weight="800">Taught by Ms Owl</text>`
+    + T(330, 300, `<rect x="-220" y="-190" width="440" height="380" rx="18" fill="#fff" ${SW}/><rect x="-220" y="-190" width="440" height="110" rx="18" fill="#5b8def" ${SW}/><text y="-124" text-anchor="middle" font-size="34" fill="#fff">COURSE</text><text y="-20" text-anchor="middle" font-size="${course.length > 7 ? 46 : 64}" fill="${INK}">${esc(course)}</text><text y="50" text-anchor="middle" font-size="30" fill="#8a7466" font-family="Nunito" font-weight="800">Teacher: Ms. Owl</text>`
       + A('a-blink', `<text y="128" text-anchor="middle" font-size="40" fill="#e2463c">SIGN UP NOW!</text>`) + T(180, -170, A('a-pulse', `<circle r="56" fill="#ffd84d" ${SW3}/><text y="12" text-anchor="middle" font-size="30" fill="#e2463c">-50%</text>`)))
     + T(700, 880, cat({ eyes: 'happy', mouth: 'open', arms: 'wave' }), 1.05)
-    + bubble(400, 540, 'Can I sign up, please?', { size: 30, tail: 'right', sub: 'Cho em đăng ký với!' })
-    + T(1030, 470, A('a-bob', clipboard([`Name: ${c.cat}`, `Course: ${course.slice(0, 8)}`, 'Signed: ~~~'], 'SIGN-UP')))
+    + bubble(430, 560, 'I want to sign up!', { size: 30, tail: 'right' })
+    + T(1030, 470, A('a-bob', clipboard([`Name: ${c.cat}`, course.slice(0, 11), 'Sign: ~~~'], 'SIGN UP')))
     + T(1130, 560, A('a-brush', `<path d="M0,0 L60,-90" stroke="${INK}" stroke-width="18" stroke-linecap="round"/><path d="M0,0 L60,-90" stroke="#5b8def" stroke-width="11" stroke-linecap="round"/>`))
-    + T(1390, 700, `<rect x="-200" y="0" width="400" height="200" fill="#d39b6a" ${SW}/>`) + T(1390, 720, A('a-bob', friendSvg('duck')), .8) + T(1390, 700, `<rect x="-200" y="0" width="400" height="60" rx="10" fill="#e8c49c" ${SW}/><text y="44" text-anchor="middle" font-size="32" fill="${INK}">REGISTRATION</text>`)
-    + bubble(1290, 380, 'Welcome!', { size: 30, tail: 'right', sub: 'Chào mừng!' });
+    + T(1390, 700, `<rect x="-200" y="0" width="400" height="200" fill="#d39b6a" ${SW}/>`) + T(1390, 720, A('a-bob', friendSvg('duck')), .8) + T(1390, 700, `<rect x="-200" y="0" width="400" height="60" rx="10" fill="#e8c49c" ${SW}/><text y="44" text-anchor="middle" font-size="32" fill="${INK}">SIGN-UP DESK</text>`)
+    + bubble(1300, 400, 'Welcome!', { size: 30, tail: 'right' });
 };
 
 // 9. graduate from university
@@ -1467,7 +1568,7 @@ SC.graduate = c => outdoor(c, { road: false })
   + friendFig(FRIENDS[3], 1170, 836, .85, 'a-appear', .7) + T(1170, 836, mortar(0, -200, .85))
   + T(800, 880, cat({ eyes: 'happy', mouth: 'open', arms: 'up', hat: 'grad', gown: true, prop: diplomaProp }), 1.15)
   + confetti(26)
-  + bubble(880, 380, 'I graduated!!!', { size: 34, sub: 'Tốt nghiệp rồi!!!' });
+  + bubble(880, 400, 'I graduated!!!', { size: 34 });
 
 // 10. extracurricular activities: the whole gang
 SC.extra = c => {
@@ -1496,7 +1597,7 @@ SC.extra = c => {
     + `<rect x="1084" y="790" width="532" height="120" fill="#5ab4e6" opacity=".9"/>` + A('a-bob', `<path d="M1090,790 q30,-14 60,0 t60,0 t60,0 t60,0 t60,0 t60,0 t60,0 t60,0 t60,0" fill="none" stroke="#fff" stroke-width="6"/>`)
     + emo(1340, 760, '💦', 60, 'a-pulse')
     + tag(1350, 850, 'swimming')
-    + bubble(450, 540, 'So much fun!', { size: 30, tail: 'right', sub: 'Vui quá đi!' });
+    + bubble(450, 560, 'So much fun!', { size: 30, tail: 'right' });
 };
 
 // 11. have a talent for …
@@ -1509,13 +1610,13 @@ SC.talent = c => {
   const e = (TALENT.find(([re]) => re.test(lo)) || [0, '⭐'])[1];
   const judge = (k, x, d) => T(x, 900, A('a-bob', friendSvg(k)), .55) + T(x, 700, A('a-stamp', `<rect x="-46" y="-40" width="92" height="70" rx="10" fill="#fff" ${SW3}/><text y="18" text-anchor="middle" font-size="44" fill="#e2463c">10</text>`, D(d)));
   return stageBg(c, '')
-    + bigText(800, 150, 'WHAT A TALENT!', 84, '#ffe14d', 'a-pop', .2, 'Tài năng quá!')
+    + bigText(800, 150, 'WHAT A TALENT!', 84, '#ffe14d', 'a-pop', .2)
     + T(680, 760, cat({ eyes: 'happy', mouth: 'open', arms: 'up', anim: e === '💃' ? 'a-dance' : 'a-bob' }), 1.1)
     + emo(900, 640, e, 140, e === '⚽' ? 'a-float' : 'a-pulse')
     + [0, 1, 2, 3].map(i => T(480 + i * 160, 420, A('a-rise', emoText(e === '🎹' || e === '🎸' || e === '🎤' ? '🎵' : '✨', 54), D(i * .5)))).join('')
     + `<rect x="0" y="820" width="1600" height="80" fill="#5a3b2a" ${SW}/>`
     + judge('owl', 1100, .9) + judge('pig', 1280, 1.3) + judge('dog', 1460, 1.7)
-    + tag(1280, 836, 'judges') + sparkles([[380, 300], [1180, 320, 80]]);
+    + tag(1280, 596, 'judges') + sparkles([[420, 300], [1180, 320, 80]]);
 };
 
 const EDU_ACTS = ['talent', 'revise', 'skip', 'quick', 'grades', 'exam', 'deadline', 'scholarship', 'signup', 'graduate', 'extra'];
@@ -1526,7 +1627,7 @@ const ABSORB = { revise: ['study'], quick: ['study', 'school'], exam: ['study', 
 const pigeon = () => `<ellipse cx="0" cy="0" rx="46" ry="30" fill="#b7bdd0" ${SW3}/><circle cx="40" cy="-26" r="22" fill="#b7bdd0" ${SW3}/><path d="M60,-28 L80,-22 L60,-16Z" fill="#f2b24a" ${SW3}/><circle cx="46" cy="-31" r="4" fill="${INK}"/>${A('a-flap', `<path d="M-10,-8 Q-40,-72 -74,-40 Q-42,-30 -10,-8Z" fill="#9aa1b8" ${SW3}/>`)}<rect x="27" y="-78" width="28" height="32" fill="#333" ${SW3}/><rect x="18" y="-50" width="46" height="8" rx="3" fill="#333" ${SW3}/>`;
 function gagSvg(c) {
   if (c.gag === 'bird') return `<g transform="translate(0 70) scale(.8)">${A('a-fly', pigeon(), D(.8))}</g>`;
-  if (c.gag === 'peek') return `<g transform="translate(1530 900)">${A('a-peek', T(0, 40, friendSvg('mouse'), .7), D(1))}</g>` + bubble(1220, 590, 'Elephant passing by 👀', { delay: 1.8, tail: 'right', size: 24, max: 22, sub: 'Voi đi ngang qua' });
+  if (c.gag === 'peek') return `<g transform="translate(1530 900)">${A('a-peek', T(0, 40, friendSvg('mouse'), .7), D(1))}</g>` + bubble(1240, 610, 'Voi đi ngang qua 👀', { delay: 1.8, tail: 'right', size: 24, max: 22 });
   return '';
 }
 const FRIEND_SCENES = new Set(['school', 'walk', 'work', 'sport', 'shop', 'exercise', 'chat', 'travel']);
@@ -1550,15 +1651,15 @@ const OBJ = [
   ['letters?|emails?', '✉️', 'thing'], ['pens?|pencils?', '✏️', 'thing'], ['paintings?|drawings?|pictures?', '🎨', 'thing'], ['songs?', '🎵', 'thing'], ['movies?|films?|cartoons?|anime', '🎬', 'thing'],
   ['alarm|clocks?', '⏰', 'thing'], ['stars?', '⭐', 'thing'], ['dinosaurs?', '🦖', 'thing'], ['fireworks?', '🎆', 'thing'], ['snow(?:man)?', '⛄', 'thing'], ['candles?', '🕯️', 'thing'],
   ['bikes?|bicycles?', '🚲', 'vehicle'], ['motorbikes?|scooters?', '🛵', 'vehicle'], ['cars?|taxis?', '🚗', 'vehicle'], ['bus(?:es)?', '🚌', 'vehicle'], ['trains?', '🚆', 'vehicle'], ['planes?|airplanes?', '✈️', 'vehicle'], ['boats?|ships?', '⛵', 'vehicle'], ['rockets?', '🚀', 'vehicle'],
-  ['dogs?|pupp(?:y|ies)', '🐶', 'animal', 'dog'], ['cats?|kittens?', '🐱', 'animal', 'cat'], ['birds?|parrots?', '🐦', 'animal', 'bird'], ['rabbits?|bunn(?:y|ies)', '🐰', 'animal', 'rabbit'], ['hamsters?', '🐹', 'animal', 'hamster'],
-  ['mice|mouse', '🐭', 'animal', 'mouse'], ['pigs?', '🐷', 'animal', 'pig'], ['cows?', '🐮', 'animal', 'cow'], ['horses?', '🐴', 'animal', 'horse'], ['ducks?', '🦆', 'animal', 'duck'], ['elephants?', '🐘', 'animal', 'elephant'],
-  ['monkeys?', '🐵', 'animal', 'monkey'], ['tigers?', '🐯', 'animal', 'tiger'], ['lions?', '🦁', 'animal', 'lion'], ['pandas?', '🐼', 'animal', 'panda'], ['bears?', '🐻', 'animal', 'bear'], ['frogs?', '🐸', 'animal', 'frog'],
-  ['snakes?', '🐍', 'animal', 'snake'], ['unicorns?', '🦄', 'animal', 'unicorn'], ['ghosts?', '👻', 'animal', 'ghost'], ['aliens?', '👽', 'animal', 'alien'], ['monsters?', '👾', 'animal', 'monster'],
-  ['mom|mum|mother|mommy|mummy', '👩', 'person', 'Mum'], ['dad|father|daddy', '👨', 'person', 'Dad'], ['sisters?', '👧', 'person', 'sister'], ['brothers?', '👦', 'person', 'brother'],
-  ['grandma|grandmother|granny', '👵', 'person', 'Grandma'], ['grandpa|grandfather', '👴', 'person', 'Grandpa'], ['bab(?:y|ies)', '👶', 'person', 'baby'], ['friends?|classmates?|bff', '🧑‍🤝‍🧑', 'person', 'friends'],
-  ['teachers?', '🧑‍🏫', 'person', 'teacher'], ['family|parents', '👨‍👩‍👧', 'person', 'family'], ['boyfriend|girlfriend|crush', '💑', 'person', 'sweetheart'], ['doctors?|nurses?', '🧑‍⚕️', 'person', 'doctor'],
-  ['police(?:man)?', '👮', 'person', 'police officer'], ['boss', '🧑‍💼', 'person', 'boss'], ['neighbou?rs?', '🧑', 'person', 'neighbour'], ['wife', '👩', 'person', 'wife'], ['husband', '👨', 'person', 'husband'],
-  ['uncle', '👨', 'person', 'uncle'], ['aunt', '👩', 'person', 'aunt'], ['cousins?', '🧒', 'person', 'cousin'], ['santa', '🎅', 'person', 'Santa'], ['idol|singer', '🧑‍🎤', 'person', 'idol']
+  ['dogs?|pupp(?:y|ies)', '🐶', 'animal', 'chó cưng'], ['cats?|kittens?', '🐱', 'animal', 'bạn mèo'], ['birds?|parrots?', '🐦', 'animal', 'chim'], ['rabbits?|bunn(?:y|ies)', '🐰', 'animal', 'thỏ'], ['hamsters?', '🐹', 'animal', 'hamster'],
+  ['mice|mouse', '🐭', 'animal', 'chuột'], ['pigs?', '🐷', 'animal', 'heo'], ['cows?', '🐮', 'animal', 'bò'], ['horses?', '🐴', 'animal', 'ngựa'], ['ducks?', '🦆', 'animal', 'vịt'], ['elephants?', '🐘', 'animal', 'voi'],
+  ['monkeys?', '🐵', 'animal', 'khỉ'], ['tigers?', '🐯', 'animal', 'hổ'], ['lions?', '🦁', 'animal', 'sư tử'], ['pandas?', '🐼', 'animal', 'gấu trúc'], ['bears?', '🐻', 'animal', 'gấu'], ['frogs?', '🐸', 'animal', 'ếch'],
+  ['snakes?', '🐍', 'animal', 'rắn'], ['unicorns?', '🦄', 'animal', 'kỳ lân'], ['ghosts?', '👻', 'animal', 'con ma'], ['aliens?', '👽', 'animal', 'người ngoài hành tinh'], ['monsters?', '👾', 'animal', 'quái vật'],
+  ['mom|mum|mother|mommy|mummy', '👩', 'person', 'mẹ'], ['dad|father|daddy', '👨', 'person', 'bố'], ['sisters?', '👧', 'person', 'chị/em gái'], ['brothers?', '👦', 'person', 'anh/em trai'],
+  ['grandma|grandmother|granny', '👵', 'person', 'bà'], ['grandpa|grandfather', '👴', 'person', 'ông'], ['bab(?:y|ies)', '👶', 'person', 'em bé'], ['friends?|classmates?|bff', '🧑‍🤝‍🧑', 'person', 'bạn bè'],
+  ['teachers?', '🧑‍🏫', 'person', 'thầy cô'], ['family|parents', '👨‍👩‍👧', 'person', 'cả nhà'], ['boyfriend|girlfriend|crush', '💑', 'person', 'người yêu'], ['doctors?|nurses?', '🧑‍⚕️', 'person', 'bác sĩ'],
+  ['police(?:man)?', '👮', 'person', 'chú công an'], ['boss', '🧑‍💼', 'person', 'sếp'], ['neighbou?rs?', '🧑', 'person', 'hàng xóm'], ['wife', '👩', 'person', 'vợ'], ['husband', '👨', 'person', 'chồng'],
+  ['uncle', '👨', 'person', 'chú/bác'], ['aunt', '👩', 'person', 'cô/dì'], ['cousins?', '🧒', 'person', 'anh chị em họ'], ['santa', '🎅', 'person', 'ông già Noel'], ['idol|singer', '🧑‍🎤', 'person', 'thần tượng']
 ].map(([src, e, cat, vn]) => ({ re: new RegExp('\\b(?:' + src + ')\\b', 'i'), e, cat, vn }));
 const PLACES = [
   ['shop', /supermarket|\bmarket|\bstores?\b|\bshops?\b|\bmall\b|grocery|minimart|circle k|7-eleven|\bwinmart|bách hoá/],
@@ -1658,10 +1759,11 @@ const emoText = (e, size, extra = '') => `<text class="emo" font-size="${size}" 
 const emo = (x, y, e, size, cls = '', delay = 0) => T(x, y, cls ? A(cls, emoText(e, size), D(delay)) : emoText(e, size));
 const heldEmo = (e, size = 96) => T(0, -66, emoText(e, size));
 function compFig(x, y, comp, delay = .8) {
-  return T(x, y, A('a-appear', A('a-bob', `<text class="emo" font-size="190" text-anchor="middle" y="-18">${comp.e}</text>`) + tag(0, -258, comp.vn || ''), D(delay)));
+  y = Math.min(y, 850);
+  return T(x, y, A('a-appear', T(0, 0, A('a-bob', compArt(comp)), 1) + tag(0, -290, compName(comp)), D(delay)));
 }
-function friendArt(f) { return f.e ? `<text class="emo" font-size="210" text-anchor="middle" y="-14">${f.e}</text>` : friendSvg(f.k); }
-const compAsFriend = (comp, catName) => ({ e: comp.e, name: comp.vn, sp: '', hi: `${catName}, let’s go together!`, hiVi: `${catName} ơi, đi cùng nhau nha!` });
+function friendArt(f) { return f.comp ? compArt(f.comp) : f.e ? `<text class="emo" font-size="210" text-anchor="middle" y="-14">${f.e}</text>` : friendSvg(f.k); }
+const compAsFriend = (comp, catName) => ({ comp, e: comp.e, name: compName(comp), sp: '', hi: `${catName} ơi, đi cùng nhau nha!` });
 
 /* ---- backgrounds for the composed scene ---- */
 const schoolBuilding = () => T(1200, 700, `<rect x="-290" y="-390" width="580" height="390" fill="#ffd9a8" ${SW}/><path d="M-330,-390 L0,-530 L330,-390Z" fill="#e2726a" ${SW}/><circle cx="0" cy="-450" r="36" fill="#fff" ${SW3}/><path d="M0,-450 V-472 M0,-450 L14,-444" ${SW3}/><rect x="-160" y="-340" width="320" height="60" rx="14" fill="#fff" ${SW3}/><text x="0" y="-296" text-anchor="middle" font-size="46" fill="${INK}">SCHOOL</text>`
@@ -1681,9 +1783,9 @@ const BG = {
   beach: c => `<svg x="0" y="0" width="1600" height="600" viewBox="0 0 1600 600" preserveAspectRatio="xMidYMid slice">${skyScape(c.h)}</svg><rect y="520" width="1600" height="140" fill="#5ab4e6"/>` + A('a-bob', `<path d="M0,540 Q100,520 200,540 T400,540 T600,540 T800,540 T1000,540 T1200,540 T1400,540 T1600,540" fill="none" stroke="#fff" stroke-width="8"/>`) + `<path d="M0,640 Q800,600 1600,650 L1600,900 L0,900Z" fill="#f6dfa8"/>` + T(1280, 860, `<path d="M0,0 L0,-300" ${SW}/><path d="M-170,-290 Q0,-400 170,-290Z" fill="#e2726a" ${SW}/>`) + emo(1420, 820, '🦀', 80, 'a-shake') + (skyOf(c.h).night ? `<rect width="1600" height="900" fill="#141a45" opacity=".35"/>` : ''),
   hospital: c => outdoor(c) + T(1200, 700, `<rect x="-280" y="-420" width="560" height="420" fill="#fff" ${SW}/><rect x="-40" y="-390" width="80" height="80" fill="#e2726a"/><rect x="-80" y="-350" width="160" height="0" fill="none"/><path d="M-30,-350 H30 M0,-380 V-320" stroke="#fff" stroke-width="22"/><rect x="-200" y="-280" width="400" height="56" rx="12" fill="#e2726a" ${SW3}/><text y="-238" text-anchor="middle" font-size="40" fill="#fff">HOSPITAL</text>` + [-180, -60, 60, 180].map(x => `<rect x="${x - 36}" y="-200" width="72" height="72" rx="8" fill="#9fd6ff" ${SW3}/>`).join('') + `<rect x="-60" y="-110" width="120" height="110" fill="#9fd6ff" ${SW}/>`),
   cinema: c => `<rect width="1600" height="900" fill="#2a1f3d"/><rect x="250" y="60" width="1100" height="420" rx="16" fill="#fff8e6" ${SW}/>` + A('a-twinkle', emoText(c.thingE || '🎬', 220, ' x="800" y="270"'), 'animation-duration:2.4s') + Array.from({ length: 2 }, (_, r) => Array.from({ length: 9 }, (_, i) => `<rect x="${120 + i * 160}" y="${640 + r * 120}" width="120" height="110" rx="24" fill="#c0392b" ${SW3}/>`).join('')).join('') + `<path d="M250,480 L60,900 M1350,480 L1540,900" stroke="#fff" stroke-opacity=".08" stroke-width="80"/>`,
-  cafe: c => `<rect width="1600" height="720" fill="#f4dcc4"/><rect width="1600" height="720" fill="url(#dots)"/><rect y="700" width="1600" height="200" fill="#c99a72"/>` + signBoard(330, 120, 'CAFÉ') + T(1220, 300, `<rect x="-200" y="-200" width="400" height="360" rx="20" fill="#3c4a3e" stroke="#c08657" stroke-width="16"/><text y="-130" text-anchor="middle" font-size="50" fill="#fff">MENU</text><g font-size="30" fill="#fff" font-family="Nunito" font-weight="800"><text x="-160" y="-60">Milk tea .... 25K</text><text x="-160" y="0">Coffee ...... 20K</text><text x="-160" y="60">Fish milk ... 99K</text></g>`),
+  cafe: c => `<rect width="1600" height="720" fill="#f4dcc4"/><rect width="1600" height="720" fill="url(#dots)"/><rect y="700" width="1600" height="200" fill="#c99a72"/>` + signBoard(330, 120, 'CAFÉ') + T(1220, 300, `<rect x="-200" y="-200" width="400" height="360" rx="20" fill="#3c4a3e" stroke="#c08657" stroke-width="16"/><text y="-130" text-anchor="middle" font-size="50" fill="#fff">MENU</text><g font-size="30" fill="#fff" font-family="Nunito" font-weight="800"><text x="-160" y="-60">Trà sữa ..... 25K</text><text x="-160" y="0">Cà phê ...... 20K</text><text x="-160" y="60">Sữa cá ....... 99K</text></g>`),
   library: c => room(c, { wall: '#f1e6d6', floor: '#c9a27c', win: false, clockX: 800 }) + shelves(60, 560) + shelves(980, 560) + signBoard(800, 300, 'LIBRARY', '#7cc59a'),
-  zoo: c => outdoor(c, { road: false }) + [['🦒', 240, 560], ['🐘', 520, 600], ['🦁', 1180, 610], ['🦓', 1430, 600]].map(([e, x, y], i) => emo(x, y, e, 170, 'a-bob', i * .3)).join('') + `<rect y="640" width="1600" height="14" fill="#c08657"/><rect y="700" width="1600" height="14" fill="#c08657"/>` + Array.from({ length: 21 }, (_, i) => `<rect x="${i * 80}" y="610" width="16" height="130" rx="6" fill="#b07a52"/>`).join('') + signBoard(800, 120, 'ZOO', '#7cc59a'),
+  zoo: c => outdoor(c, { road: false }) + [['hổ', 240, 640], ['voi', 520, 640], ['sư tử', 1180, 640], ['gấu trúc', 1430, 640]].map(([k, x, y], i) => T(x, y, A('a-bob', compArt({ vn: k }), D(i * .3)), .7)).join('') + `<rect y="640" width="1600" height="14" fill="#c08657"/><rect y="700" width="1600" height="14" fill="#c08657"/>` + Array.from({ length: 21 }, (_, i) => `<rect x="${i * 80}" y="610" width="16" height="130" rx="6" fill="#b07a52"/>`).join('') + signBoard(800, 120, 'ZOO', '#7cc59a'),
   gym: c => outdoor(c, { road: false, ground: '#8fd07a' }) + `<path d="M0,760 H1600 M800,680 V900" stroke="#fff" stroke-width="8" opacity=".8"/>` + T(1400, 800, `<path d="M-130,0 V-260 H130 V0" fill="none" stroke="#fff" stroke-width="16"/>`),
   pool: c => `<rect width="1600" height="900" fill="url(#tiles)"/><rect y="560" width="1600" height="340" fill="#5ab4e6"/>` + A('a-bob', `<path d="M0,580 Q100,560 200,580 T400,580 T600,580 T800,580 T1000,580 T1200,580 T1400,580 T1600,580" fill="none" stroke="#fff" stroke-width="10"/>`) + `<path d="M1300,200 V560 M1400,200 V560 M1300,300 H1400 M1300,400 H1400 M1300,500 H1400" stroke="#9aa7ad" stroke-width="12"/>`,
   office: c => room(c, { wall: '#e8eef7', floor: '#b8c3d3', clockX: 300, winX: 640 }) + T(1260, 650, `<rect x="-240" y="0" width="480" height="40" rx="12" fill="#d39b6a" ${SW}/><rect x="-14" y="-40" width="28" height="40" fill="#9aa7ad" ${SW3}/><rect x="-140" y="-230" width="280" height="190" rx="14" fill="#2e3550" ${SW}/>`),
@@ -1714,7 +1816,7 @@ SC.compose = c => {
     case 'eat':
       s += catAt({ eyes: 'happy', mouth: 'chew', arms: 'up', prop: c.food ? heldEmo(c.food.e) : T(0, -64, taiyaki(), .9, ' rotate(-14)') });
       s += T(CX + 260, GY - 20, `<ellipse rx="110" ry="22" fill="#fff" ${SW}/>` + (c.food ? emoText(c.food.e, 90, ' y="-40"') : T(0, -22, taiyaki(), .9)));
-      s += bigText(CX + 330, 330, 'Nom nom!', 64, '#ffe14d', 'a-float', 0, 'Măm măm!');
+      s += bigText(CX + 330, 330, 'Nom nom!', 64, '#ffe14d', 'a-float');
       break;
     case 'drink':
       s += catAt({ eyes: 'happy', mouth: 'w', arms: 'up', prop: c.drink ? heldEmo(c.drink.e) : P_.milktea });
@@ -1756,7 +1858,7 @@ SC.compose = c => {
       break;
     case 'care':
       s += catAt({ eyes: 'happy', mouth: 'open', arms: 'up', prop: c.food ? heldEmo(c.food.e, 80) : '' });
-      if (c.comp && c.comp.cat === 'animal') s += T(CX + 270, GY, A('a-bob', `<text class="emo" font-size="170" text-anchor="middle" y="-14">${c.comp.e}</text>`)) + [0, .8].map((d, i) => emo(CX + 140 + i * 90, 470, '💕', 54, 'a-heart', d)).join('');
+      if (c.comp && c.comp.cat === 'animal') s += T(CX + 270, GY, A('a-bob', compArt(c.comp)), .75) + [0, .8].map((d, i) => emo(CX + 140 + i * 90, 470, '💕', 54, 'a-heart', d)).join('');
       else if (e) s += emo(CX + 250, GY - 120, e, 120, 'a-bob');
       break;
     case 'talk':
@@ -1779,7 +1881,7 @@ SC.compose = c => {
   if (inBed) s += T(1000, 600, blanket(160, 330));
   if (c.comp && !(c.vclass === 'care' && c.comp.cat === 'animal')) {
     s += compFig(inBed ? (c.vclass === 'watch' ? 760 : 420) : 1130, inBed ? 870 : GY + 40, c.comp, .9);
-    if (c.vclass === 'talk' || c.vclass === 'move') s += bubble(820, 450, c.vclass === 'talk' ? `Hello, ${c.cat}?` : `${c.cat}, wait for me!`, { delay: 1.8, tail: 'right', size: 34, sub: c.vclass === 'talk' ? `Alo ${c.cat} hả?` : `${c.cat} ơi, đợi với!` });
+    if (c.vclass === 'talk' || c.vclass === 'move') s += bubble(820, 470, c.vclass === 'talk' ? `Alo ${c.cat} hả?` : `${c.cat} ơi, đợi với!`, { delay: 1.8, tail: 'right', size: 34 });
   }
   return s;
 };
@@ -1839,6 +1941,8 @@ const Sound = {
     }, 40);
     this.loops.push(() => clearInterval(id));
   },
+  slip() { if (!this.ok()) return; const t = this.ctx.currentTime; this.tone(300, t, .35, 'triangle', .16, 1500); this.tone(180, t + .55, .3, 'sine', .4, 45); this.noise(t + .55, .15, .3, 700, 'lowpass'); },
+  swoon() { if (!this.ok()) return; const t = this.ctx.currentTime; this.tone(1100, t, 1.4, 'sine', .12, 160); this.tone(160, t + 1.55, .3, 'sine', .4, 45); this.noise(t + 1.55, .15, .3, 700, 'lowpass'); },
   spooky() {
     if (!this.ok()) return;
     const c = this.ctx, o = c.createOscillator(), lfo = c.createOscillator(), lg = c.createGain(), g = c.createGain();
@@ -1991,8 +2095,8 @@ let pollTimer = null;
 function stopPolling() { if (pollTimer) clearInterval(pollTimer); pollTimer = null; }
 function startPolling(fn, ms) { stopPolling(); fn(); pollTimer = setInterval(fn, ms); }
 async function copyText(text, btn) {
-  try { await navigator.clipboard.writeText(text); if (btn) { const o = btn.innerHTML; btn.textContent = 'Copied ✓ Đã chép'; setTimeout(() => (btn.innerHTML = o), 1500); } }
-  catch (e) { if (btn) btn.textContent = 'Select the text to copy · Hãy bôi đen để chép'; }
+  try { await navigator.clipboard.writeText(text); if (btn) { const o = btn.innerHTML; btn.textContent = 'Copied ✓'; setTimeout(() => (btn.innerHTML = o), 1500); } }
+  catch (e) { if (btn) btn.textContent = 'Select the text to copy'; }
 }
 const RULES = `{
   "rules": {
@@ -2079,16 +2183,16 @@ function teacherHome() {
   stopPolling();
   const saved = LS.get('teacherRoom', null);
   const db = LS.get('dbUrl', normDb(CONFIG.DB_URL) || '');
-  const catName = (v => v === 'Chó' ? 'Dog' : v)(LS.get('catName', 'Dog'));
+  const catName = (v => v === 'Chó' ? 'Chó' : v)(LS.get('catName', 'Chó'));
   const savedTenses = LS.get('tenses', ['ps']);
   app.innerHTML = `
   <main class="page">
     <section class="hero">
       <div class="hero-cat">${miniCat()}</div>
       <div>
-        <p class="eyebrow">Present simple · Past simple · Present perfect</p>
+        <p class="eyebrow">Hiện tại đơn · Quá khứ đơn · Hiện tại hoàn thành</p>
         <h1>A Day in the Life of <span>${esc(catName)}</span><span class="vi">Một ngày của ${esc(catName)}</span></h1>
-        <p class="lead">Each student writes one sentence about the cat in the tenses the teacher picks: daily habits, what happened yesterday, or things it has done. Nobody sees anyone else’s sentence. The teacher presses <b>Reveal</b> and the whole class watches the cat’s “chaotic” story. Any grammar mistake makes spooky things happen!<span class="vi">Mỗi bạn viết 1 câu về chú mèo theo thì giáo viên chọn. Không ai thấy câu của ai. Giáo viên bấm Reveal (Tổng hợp) để cả lớp xem câu chuyện “hỗn loạn” của chú mèo. Câu nào sai ngữ pháp thì hiện tượng kỳ bí sẽ xảy ra!</span></p>
+        <p class="lead">Each student writes one sentence about the cat in the tenses the teacher picks: daily habits, what happened yesterday, or things it has done. Nobody sees anyone else’s sentence. The teacher presses <b>Reveal</b> and the whole class watches the cat’s “chaotic” story. Any grammar mistake and something goes wrong: ghosts appear, or the cat trips or faints!<span class="vi">Mỗi bạn viết 1 câu về chú mèo theo thì giáo viên chọn. Không ai thấy câu của ai. Giáo viên bấm Reveal (Tổng hợp) để cả lớp xem câu chuyện “hỗn loạn” của chú mèo. Câu nào sai ngữ pháp thì sẽ có chuyện: ma xuất hiện, hoặc mèo vấp ngã, ngất xỉu!</span></p>
       </div>
     </section>
     <form class="card form" id="createForm">
@@ -2098,11 +2202,11 @@ function teacherHome() {
       </label>
       <p class="note">Leave it empty to test on this computer only (open another tab to play as a student). Real students need Firebase: see the guide below.<span class="vi">Để trống thì app chạy thử trên máy này (mở thêm 1 tab để giả làm học viên). Học viên thật cần Firebase, xem hướng dẫn bên dưới.</span></p>
       <div class="grid2">
-        <label for="classSel">Class <span class="vi" style="display:inline">Lớp</span><select id="classSel"><option value="">No class (Không chọn lớp)</option></select></label>
-        <label for="catName">Cat’s name <span class="vi" style="display:inline">Tên chú mèo</span><input id="catName" maxlength="20" value="${esc(catName)}"></label>
-        <fieldset class="tenses"><legend>Today’s tenses<span class="vi">Thì kiểm tra hôm nay</span></legend>${TENSES.map(t => `<label class="chk"><input type="checkbox" name="tense" value="${t.id}"${savedTenses.includes(t.id) ? ' checked' : ''}> ${t.vn}${VS(TENSE_VI[t.id])}</label>`).join('')}</fieldset>
+        <label for="classSel">Class<span class="vi">Lớp</span><select id="classSel"><option value="">No class</option></select></label>
+        <label for="catName">Cat’s name<span class="vi">Tên chú mèo</span><input id="catName" maxlength="20" value="${esc(catName)}"></label>
+        <fieldset class="tenses"><legend>Today’s tenses<span class="vi">Thì kiểm tra hôm nay</span></legend>${TENSES.map(t => `<label class="chk"><input type="checkbox" name="tense" value="${t.id}"${savedTenses.includes(t.id) ? ' checked' : ''}> ${t.vn}${VS(t.en)}</label>`).join('')}</fieldset>
       </div>
-      <label for="className" id="classNameWrap">Class name (optional) <span class="vi" style="display:inline">Tên lớp (không bắt buộc)</span><input id="className" maxlength="40" placeholder="e.g. Starter K12" value="${esc(LS.get('className', ''))}"></label>
+      <label for="className" id="classNameWrap">Class name (optional)<span class="vi">Tên lớp (không bắt buộc)</span><input id="className" maxlength="40" placeholder="e.g. Starter K12" value="${esc(LS.get('className', ''))}"></label>
       <p class="err" id="homeErr" hidden></p>
       <div class="actions">
         <button class="btn primary" type="submit" id="createBtn">Create room<span class="vi">Tạo phòng</span></button>
@@ -2114,7 +2218,7 @@ function teacherHome() {
       <div class="subs-head"><h2>Classes<span class="vi">Lớp học</span></h2><button class="btn sm" type="button" id="newClassBtn">+ New class<span class="vi">Tạo lớp mới</span></button></div>
       <p class="note">Save each class’s student list. During the game, the lobby shows who has sent a sentence and who hasn’t.<span class="vi">Lưu danh sách học viên của từng lớp. Khi chơi, phòng chờ hiện rõ bạn nào đã nộp, bạn nào chưa.</span></p>
       <p class="err" id="classErr" hidden></p>
-      <div class="class-list" id="classList"><p class="empty">Loading… (Đang tải…)</p></div>
+      <div class="class-list" id="classList"><p class="empty">Loading…</p></div>
       <div class="editor" id="classEditor" hidden></div>
     </section>
     <details class="card">
@@ -2162,18 +2266,18 @@ function teacherHome() {
   }
   function renderClasses() {
     const want = sel.value || LS.get('classSel', '');
-    sel.innerHTML = `<option value="">No class (Không chọn lớp)</option>` + CLASSES.map(c => `<option value="${esc(c.id)}">${esc(c.name)} (${c.students.length} students / học viên)</option>`).join('');
+    sel.innerHTML = `<option value="">No class</option>` + CLASSES.map(c => `<option value="${esc(c.id)}">${esc(c.name)} (${c.students.length} students)</option>`).join('');
     sel.value = CLASSES.some(c => c.id === want) ? want : '';
     syncClassField();
     const list = $('#classList');
     list.innerHTML = CLASSES.length
-      ? CLASSES.map(c => `<div class="class-row" data-id="${esc(c.id)}"><div><b>${esc(c.name)}</b> <span class="note">${c.students.length} students (học viên)</span></div><div class="actions"><button type="button" class="btn sm primary" data-act="play">Play<span class="vi">Chơi</span></button><button type="button" class="btn sm" data-act="edit">Edit<span class="vi">Sửa</span></button><button type="button" class="btn sm ghosty" data-act="del">Delete<span class="vi">Xoá</span></button></div></div>`).join('')
+      ? CLASSES.map(c => `<div class="class-row" data-id="${esc(c.id)}"><div><b>${esc(c.name)}</b> <span class="note">${c.students.length} students</span></div><div class="actions"><button type="button" class="btn sm primary" data-act="play">Play<span class="vi">Chơi</span></button><button type="button" class="btn sm" data-act="edit">Edit<span class="vi">Sửa</span></button><button type="button" class="btn sm ghosty" data-act="del">Delete<span class="vi">Xoá</span></button></div></div>`).join('')
       : '<p class="empty">No classes yet. Click “+ New class”.<span class="vi">Chưa có lớp nào. Bấm “+ New class” để tạo.</span></p>';
     list.querySelectorAll('.class-row').forEach(row => {
       const c = CLASSES.find(x => x.id === row.dataset.id);
       row.querySelector('[data-act=play]').onclick = () => { sel.value = c.id; LS.set('classSel', c.id); syncClassField(); $('#createForm').scrollIntoView({ behavior: 'smooth' }); $('#createBtn').focus({ preventScroll: true }); };
       row.querySelector('[data-act=edit]').onclick = () => openEditor(c);
-      twoStep(row.querySelector('[data-act=del]'), 'Click again to delete · Bấm lần nữa để xoá', async () => {
+      twoStep(row.querySelector('[data-act=del]'), 'Click again to delete', async () => {
         try { await makeBackend(currentDb()).delClass(c.id); } catch (e) {}
         await loadClasses();
       });
@@ -2183,7 +2287,7 @@ function teacherHome() {
     const ed = $('#classEditor'), id = c ? c.id : newClassId();
     ed.hidden = false;
     ed.innerHTML = `<h3>${c ? 'Edit class' + VS('Sửa lớp') : 'New class' + VS('Lớp mới')}</h3>
-      <label for="ceName">Class name <span class="vi" style="display:inline">Tên lớp</span><input id="ceName" maxlength="40" placeholder="e.g. Starter K12" value="${esc(c ? c.name : '')}"></label>
+      <label for="ceName">Class name<span class="vi">Tên lớp</span><input id="ceName" maxlength="40" placeholder="e.g. Starter K12" value="${esc(c ? c.name : '')}"></label>
       <div id="ceRoster"></div>
       <p class="err" id="ceErr" hidden></p>
       <div class="actions"><button type="button" class="btn primary" id="ceSave">Save class<span class="vi">Lưu lớp</span></button><button type="button" class="btn ghosty" id="ceCancel">Cancel<span class="vi">Huỷ</span></button></div>`;
@@ -2214,9 +2318,9 @@ function teacherHome() {
   loadClasses();
 
   $('#copyRules').onclick = e => copyText(RULES, e.currentTarget);
-  $('#catName').oninput = e => { const h = $('.hero h1 span'); if (h) h.textContent = e.target.value || 'Dog'; };
+  $('#catName').oninput = e => { const h = $('.hero h1 span'); if (h) h.textContent = e.target.value || 'Chó'; };
   $('#demoBtn').onclick = () => {
-    const cat = $('#catName').value.trim() || 'Dog';
+    const cat = $('#catName').value.trim() || 'Chó';
     LS.set('catName', cat);
     const cls = CLASSES.find(c => c.id === sel.value);
     const tenses = normTenses([...document.querySelectorAll('input[name=tense]:checked')].map(x => x.value));
@@ -2229,12 +2333,12 @@ function teacherHome() {
     const err = $('#homeErr'); err.hidden = true;
     const dbu = currentDb();
     if (!dbu) { err.innerHTML = VI('The Firebase link isn’t right. It must start with https://', 'Link Firebase chưa đúng. Link phải bắt đầu bằng https://'); err.hidden = false; return; }
-    const cat = $('#catName').value.trim() || 'Dog';
+    const cat = $('#catName').value.trim() || 'Chó';
     const cls = CLASSES.find(c => c.id === sel.value);
     const className = cls ? cls.name : $('#className').value.trim();
     LS.set('catName', cat); if (!cls) LS.set('className', className); LS.set('dbUrl', dbu === 'local' ? '' : dbu);
     const be = makeBackend(dbu);
-    const btn = $('#createBtn'); btn.disabled = true; btn.textContent = 'Creating… (Đang tạo…)';
+    const btn = $('#createBtn'); btn.disabled = true; btn.textContent = 'Creating…';
     try {
       await be.ping();
       const code = roomCode();
@@ -2317,7 +2421,7 @@ async function lobby(code, db) {
     });
     pool.forEach(e => { html += chip(e, roster.length > 0); });
     $('#chips').innerHTML = html || '<span class="empty">No one has sent a sentence yet…<span class="vi">Chưa có ai nộp…</span></span>';
-    $('#chips').querySelectorAll('.cx').forEach(b => twoStep(b, 'Delete? Xoá?', async () => {
+    $('#chips').querySelectorAll('.cx').forEach(b => twoStep(b, 'Delete?', async () => {
       try { await be.deleteEntry(code, b.dataset.id); flash(VI('Sentence deleted. That student can send again.', 'Đã xoá câu. Bạn đó có thể gửi lại.')); } catch (e) { flash(VI('Couldn’t delete, please try again.', 'Xoá chưa được, thử lại nhé.')); }
       await refresh();
     }));
@@ -2336,7 +2440,7 @@ async function lobby(code, db) {
       $('#lbErr').hidden = true;
       if (!r) { $('#lbErr').innerHTML = VI('This room no longer exists. Please create a new one.', 'Phòng này không còn. Hãy tạo phòng mới.'); $('#lbErr').hidden = false; return; }
       room = r;
-      $('#lbCat').textContent = room.catName || 'Dog'; $('#lbCatVi').textContent = 'Một ngày của ' + (room.catName || 'Dog');
+      $('#lbCat').textContent = room.catName || 'Chó'; $('#lbCatVi').textContent = 'Một ngày của ' + (room.catName || 'Chó');
       $('#lbTip').innerHTML = tenseTipHtml(room.tenses);
       $('#lbClass').textContent = room.className ? `Class ${room.className}${(room.round || 1) > 1 ? ` · Round ${room.round}` : ''}` : ((room.round || 1) > 1 ? `Round ${room.round}` : '');
       $('#lockNote').hidden = room.status !== 'locked';
@@ -2351,20 +2455,20 @@ async function lobby(code, db) {
   };
   startPolling(refresh, 2000);
   $('#reopenBtn').onclick = async () => { await be.patchRoom(code, { status: 'open' }); refresh(); };
-  twoStep($('#resetBtn'), 'Click again: delete all · Bấm lần nữa: xoá hết câu', async () => {
+  twoStep($('#resetBtn'), 'Click again: delete all', async () => {
     try { await resetRound(be, code, room && room.round); flash(VI('New round open. Students’ phones go back to the sentence box.', 'Đã mở lượt mới. Điện thoại học viên tự quay về ô nhập câu.')); }
     catch (e) { flash(VI('Couldn’t reset, please try again.', 'Reset chưa được, thử lại nhé.')); }
     shown = ''; await refresh();
   });
   $('#goBtn').onclick = async () => {
     Sound.init();
-    const btn = $('#goBtn'); btn.disabled = true; btn.textContent = 'Revealing… (Đang tổng hợp…)';
+    const btn = $('#goBtn'); btn.disabled = true; btn.textContent = 'Revealing…';
     try {
       await be.patchRoom(code, { status: 'locked' });
       const r = await be.getRoom(code);
       const items = Object.entries(r.entries || {}).map(([id, e]) => ({ id, name: e.name, sentence: e.sentence, fixed: e.fixed || null }));
       stopPolling();
-      startReveal(items, { cat: r.catName || 'Dog', className: r.className || '', code, db, round: r.round || 1, tenses: normTenses(r.tenses) });
+      startReveal(items, { cat: r.catName || 'Chó', className: r.className || '', code, db, round: r.round || 1, tenses: normTenses(r.tenses) });
     } catch (e) { btn.disabled = false; btn.innerHTML = VI('Reveal', 'Tổng hợp'); $('#lbErr').innerHTML = VI('Couldn’t load the sentences, please try again.', 'Không lấy được dữ liệu, thử lại nhé.'); $('#lbErr').hidden = false; }
   };
 }
@@ -2372,42 +2476,42 @@ async function lobby(code, db) {
 /* ================= TEACHER: reveal show ================= */
 const SAMPLE = [
   ['Minh', 'At 6am, I get up and brush my teeth.'],
-  ['Thao', 'At 6:30 a.m., I take a shower.'],
+  ['Thảo', 'At 6:30 a.m., I take a shower.'],
   ['An', 'At 7am, I go to school.'],
   ['Lan', 'At 7:30 a.m., she eats a fish cake for breakfast.'],
   ['Huy', 'At 12 p.m., he have lunch with his friends.'],
   ['Vy', 'At 2 p.m., I play football.'],
   ['Khoa', 'At 4 p.m., we goes shopping.'],
-  ['Ngoc', 'At 8 p.m., I watch TV with my mom.'],
-  ['Bao', 'At 9 p.m., she does her homework.'],
+  ['Ngọc', 'At 8 p.m., I watch TV with my mom.'],
+  ['Bảo', 'At 9 p.m., she does her homework.'],
   ['Trang', 'At 2 AM, she fall asleep.'],
-  ['Phuc', 'At 3am, I scroll TikTok.']
+  ['Phúc', 'At 3am, I scroll TikTok.']
 ];
 const SAMPLE_PAST = [
   ['Mai', 'Yesterday I skipped class and went to the beach.'],
-  ['Duc', 'Last night she revised lessons until 2am.'],
-  ['Ha', 'Last week I miss the deadline for my essay.'],
-  ['Tung', 'We participated in many extracurricular activities when we were at university.'],
-  ['Quan', 'Two years ago my brother graduated from university.'],
+  ['Đức', 'Last night she revised lessons until 2am.'],
+  ['Hà', 'Last week I miss the deadline for my essay.'],
+  ['Tùng', 'We participated in many extracurricular activities when we were at university.'],
+  ['Quân', 'Two years ago my brother graduated from university.'],
   ['Linh', 'Yesterday I signed up for an English course.']
 ];
 const SAMPLE_PP = [
   ['Nam', 'She has passed the test with flying colours recently because she learned everything by heart.'],
-  ['Yen', 'I have just got a scholarship.'],
-  ['Khanh', 'My academic performance has improved a lot this year.'],
-  ['Tam', 'He has always had a talent for music.'],
+  ['Yến', 'I have just got a scholarship.'],
+  ['Khánh', 'My academic performance has improved a lot this year.'],
+  ['Tâm', 'He has always had a talent for music.'],
   ['Nhi', 'I have never met a deadline.'],
-  ['Son', 'She have been a quick learner since she was a kid.']
+  ['Sơn', 'She have been a quick learner since she was a kid.']
 ];
 const R = { items: [], i: 0, meta: {}, timers: [], haunted: false, active: false };
 const CH_ORDER = ['past', 'ps', 'pp'];
 const chapterInfo = (t, cat) => ({
-  past: { t: `${cat}’s Yesterday`, vi: `Hôm qua của ${cat}`, s: 'Past simple · Quá khứ đơn', h: 19 },
-  ps: { t: `A Normal Day for ${cat}`, vi: `Một ngày thường của ${cat}`, s: 'Present simple · Hiện tại đơn', h: 9 },
-  pp: { t: `What ${cat} Has Done`, vi: `Những điều ${cat} đã làm được`, s: 'Present perfect · Hiện tại hoàn thành', h: 11 }
+  past: { t: `Hôm qua của ${cat}`, vi: `Hôm qua của ${cat}`, en: `${cat}’s Yesterday`, s: 'Quá khứ đơn', h: 19 },
+  ps: { t: `Một ngày thường của ${cat}`, vi: `Một ngày thường của ${cat}`, en: `A Normal Day for ${cat}`, s: 'Hiện tại đơn', h: 9 },
+  pp: { t: `Những điều ${cat} đã làm được`, vi: `Những điều ${cat} đã làm được`, en: `What ${cat} Has Done`, s: 'Hiện tại hoàn thành', h: 11 }
 })[t];
 const capFirst = s => s ? s[0].toUpperCase() + s.slice(1) : s;
-const timeLabel = it => it.time ? it.time.label : it.tense === 'past' ? capFirst(it.sig || 'In the past') : it.tense === 'pp' ? '✓ Done' : 'Every day';
+const timeLabel = it => it.time ? it.time.label : it.tense === 'past' ? capFirst(it.sig || 'Ngày trước') : it.tense === 'pp' ? '✓ Đã làm' : 'Hằng ngày';
 const realIndex = i => R.items.slice(0, i + 1).filter(x => !x.chapter).length;
 const realItems = () => R.items.filter(x => !x.chapter);
 function clearTimers() { R.timers.splice(0).forEach(t => clearTimeout(t)); }
@@ -2470,7 +2574,7 @@ function startReveal(raw, meta) {
   $('#modal').innerHTML = `<div class="modal-back"><div class="modal intro" role="dialog" aria-labelledby="introT">
     ${miniCat({ eyes: 'happy', mouth: 'open', arms: 'wave', prop: '' })}
     <h2 id="introT">${multi ? `${who} just told the story of a cat named <b>${esc(meta.cat)}</b>.` : `${who} just wrote the daily routine of a cat named <b>${esc(meta.cat)}</b>.`}${VS(multi ? `${whoVi} vừa kể chuyện về 1 chú mèo tên là ${esc(meta.cat)}.` : `${whoVi} vừa nhập lịch trình hàng ngày của 1 chú mèo tên là ${esc(meta.cat)}.`)}</h2>
-    <p>${multi ? `Let’s watch: ${CH_ORDER.filter(t => TENSE_SEL.includes(t)).map(t => chapterInfo(t, meta.cat).t).join(' → ')}.` : `Let’s see how ${esc(meta.cat)}’s day goes!`}${VS(multi ? `Mình cùng xem: ${CH_ORDER.filter(t => TENSE_SEL.includes(t)).map(t => chapterInfo(t, meta.cat).vi).join(' → ')}.` : `Mình cùng xem một ngày của ${esc(meta.cat)} diễn ra như thế nào nhé!`)}</p>
+    <p>${multi ? `Let’s watch: ${CH_ORDER.filter(t => TENSE_SEL.includes(t)).map(t => chapterInfo(t, meta.cat).en).join(' → ')}.` : `Let’s see how ${esc(meta.cat)}’s day goes!`}${VS(multi ? `Mình cùng xem: ${CH_ORDER.filter(t => TENSE_SEL.includes(t)).map(t => chapterInfo(t, meta.cat).vi).join(' → ')}.` : `Mình cùng xem một ngày của ${esc(meta.cat)} diễn ra như thế nào nhé!`)}</p>
     <button class="btn primary big" id="startBtn" style="width:auto">Start ▶<span class="vi">Bắt đầu xem</span></button>
   </div></div>`;
   $('#startBtn').onclick = () => { Sound.init(); Sound.chime(); $('#modal').innerHTML = ''; showSlide(0); };
@@ -2509,8 +2613,8 @@ function renderCaption(it, text, g) {
     marks.forEach(e => { const a = e.wrong.i, b = a + e.wrong.raw.length; if (a < pos) return; html += esc(text.slice(pos, a)) + `<mark class="bad">${esc(text.slice(a, b))}</mark>`; pos = b; });
     html += esc(text.slice(pos));
   }
-  const badge = it.fixed && !g ? ' <span class="fixed-badge">✓ fixed</span>' : '';
-  $('#caption').innerHTML = `<div class="cap-time">${esc(timeLabel(it))}</div><div class="cap-body"><p class="cap-sentence">${html}${badge}</p><p class="cap-author">— ${esc(it.name || 'Anonymous')}</p></div>`;
+  const badge = it.fixed && !g ? ' <span class="fixed-badge">✓ đã sửa</span>' : '';
+  $('#caption').innerHTML = `<div class="cap-time">${esc(timeLabel(it))}</div><div class="cap-body"><p class="cap-sentence">${html}${badge}</p><p class="cap-author">— ${esc(it.name || 'Ẩn danh')}</p></div>`;
 }
 function slideCtx(it, text) {
   return Object.assign({}, it.ctx, { h: it.time ? it.time.h : null, mi: it.time ? it.time.mi : 0, cat: R.meta.cat, text, pred: predicate(text) });
@@ -2530,19 +2634,19 @@ function drawScene(act, c0, last) {
   try { sceneSound(act, c); } catch (e) {}
 }
 // where the interesting part of each scene is (for the half-screen crop)
-const FOCUS = { revise: 780, wakeup: 640, sport: 700, compose: 640, shop: 700, travel: 760, walk: 700 };
-const splitLabel = t => /\bbecause\b|\bso\b/i.test(t) ? 'so' : /\bbut\b/i.test(t) ? 'but' : /\b(then|after|before)\b/i.test(t) ? '→' : '+';
+const FOCUS = { revise: 780, wakeup: 560, skip: 820, sport: 700, compose: 640, shop: 700, travel: 760, walk: 700 };
+const splitLabel = t => /\bbecause\b|\bso\b/i.test(t) ? 'nên' : /\bbut\b/i.test(t) ? 'nhưng' : /\b(then|after|before)\b/i.test(t) ? '→' : '→';
 function drawSplit(a, b, c0, label) {
   const c = Object.assign({}, c0);
   const panel = (act, x) => {
     const f = act === 'compose' && c.place === 'bedroom' ? 1100 : (FOCUS[act] || 800), vx = Math.max(0, Math.min(800, f - 400));
     let inner = ''; try { inner = (SC[act] || SC.compose)(Object.assign({}, c)); } catch (e) { inner = SC.compose(Object.assign({}, c)); }
-    return `<svg x="${x}" y="0" width="800" height="900" viewBox="${vx} 0 800 900" overflow="hidden">${inner}</svg>`;
+    return `<svg class="pane-${x ? 'b' : 'a'}" x="${x}" y="0" width="800" height="900" viewBox="${vx} 0 800 900" overflow="hidden">${inner}</svg>`;
   };
   $('#stage').classList.add('split');
   $('#sceneSvg').innerHTML = defs(c.h) + panel(a, 0) + panel(b, 800)
     + `<rect x="789" y="-10" width="22" height="920" fill="#fff" ${SW}/>`
-    + T(800, 450, A('a-pop', `<circle r="64" fill="#ffd84d" ${SW}/><text y="${label.length > 2 ? 14 : 24}" text-anchor="middle" font-size="${label.length > 2 ? 40 : 70}" fill="${INK}">${esc(label)}</text>`, D(.3)));
+    + T(800, 450, A('a-pop', `<circle r="64" fill="#ffd84d" ${SW}/><text y="${label.length > 2 ? 12 : 24}" text-anchor="middle" font-size="${label.length > 4 ? 30 : label.length > 2 ? 38 : 70}" fill="${INK}">${esc(label)}</text>`, D(.3)));
   Sound.stopLoops();
   try { sceneSound(a, c); } catch (e) {}
 }
@@ -2553,26 +2657,26 @@ SC.chapter = c => {
     : c.chapter === 'past' ? { eyes: 'happy', arms: 'down' } : { eyes: 'happy', mouth: 'open', arms: 'wave' };
   return `<rect width="1600" height="900" fill="${bg}"/><rect width="1600" height="900" fill="url(#dots)"/>`
     + (c.chapter === 'pp' ? confetti(26) : c.chapter === 'past' ? `<rect x="40" y="40" width="1520" height="820" rx="30" fill="none" stroke="#c8a77e" stroke-width="10" stroke-dasharray="30 18"/>` : '')
-    + T(800, 300, A('a-pop', `<rect x="-680" y="-150" width="1360" height="300" rx="40" fill="#fff" ${SW}/><text y="-70" text-anchor="middle" font-size="40" fill="#8a7466">${esc(c.sub)}</text><text y="${big ? 34 : 40}" text-anchor="middle" font-size="${big ? 78 : 92}" fill="${INK}">${esc(c.title)}</text><text y="106" text-anchor="middle" font-size="40" fill="#8a7466" font-family="Nunito" font-weight="800">${esc(c.vi || '')}</text>`))
+    + T(800, 300, A('a-pop', `<rect x="-680" y="-150" width="1360" height="300" rx="40" fill="#fff" ${SW}/><text y="-46" text-anchor="middle" font-size="42" fill="#8a7466">${esc(c.sub)}</text><text y="${big ? 66 : 74}" text-anchor="middle" font-size="${big ? 78 : 96}" fill="${INK}">${esc(c.title)}</text>`))
     + emo(220, 640, { past: '📅', ps: '⏰', pp: '🏅' }[c.chapter], 150, 'a-float') + emo(1380, 640, { past: '📸', ps: '☀️', pp: '🎓' }[c.chapter], 150, 'a-float', .6)
     + T(800, 880, cat(catO), 1.15)
-    + (c.chapter === 'past' ? bubble(900, 450, 'Yesterday I…', { think: true, size: 34, sub: 'Hôm qua mình đã…' }) : '');
+    + (c.chapter === 'past' ? bubble(900, 460, 'Hôm qua mình đã…', { think: true, size: 34 }) : '');
 };
 function showChapter(i) {
   const it = R.items[i], ch = chapterInfo(it.chapter, R.meta.cat);
-  const c = { h: ch.h, mi: 0, cat: R.meta.cat, chapter: it.chapter, title: ch.t, sub: ch.s, vi: ch.vi };
+  const c = { h: ch.h, mi: 0, cat: R.meta.cat, chapter: it.chapter, title: ch.t, sub: ch.s };
   $('#stage').classList.remove('split');
   $('#sceneSvg').innerHTML = defs(ch.h) + SC.chapter(c);
   $('#clockBox').hidden = true;
-  $('#caption').innerHTML = `<div class="cap-body"><p class="cap-sentence">${esc(ch.t)}${VS(esc(ch.vi))}</p><p class="cap-author">${esc(ch.s)} · ${it.n} sentence${it.n > 1 ? 's' : ''} (${it.n} câu)</p></div>`;
+  $('#caption').innerHTML = `<div class="cap-body"><p class="cap-sentence">${esc(ch.t)}</p><p class="cap-author">${esc(ch.s)} · ${it.n} câu</p></div>`;
   $('#rvProg').textContent = `${realIndex(i)} / ${realItems().length}`;
   $('#prevBtn').disabled = i === 0; $('#nextBtn').disabled = false;
-  $('#nextBtn').textContent = 'Next ▶ (Tiếp)';
+  $('#nextBtn').textContent = 'Next ▶';
   try { Sound.chime(); } catch (e) {}
 }
 function unhauntNow() {
   const st = $('#stage'); if (!st) return;
-  st.classList.remove('haunted', 'leaving'); $('#fxSvg').innerHTML = ''; $('#fixLayer').innerHTML = ''; R.haunted = false;
+  st.classList.remove('haunted', 'leaving', 'tripped', 'fainted'); $('#fxSvg').innerHTML = ''; $('#fixLayer').innerHTML = ''; R.haunted = false;
 }
 function showSlide(i) {
   clearTimers(); Sound.stopLoops(); unhauntNow();
@@ -2584,13 +2688,14 @@ function showSlide(i) {
   const c = slideCtx(it, text); c.err = g.error;
   const an = analyze(text); Object.assign(c, an);
   const acts = planActs(text, an);
+  R.acts = acts;
   $('#rvProg').textContent = `${realIndex(i)} / ${realItems().length}`;
   const cb = $('#clockBox'); cb.hidden = false;
   cb.innerHTML = it.time ? `${clockSvg(it.time.h, it.time.mi)}<span>${it.time.label}</span>` : `<span>${esc(timeLabel(it))}</span>`;
   renderCaption(it, text, null);
   $('#prevBtn').disabled = i === 0;
   $('#nextBtn').disabled = g.error;
-  $('#nextBtn').textContent = i === R.items.length - 1 ? 'Finish ▶ (Kết thúc)' : 'Next ▶ (Tiếp)';
+  $('#nextBtn').textContent = i === R.items.length - 1 ? 'Finish ▶' : 'Next ▶';
   const STEP = 3600;
   // two activities → split screen (cause on the left when the sentence says "because")
   let steps = acts;
@@ -2614,27 +2719,54 @@ function flagMistake() {
   $('#nextBtn').disabled = true;
   startHaunt(it, text, { error: true, kind: 'manual', wrong: null });
 }
+// A wrong sentence: ghosts, or (to keep it fresh) the cat trips over a banana peel or faints.
+const TRIP_ACTS = new Set(['school', 'walk', 'skip', 'sport', 'exercise', 'shop', 'travel', 'extra', 'deadline', 'dance', 'wakeup', 'graduate', 'chat', 'drink']);
+function pickMishap() {
+  if (!document.querySelector('#sceneSvg .cat .shaker')) return 'ghost';
+  R.mishapN = (R.mishapN || 0) + 1;
+  const flat = [].concat(...(R.acts || []).map(a => Array.isArray(a) ? a : [a]));
+  const seq = flat.some(a => TRIP_ACTS.has(a)) ? ['trip', 'ghost', 'faint'] : ['faint', 'ghost'];
+  return seq[(R.mishapN - 1) % seq.length];
+}
+const MISHAP = {
+  ghost: { h: 'Oh no! Spooky things are happening!', vi: 'Ối! Hiện tượng kỳ bí xảy ra!', win: cat => [`The spooky things are gone. ${cat} is safe now!`, `Hiện tượng kỳ bí đã biến mất. ${cat} được yên rồi!`] },
+  trip: { h: cat => `Oops! ${cat} tripped and fell!`, vi: cat => `Ối! ${cat} vấp ngã rồi!`, word: 'OOPS!', win: cat => [`${cat} is back on its feet!`, `${cat} đứng dậy được rồi!`] },
+  faint: { h: cat => `Oh no! ${cat} fainted!`, vi: cat => `Ối! ${cat} ngất xỉu rồi!`, word: 'THUD!', win: cat => [`${cat} woke up!`, `${cat} tỉnh lại rồi!`] }
+};
+const mval = (v, cat) => typeof v === 'function' ? v(cat) : v;
 function startHaunt(it, text, g) {
   const st = $('#stage');
   R.haunted = true;
-  Sound.stopLoops(); Sound.sting(); Sound.spooky();
+  const kind = R.mishap = pickMishap();
+  Sound.stopLoops(); Sound.sting();
+  if (kind !== 'ghost') {
+    if (kind === 'trip') Sound.slip(); else Sound.swoon();
+    $('#fxSvg').innerHTML = `<defs><radialGradient id="vig"><stop offset=".55" stop-color="#3a2a20" stop-opacity="0"/><stop offset="1" stop-color="#3a2a20" stop-opacity=".45"/></radialGradient></defs><rect width="1600" height="900" fill="url(#vig)"/>`
+      + `<g transform="translate(800 150)"><g class="gin" style="animation-delay:${kind === 'trip' ? .5 : 1.5}s"><text text-anchor="middle" font-size="120" fill="#ffe14d" stroke="${INK}" stroke-width="10" paint-order="stroke" font-family="Baloo 2,Nunito,sans-serif" font-weight="800">${MISHAP[kind].word}</text></g></g>`;
+    st.classList.add(kind === 'trip' ? 'tripped' : 'fainted');
+    renderCaption(it, text, null);
+    showFix(it, text, g);
+    return;
+  }
+  Sound.spooky();
   $('#fxSvg').innerHTML = `<defs><radialGradient id="vig"><stop offset=".45" stop-color="#2d2350" stop-opacity="0"/><stop offset="1" stop-color="#2d2350" stop-opacity=".75"/></radialGradient></defs><rect width="1600" height="900" fill="url(#vig)"/>`
     + GHOST_SPOTS.map(([x, y], i) => `<g transform="translate(${x} ${y}) scale(${(.85 + (i * 37 % 60) / 100).toFixed(2)})"><g class="gin" style="animation-delay:${(i * .12).toFixed(2)}s"><g class="gfl" style="animation-delay:${(-i * .37).toFixed(2)}s;animation-duration:${(2 + (i % 4) * .5).toFixed(1)}s">${ghost(['a', 'g', 'b'][i % 3])}</g></g></g>`).join('');
   st.classList.add('haunted');
-  renderCaption(it, text, g);
+  renderCaption(it, text, null);
   showFix(it, text, g);
 }
 function showFix(it, text, g) {
-  const m = errText(g, R.meta.cat);
+  const m = errText(g, R.meta.cat), cat = R.meta.cat, MH = MISHAP[R.mishap || 'ghost'];
+  let shown = g;
   const layer = $('#fixLayer');
   layer.innerHTML = `<div class="fixcard" role="dialog" aria-labelledby="fixT">
-    <h3 id="fixT">Oh no! Spooky things are happening!<span class="vi">Ối! Hiện tượng kỳ bí xảy ra!</span></h3>
-    <p class="fix-msg" id="fixMsg">${g.count > 1 ? `This sentence has <b>${g.count} mistakes</b> (${g.count} lỗi). ` : ''}${m.msg}</p>
-    <label for="fixInput">Fix this sentence together: <span class="vi" style="display:inline">Cả lớp cùng sửa lại câu này</span></label>
+    <h3 id="fixT">${esc(mval(MH.h, cat))}${VS(esc(mval(MH.vi, cat)))}</h3>
+    <p class="fix-msg" id="fixMsg">${g.count > 1 ? `Câu này có <b>${g.count} lỗi</b>.` : 'Câu này có lỗi rồi.'} Cả lớp cùng tìm và sửa nhé!</p>
+    <label for="fixInput">Fix this sentence together:<span class="vi">Cả lớp cùng sửa lại câu này</span></label>
     <input id="fixInput" autocomplete="off" spellcheck="false" value="${esc(text)}">
     <p class="fix-hint" id="fixHint" hidden></p>
     <div class="fix-actions">
-      <button class="linkbtn" id="skipBtn" type="button">Skip (Bỏ qua)</button>
+      <button class="linkbtn" id="skipBtn" type="button">Skip<span class="vi">Bỏ qua</span></button>
       <button class="btn" id="hintBtn" type="button">Hint<span class="vi">Gợi ý</span></button>
       <button class="btn primary" id="checkBtn" type="button">Check<span class="vi">Kiểm tra</span></button>
     </div>
@@ -2645,28 +2777,31 @@ function showFix(it, text, g) {
   const shake = () => { card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake'); };
   $('#hintBtn').onclick = () => {
     const h = $('#fixHint'); hintStep++;
-    h.innerHTML = hintStep === 1 || !cur.ans ? cur.hint : `${cur.hint}<br>Answer (Đáp án): <b>${esc(cur.ans)}</b>`;
+    const why = cur.msg + (cur.hint ? `<br><span class="fix-rule">${cur.hint}</span>` : '');
+    h.innerHTML = hintStep === 1 || !cur.ans ? why : `${why}<br>Đáp án: <b>${esc(cur.ans)}</b>`;
     h.hidden = false;
+    if (hintStep === 1) renderCaption(it, input.value.trim() || text, shown);
     if (hintStep >= 2 || !cur.ans) $('#hintBtn').disabled = true;
   };
   $('#skipBtn').onclick = () => { it.ok = true; banish(); };
   const check = () => {
     const val = input.value.trim();
     if (!val) { shake(); return; }
-    if (g.kind === 'manual' && val === text) { shake(); $('#fixMsg').innerHTML = VI('The sentence hasn’t changed. Find the mistake and fix it!', 'Câu chưa thay đổi. Cả lớp tìm lỗi rồi sửa nhé!'); return; }
+    if (g.kind === 'manual' && val === text) { shake(); $('#fixMsg').textContent = 'Câu chưa thay đổi. Cả lớp tìm lỗi rồi sửa nhé!'; return; }
     const g2 = checkGrammar(val);
     if (g2.error) {
       Sound.buzz(); shake();
-      cur = errText(g2, R.meta.cat); hintStep = 0; $('#hintBtn').disabled = false; $('#fixHint').hidden = true;
-      $('#fixMsg').innerHTML = (val === (it.fixed || it.sentence) ? '' : 'Not quite yet! (Vẫn chưa đúng!) ') + (g2.count > 1 ? `<b>${g2.count} mistakes</b> left (còn ${g2.count} lỗi). ` : '') + cur.msg;
-      renderCaption(it, val, g2);
+      cur = errText(g2, R.meta.cat); shown = g2; hintStep = 0; $('#hintBtn').disabled = false; $('#fixHint').hidden = true;
+      $('#fixMsg').innerHTML = (val === (it.fixed || it.sentence) ? '' : 'Vẫn chưa đúng! ') + (g2.count > 1 ? `Còn <b>${g2.count} lỗi</b>. ` : 'Vẫn còn lỗi. ') + 'Bấm Gợi ý nếu cần nhé!';
+      renderCaption(it, val, null);
       return;
     }
     it.fixed = val; it.ok = true;
     const nt = parseTime(val); if (nt) it.time = nt;
     if (R.meta.code && R.meta.db) { try { makeBackend(R.meta.db).patchEntry(R.meta.code, it.id, { fixed: val }).catch(() => {}); } catch (e) {} }
     card.classList.add('win');
-    card.innerHTML = `<h3>Correct! 🎉${VS('Chính xác!')}</h3><p class="fix-msg">The spooky things are gone. ${esc(R.meta.cat)} is safe now!${VS(`Hiện tượng kỳ bí đã biến mất. ${esc(R.meta.cat)} được yên rồi!`)}</p>`;
+    const wn = MH.win(esc(cat));
+    card.innerHTML = `<h3>Correct! 🎉${VS('Chính xác!')}</h3><p class="fix-msg">${wn[0]}${VS(wn[1])}</p>`;
     banish(true);
   };
   $('#checkBtn').onclick = check;
@@ -2700,7 +2835,7 @@ function endView() {
   $('#replayBtn').onclick = () => { $('#modal').innerHTML = ''; showSlide(0); };
   $('#copyAll').onclick = e => copyText(lines, e.currentTarget);
   $('#doneBtn').onclick = exitReveal;
-  if ($('#newRoundBtn')) twoStep($('#newRoundBtn'), 'Click again: new round · Bấm lần nữa: mở lượt mới', async () => {
+  if ($('#newRoundBtn')) twoStep($('#newRoundBtn'), 'Click again: new round', async () => {
     try { await resetRound(makeBackend(R.meta.db), R.meta.code, R.meta.round); } catch (e) {}
     exitReveal();
   });
@@ -2709,7 +2844,7 @@ function endView() {
 /* ================= STUDENT ================= */
 async function studentView(code, db) {
   const head = cat => `<header class="st-head">${miniCat()}<div><p class="eyebrow">Room ${esc(code)}<span class="vi">Phòng ${esc(code)}</span></p><h1>A Day in the Life of ${esc(cat)}<span class="vi">Một ngày của ${esc(cat)}</span></h1></div></header>`;
-  if (!db) { app.innerHTML = `<main class="page student">${head('Dog')}<p class="err">This link is missing connection details. Please scan the QR code on the screen again.<span class="vi">Link thiếu thông tin kết nối. Hãy quét lại mã QR trên màn hình.</span></p></main>`; return; }
+  if (!db) { app.innerHTML = `<main class="page student">${head('Chó')}<p class="err">This link is missing connection details. Please scan the QR code on the screen again.<span class="vi">Link thiếu thông tin kết nối. Hãy quét lại mã QR trên màn hình.</span></p></main>`; return; }
   const be = makeBackend(db);
   const newId = () => 's' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-3);
   let myId = LS.get('sid_' + code, null);
@@ -2717,9 +2852,9 @@ async function studentView(code, db) {
   app.innerHTML = `<main class="page student"><p class="note">Joining the room…<span class="vi">Đang vào phòng…</span></p></main>`;
   let room;
   try { room = await be.getRoom(code); }
-  catch (e) { app.innerHTML = `<main class="page student">${head('Dog')}<p class="err">Couldn’t connect. Check your internet and reload the page.<span class="vi">Không kết nối được. Kiểm tra mạng rồi tải lại trang.</span></p><button class="btn" onclick="location.reload()">Reload<span class="vi">Tải lại</span></button></main>`; return; }
-  if (!room) { app.innerHTML = `<main class="page student">${head('Dog')}<p class="err">Room ${esc(code)} not found. Please scan the QR code on the screen again.<span class="vi">Không tìm thấy phòng ${esc(code)}. Hãy quét lại mã QR trên màn hình.</span></p></main>`; return; }
-  const catName = room.catName || 'Dog';
+  catch (e) { app.innerHTML = `<main class="page student">${head('Chó')}<p class="err">Couldn’t connect. Check your internet and reload the page.<span class="vi">Không kết nối được. Kiểm tra mạng rồi tải lại trang.</span></p><button class="btn" onclick="location.reload()">Reload<span class="vi">Tải lại</span></button></main>`; return; }
+  if (!room) { app.innerHTML = `<main class="page student">${head('Chó')}<p class="err">Room ${esc(code)} not found. Please scan the QR code on the screen again.<span class="vi">Không tìm thấy phòng ${esc(code)}. Hãy quét lại mã QR trên màn hình.</span></p></main>`; return; }
+  const catName = room.catName || 'Chó';
   let state = '', seenRound = room.round || 1;
 
   // Follows the teacher: lock → "watch the screen", reset or removed sentence → back to the form.
@@ -2769,8 +2904,8 @@ async function studentView(code, db) {
     app.innerHTML = `<main class="page student">${head(catName)}
       <form class="card form" id="stForm">
         ${banner ? `<p class="tip new-round">${esc(banner)}</p>` : ''}
-        <label for="stName">Your name <span class="vi" style="display:inline">Tên của bạn</span><input id="stName" maxlength="24" autocomplete="off" value="${esc(name)}" placeholder="e.g. Minh"></label>
-        <label for="stText">Your sentence <span class="vi" style="display:inline">Câu của bạn</span><textarea id="stText" maxlength="160" placeholder="${esc(TENSE_TIP[normTenses(room.tenses)[0]].ex)}">${esc(prev ? prev.sentence : '')}</textarea></label>
+        <label for="stName">Your name<span class="vi">Tên của bạn</span><input id="stName" maxlength="24" autocomplete="off" value="${esc(name)}" placeholder="e.g. Minh"></label>
+        <label for="stText">Your sentence<span class="vi">Câu của bạn</span><textarea id="stText" maxlength="160" placeholder="${esc(TENSE_TIP[normTenses(room.tenses)[0]].ex)}">${esc(prev ? prev.sentence : '')}</textarea></label>
         <div class="tip">${tenseTipHtml(room.tenses)}</div>
         <p class="err" id="stErr" hidden></p>
         <button class="btn primary big" type="submit" id="stBtn">Send<span class="vi">Gửi câu</span></button>
@@ -2783,7 +2918,7 @@ async function studentView(code, db) {
       if (!nm) return fail(VI('You forgot your name.', 'Bạn quên ghi tên rồi.'));
       if (/\d/.test(nm) || parseTime(nm)) return fail(VI('Only your name goes in the name box. Put the time in your sentence.', 'Ô tên chỉ ghi tên của bạn thôi nhé. Giờ viết trong câu.'));
       if (tx.split(' ').length < 3) return fail(VI('Please write a full sentence, e.g. I go to school at 2am.', 'Viết một câu đầy đủ nhé.'));
-      const btn = $('#stBtn'); btn.disabled = true; btn.textContent = 'Sending… (Đang gửi…)';
+      const btn = $('#stBtn'); btn.disabled = true; btn.textContent = 'Sending…';
       try {
         const r = await be.getRoom(code);
         if (!r) return fail(VI('This room no longer exists.', 'Phòng không còn nữa.'));
@@ -2801,6 +2936,14 @@ async function studentView(code, db) {
   else if (mine) doneView(mine);
   else formView(null);
 }
+
+/* ---- tap to see the Vietnamese translation (phones have no hover) ---- */
+document.addEventListener('click', e => {
+  let el = null; try { el = e.target.closest && e.target.closest('*:has(> .vi)'); } catch (err) { return; }
+  document.querySelectorAll('.show-vi').forEach(x => { if (x !== el) x.classList.remove('show-vi'); });
+  if (!el) return;
+  el.classList.add('show-vi'); clearTimeout(el._vi); el._vi = setTimeout(() => el.classList.remove('show-vi'), 2500);
+}, true);
 
 /* ================= boot ================= */
 (function boot() {
