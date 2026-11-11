@@ -279,6 +279,23 @@ svg text.emo{font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji'
 .a-rollplay{animation:rollplay 1.2s ease-in-out infinite;transform-origin:50% 100%}
 .a-tipoff{animation:tipoff 3s ease-in infinite;transform-origin:50% 100%}
 .a-type{animation:shake .3s linear infinite}
+/* transport */
+@keyframes trafficL{from{transform:translateX(0)}to{transform:translateX(-2600px)}}
+@keyframes zoomby{0%{transform:translateX(-420px);opacity:0}12%,82%{opacity:1}100%{transform:translateX(420px);opacity:0}}
+@keyframes weave{0%{transform:translate(-300px,0)}25%{transform:translate(-150px,-34px)}50%{transform:translate(0,0)}75%{transform:translate(150px,-34px)}100%{transform:translate(300px,0)}}
+@keyframes idle{50%{transform:translate(2px,-3px)}}
+.a-trafficl{animation:trafficL 6s linear infinite}
+.a-zoomby{animation:zoomby 3.4s ease-in-out infinite}
+.a-weave{animation:weave 3.2s ease-in-out infinite alternate}
+.a-idle{animation:idle .3s linear infinite}
+.a-flash{animation:blink .5s steps(2) infinite}
+@keyframes app4{0%,22%{opacity:1}25%,97%{opacity:0}100%{opacity:1}}
+@keyframes progress{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes likePop{0%,55%,100%{transform:scale(0);opacity:0}68%{transform:scale(1.25);opacity:1}82%{transform:scale(1);opacity:1}}
+.a-app{animation:app4 12s linear infinite}
+.a-progress{animation:progress 6s linear infinite;transform-origin:0% 50%}
+.a-like{animation:likePop 2.4s ease-out infinite;transform-origin:50% 50%}
+.stage:is(.haunted,.tripped,.fainted) :is(.a-zoomby,.a-weave){animation-play-state:paused}
 @keyframes lunge{0%,100%{transform:translateX(0) rotate(0)}45%{transform:translateX(110px) rotate(10deg)}60%{transform:translateX(95px) rotate(7deg)}}
 @keyframes scratchUp{0%,100%{transform:translateY(0)}50%{transform:translateY(-22px)}}
 @keyframes fling{0%{transform:translate(0,0);opacity:1}100%{transform:translate(var(--dx,0),var(--dy,-100px));opacity:0}}
@@ -432,10 +449,10 @@ function parseTime(text) {
 
 /* ================= grammar checker (present simple, subject–verb agreement) ================= */
 const PRON = { i: 'non', you: 'non', we: 'non', they: 'non', he: '3', she: '3', it: '3' };
-const ADV = new Set('always usually often sometimes never rarely seldom normally generally also still just even really frequently occasionally hardly then first already ever recently finally lately'.split(' '));
+const ADV = new Set('always usually often sometimes never rarely seldom normally generally also still just even really frequently occasionally hardly then first already ever recently finally lately probably definitely certainly surely soon'.split(' '));
 const MODAL = new Set("can could will would should must may might shall can't won't cannot couldn't shouldn't".split(' '));
 const STRONG = new Set('get go brush wash take have eat drink watch play do make cook read sleep fall listen sing dance swim ride scroll study learn write clean run walk come sit buy meet chat call talk use check feed wake leave arrive return jog practice practise surf sweep fly'.split(' '));
-const BASE = new Set([...STRONG, ...'help visit see look like love want need open close start finish stay relax rest nap dream think try wear put bring send pay find lose kick throw paint draw mop wipe fold hang plant grow feel hear say tell ask answer teach shower bathe comb dress shave pray exercise hike travel shop order upload film record stream type print fix wait hurry yell scream hide bite scratch lick snack wander explore lie enjoy spend begin keep give show turn move follow pick choose build cut prepare fry boil bake stretch yawn sneeze cry laugh smile jump climb catch chase hunt kiss hug miss cross pass carry stand work live text drive share shout skip smell stop touch win wish worry ski skate cycle decide hope forget remember collect design edit knit sew mix pour taste chop dry fill greet lock pray post rent repeat ring save shut sign smoke solve sort spell steal stay sweep swing tidy trust visit vote wake walk wonder yell zip know become speak break sell understand revise graduate participate join attend apply receive earn complete submit memorize memorise score improve achieve register enroll enrol fail lend borrow teach'.split(' ')]);
+const BASE = new Set([...STRONG, ...'avoid commute rain snow help visit see look like love want need open close start finish stay relax rest nap dream think try wear put bring send pay find lose kick throw paint draw mop wipe fold hang plant grow feel hear say tell ask answer teach shower bathe comb dress shave pray exercise hike travel shop order upload film record stream type print fix wait hurry yell scream hide bite scratch lick snack wander explore lie enjoy spend begin keep give show turn move follow pick choose build cut prepare fry boil bake stretch yawn sneeze cry laugh smile jump climb catch chase hunt kiss hug miss cross pass carry stand work live text drive share shout skip smell stop touch win wish worry ski skate cycle decide hope forget remember collect design edit knit sew mix pour taste chop dry fill greet lock pray post rent repeat ring save shut sign smoke solve sort spell steal stay sweep swing tidy trust visit vote wake walk wonder yell zip know become speak break sell understand revise graduate participate join attend apply receive earn complete submit memorize memorise score improve achieve register enroll enrol fail lend borrow teach'.split(' ')]);
 function sForm(v) {
   if (v === 'have') return 'has'; if (v === 'be') return 'is'; if (v === 'do') return 'does'; if (v === 'go') return 'goes';
   if (/(s|x|z|ch|sh|o)$/.test(v)) return v + 'es';
@@ -467,17 +484,27 @@ function stemIng(w) {
 function tokenize(text) {
   const out = []; const re = /[A-Za-z]+(?:['’][A-Za-z]+)?/g; let m;
   while ((m = re.exec(text))) {
-    const w = m[0].toLowerCase().replace('’', "'"), ve = w.match(/^(i|you|we|they)'ve$/);
+    const w = m[0].toLowerCase().replace('’', "'"), ve = w.match(/^(i|you|we|they)'ve$/), ll = w.match(/^(i|you|we|they|he|she|it)'ll$/), be = w.match(/^(i)'m$|^(you|we|they)'re$/);
     if (ve) { out.push({ raw: m[0].slice(0, ve[1].length), w: ve[1], i: m.index }); out.push({ raw: m[0].slice(ve[1].length), w: 'have', i: m.index + ve[1].length }); }
+    else if (be) { const p = be[1] || be[2]; out.push({ raw: m[0].slice(0, p.length), w: p, i: m.index }); out.push({ raw: m[0].slice(p.length), w: be[1] ? 'am' : 'are', i: m.index + p.length }); }
+    else if (ll) { out.push({ raw: m[0].slice(0, ll[1].length), w: ll[1], i: m.index }); out.push({ raw: m[0].slice(ll[1].length), w: 'will', i: m.index + ll[1].length }); }
     else out.push({ raw: m[0], w, i: m.index });
   }
   return out;
 }
 // leading time phrase: "Yesterday", "Last week,", "Two years ago", "Every day"
-const LEAD = /^\s*(?:yesterday(?:\s+(?:morning|afternoon|evening))?|last\s+[a-z]+|(?:a|an|one|two|three|four|five|six|seven|eight|nine|ten|\d+|many|several|a\s+few)\s+[a-z]+\s+ago|every\s+[a-z]+|recently|lately|today|tonight|nowadays|in\s+(?:19|20)\d\d|this\s+(?:morning|afternoon|evening|week|month|year)|on\s+[a-z]+days?|so\s+far|up\s+to\s+now)\s*,?\s*/i;
+const LEAD = /^\s*(?:yesterday(?:\s+(?:morning|afternoon|evening))?|last\s+[a-z]+|(?:a|an|one|two|three|four|five|six|seven|eight|nine|ten|\d+|many|several|a\s+few)\s+[a-z]+\s+ago|every\s+[a-z]+|recently|lately|today|tonight|nowadays|in\s+(?:19|20)\d\d|this\s+(?:morning|afternoon|evening|week|month|year)|on\s+[a-z]+days?|so\s+far|up\s+to\s+now|tomorrow(?:\s+(?:morning|afternoon|evening|night))?|next\s+[a-z]+|in\s+the\s+future|some\s?day|one\s+day|soon|(?:in|within)\s+(?:a|an|one|two|three|four|five|six|seven|eight|nine|ten|\d+|a\s+few|several)\s+[a-z]+)\s*,?\s*/i;
+// "I think / I hope / Maybe…" in front of a prediction: the real clause comes after it
+const OPINION = /^\s*(?:(?:i|we)\s+(?:think|believe|guess|hope|expect|bet|suppose)\s+(?:that\s+)?(?!to\b|so\b)|(?:i'm|i’m|i\s+am|we're|we\s+are)\s+sure\s+(?:that\s+)?|(?:maybe|perhaps|probably)\s*,?\s+)/i;
 function clauseStart(text) {
-  const m0 = String(text).match(LEAD);
-  if (m0) return m0[0].length + clauseStart0(text.slice(m0[0].length));
+  text = String(text);
+  const m0 = text.match(LEAD) || text.match(/^\s*(?:look|listen|oh\s+no|oh|wow|hurry(?:\s+up)?|quick|watch\s+out|be\s+careful|careful)\s*[!.]+\s*/i);
+  if (m0 && m0[0].length < text.trim().length) return m0[0].length + clauseStart(text.slice(m0[0].length));
+  // "When I grow up, I will…", "If it rains, I will…": the main clause comes after the comma
+  const ms = text.match(/^\s*(?:when|if|after|before|as\s+soon\s+as|until|unless|once|because)\b[^,.!?]{2,60},\s*/i);
+  if (ms && ms[0].length < text.trim().length) return ms[0].length + clauseStart(text.slice(ms[0].length));
+  const m1 = text.match(OPINION);
+  if (m1 && m1[0].length < text.trim().length) return m1[0].length + clauseStart(text.slice(m1[0].length));
   return clauseStart0(text);
 }
 function clauseStart0(text) {
@@ -526,9 +553,9 @@ function partBase(w) {
 }
 const NOUNY = new Set('work rest snack nap dream drink help plan call chat text test talent lunch fun class'.split(' '));
 const isPPish = w => !!partBase(w) || !!BADPAST[w] || !!pastBase(w) || (BASE.has(w) && !NOUNY.has(w));
-const TENSES = [{ id: 'ps', vn: 'Hiện tại đơn', en: 'Present simple' }, { id: 'past', vn: 'Quá khứ đơn', en: 'Past simple' }, { id: 'pp', vn: 'Hiện tại hoàn thành', en: 'Present perfect' }];
+const TENSES = [{ id: 'ps', vn: 'Hiện tại đơn', en: 'Present simple' }, { id: 'past', vn: 'Quá khứ đơn', en: 'Past simple' }, { id: 'pp', vn: 'Hiện tại hoàn thành', en: 'Present perfect' }, { id: 'near', vn: 'Tương lai gần', en: 'Be going to' }, { id: 'fut', vn: 'Tương lai đơn', en: 'Future simple' }];
 const CAT_NAME = 'Chó'; // the cat's proper name, the same everywhere
-const TENSE_VN = { ps: 'hiện tại đơn', past: 'quá khứ đơn', pp: 'hiện tại hoàn thành' };
+const TENSE_VN = { ps: 'hiện tại đơn', past: 'quá khứ đơn', pp: 'hiện tại hoàn thành', fut: 'tương lai đơn', near: 'tương lai gần (be going to)' };
 const TENSE_VI = TENSE_VN;
 // English text with a faded Vietnamese translation that shows on hover / tap
 const VS = vi => `<span class="vi">${vi}</span>`;
@@ -537,7 +564,9 @@ let TENSE_SEL = ['ps'];
 const TENSE_TIP = {
   ps: { rule: 'a daily habit or routine', vi: 'thói quen, lịch trình hằng ngày', ex: 'I go to school at 2am.' },
   past: { rule: 'something that already happened', vi: 'việc đã xảy ra', ex: 'Yesterday I ate ten bananas.' },
-  pp: { rule: 'something Chó has done: <b>have / has + V3</b>', vi: 'điều Chó đã làm được: have / has + V3', ex: 'I have just won a scholarship.' }
+  pp: { rule: 'something Chó has done: <b>have / has + V3</b>', vi: 'điều Chó đã làm được: have / has + V3', ex: 'I have just won a scholarship.' },
+  near: { rule: 'a plan Chó has already decided, or a prediction from what you can see now: <b>am / is / are going to + V</b>', vi: 'kế hoạch đã quyết định từ trước, dự đoán dựa trên dấu hiệu đang thấy: am / is / are going to + V nguyên mẫu', ex: 'There is so much traffic. I am going to be late!' },
+  fut: { rule: 'a prediction (I think…), a future event not arranged yet, or a decision made right now: <b>will + V</b>', vi: 'dự đoán theo ý kiến (I think…), việc tương lai chưa sắp xếp trước, quyết định ngay lúc nói: will + V nguyên mẫu', ex: 'I think I will get stuck in a traffic jam tomorrow.' }
 };
 const normTenses = t => { const a = (Array.isArray(t) ? t : t ? Object.values(t) : []).filter(x => TENSE_TIP[x]); return a.length ? a : ['ps']; };
 function tenseTipHtml(sel) {
@@ -547,18 +576,38 @@ function tenseTipHtml(sel) {
   return line('<b>How to play:</b> Write one correct sentence about Chó, using one of these tenses:', 'Hướng dẫn: Viết 1 câu đúng ngữ pháp về Chó, dùng 1 trong các thì sau:')
     + TENSES.filter(t => sel.includes(t.id)).map(t => line(`• <b>${t.vn}</b>: ${TENSE_TIP[t.id].rule}<br><i>${TENSE_TIP[t.id].ex}</i>`, `${t.en}: ${TENSE_TIP[t.id].vi}`, 1)).join('');
 }
-const PAST_SIG = /\b(yesterday|last\s+(?:night|week(?:end)?|month|year|summer|winter|spring|autumn|fall|monday|tuesday|wednesday|thursday|friday|saturday|sunday|time|semester|term|holiday|tet|sunday)|(?:a|an|one|two|three|four|five|six|seven|eight|nine|ten|\d+|many|a\s+few|several)\s+(?:minutes?|hours?|days?|weeks?|months?|years?)\s+ago|ago|in\s+(?:19|20)\d\d|when\s+(?:i|he|she|we|they|you|it|my\s+\w+)\s+(?:was|were)\b|the\s+other\s+day|in\s+the\s+past)\b/i;
+const PAST_SIG = /\b(yesterday|last\s+(?:night|week(?:end)?|month|year|summer|winter|spring|autumn|fall|monday|tuesday|wednesday|thursday|friday|saturday|sunday|time|semester|term|holiday|tet|sunday)|(?:a|an|one|two|three|four|five|six|seven|eight|nine|ten|\d+|many|a\s+few|several)\s+(?:minutes?|hours?|days?|weeks?|months?|years?)\s+ago|ago|in\s+(?:19\d\d|20[0-2]\d)|when\s+(?:i|he|she|we|they|you|it|my\s+\w+)\s+(?:was|were)\b|the\s+other\s+day|in\s+the\s+past)\b/i;
 const PP_FOR_PAST_BAD = /\b(since|so\s+far|yet|ever|lately|up\s+to\s+now|until\s+now)\b/i;
 const PP_FOR_PS_BAD = /\b(already|yet|ever|since|so\s+far|lately|recently|up\s+to\s+now|until\s+now)\b/i;
 const PP_SIG = /\b(just|already|yet|ever|never|since|so\s+far|recently|lately|before|up\s+to\s+now|until\s+now|once|twice|(?:many|several|\d+|two|three|four|five|a\s+few)\s+times|for\s+(?:a\s+(?:long\s+)?(?:while|time)|ages|(?:over\s+|more\s+than\s+)?(?:\d+|a|an|one|two|three|four|five|six|seven|eight|nine|ten|many|several|a\s+few)\s+(?:minutes?|hours?|days?|weeks?|months?|years?|decades?)))\b/i;
 const PS_SIG = /\b(every|usually|always|often|sometimes|normally|generally|on\s+(?:mondays|tuesdays|wednesdays|thursdays|fridays|saturdays|sundays|weekends))\b/i;
+const FUT_SIG = /\b(tomorrow|tonight|next\s+(?:week(?:end)?|month|year|summer|winter|spring|autumn|fall|monday|tuesday|wednesday|thursday|friday|saturday|sunday|time|semester|term|holiday|tet|morning|day)|in\s+the\s+(?:future|years?\s+to\s+come)|some\s?day|soon|(?:in|within)\s+(?:a|an|one|two|three|four|five|six|seven|eight|nine|ten|\d+|a\s+few|several)\s+(?:minutes?|hours?|days?|weeks?|months?|years?)|in\s+20[3-9]\d)\b/i;
 const sigTok = (text, m) => m ? { raw: m[0], i: m.index } : null;
+const BE_NOW = /^(am|is|are|i'm|you're|we're|they're|he's|she's|it's)$/;
 function tenseInfo(text) {
   const toks = tokenize(text), st = clauseStart(text);
-  let form = 'ps', verb = null, aux = null, base = null, vk = -1;
+  let form = 'ps', verb = null, aux = null, base = null, vk = -1, cont = false;
+  // "It is raining, so I will take a taxi": the will-clause decides the tense
+  const goTo = q => toks[q] && toks[q].w === 'going' && toks[q + 1] && toks[q + 1].w === 'to' && toks[q + 2] && (BASE.has(toks[q + 2].w) || toks[q + 2].w === 'be' || !!baseOfS(toks[q + 2].w) || !!pastBase(toks[q + 2].w) || !!stemIng(toks[q + 2].w));
+  let wk = toks.findIndex((t, q) => t.i >= st && (/^(will|won't|shall)$/.test(t.w) || goTo(q)));
+  if (wk > 0 && toks[wk].w === 'going' && (BE_NOW.test(toks[wk - 1].w) || toks[wk - 1].w === 'not' || /^(am|is|are|was|were)$/.test(toks[wk - 1].w))) wk -= toks[wk - 1].w === 'not' ? 2 : 1;
   for (let k = 0; k < toks.length; k++) {
     const t = toks[k], w = t.w;
-    if (t.i < st || PRON[w]) continue;
+    if (t.i < st || PRON[w] || k < wk) continue;
+    // future: will / won't / shall + V, and "be going to + V"
+    if (/^(will|won't|shall)$/.test(w)) {
+      form = 'fut'; aux = t; let q = k + 1; while (toks[q] && (ADV.has(toks[q].w) || toks[q].w === 'not')) q++;
+      verb = toks[q] || t; vk = toks[q] ? q : k; const n = verb.w;
+      base = /^(am|is|are|was|were|be|been)$/.test(n) ? 'be' : BASE.has(n) ? n : (baseOfS(n) || pastBase(n) || (BADPAST[n] && pastBase(BADPAST[n])) || stemIng(n) || n);
+      break;
+    }
+    const goingAt = BE_NOW.test(w) && toks[k + 1] && toks[k + 1].w === 'not' && goTo(k + 2) ? k + 2 : BE_NOW.test(w) && goTo(k + 1) ? k + 1 : goTo(k) ? k : -1;
+    if (goingAt > -1) {
+      const n = toks[goingAt + 2].w;
+      form = 'near'; aux = t; verb = toks[goingAt + 2]; vk = goingAt + 2; base = n === 'be' || BASE.has(n) ? n : (baseOfS(n) || pastBase(n) || stemIng(n) || n); break;
+    }
+    // present continuous ("I am visiting grandma tomorrow"): an arranged future, also fine
+    if (BE_NOW.test(w) && toks[k + 1] && stemIng(toks[k + 1].w)) cont = true;
     if (/^(have|has|haven't|hasn't)$/.test(w)) {
       let q = k + 1; while (toks[q] && (ADV.has(toks[q].w) || /^(not|already|ever|recently|finally|never|just)$/.test(toks[q].w))) q++;
       const n = toks[q];
@@ -576,16 +625,22 @@ function tenseInfo(text) {
   let type = '3', sw = '';
   const head = toks[toks.indexOf(aux || verb) - 1];
   if (head) { sw = SUBJ_FIX[head.w] ? SUBJ_FIX[head.w].toLowerCase() : head.w; type = PRON[sw] || (/^(people|children|men|women)$/.test(sw) || (/s$/.test(sw) && !/(ss|us|is)$/.test(sw)) ? 'non' : '3'); }
-  const pastSig = PAST_SIG.exec(text), ppSig = PP_SIG.exec(text), psSig = PS_SIG.exec(text);
+  const pastSig = PAST_SIG.exec(text), ppSig = PP_SIG.exec(text), psSig = PS_SIG.exec(text), futSig = FUT_SIG.exec(text);
+  // "I am visiting grandma tomorrow": an arrangement, fine in either future lesson
+  const contFut = !!(futSig && cont && form === 'ps');
+  if (contFut) form = 'fut';
   let intended = form, sig = null;
   if (pastSig) { intended = 'past'; sig = pastSig; }
+  else if (futSig && form !== 'fut' && form !== 'near') { intended = 'fut'; sig = futSig; }
   else if (form === 'past') { const m = PP_FOR_PAST_BAD.exec(text); if (m) { intended = 'pp'; sig = m; } else if (psSig) { intended = 'ps'; sig = psSig; } }
   else if (form === 'ps') { const m = PP_FOR_PS_BAD.exec(text); if (m) { intended = 'pp'; sig = m; } }
-  return { form, intended, verb, aux, base, type, sw, vk, toks, sig: sigTok(text, sig), pastSig: sigTok(text, pastSig), ppSig: sigTok(text, ppSig), psSig: sigTok(text, psSig) };
+  return { form, intended, verb, aux, base, type, sw, vk, toks, sig: sigTok(text, sig), pastSig: sigTok(text, pastSig), ppSig: sigTok(text, ppSig), psSig: sigTok(text, psSig), futSig: sigTok(text, futSig), contFut };
 }
 // the verb phrase rewritten in another tense
 function verbIn(tense, base, type, sw, neg) {
   if (!base) return '';
+  if (tense === 'fut') return (neg ? "won't " : 'will ') + base;
+  if (tense === 'near') return (type === '3' ? 'is' : sw === 'i' ? 'am' : 'are') + (neg ? ' not' : '') + ' going to ' + base;
   if (tense === 'past') return base === 'be' ? (type === '3' || sw === 'i' ? 'was' : 'were') + (neg ? "n't" : '') : (neg ? "didn't " + base : pastOf(base));
   if (tense === 'pp') return (type === '3' ? 'has' : 'have') + (neg ? "n't " : ' ') + (base === 'be' ? 'been' : partOf(base));
   if (base === 'be') return type === '3' ? 'is' : sw === 'i' ? 'am' : 'are';
@@ -597,11 +652,14 @@ function tenseErrors(text, sel) {
   const E = (kind, d) => out.push(Object.assign({ error: true, kind, subj: ti.sw }, d));
   const neg = /n't$|^not$/.test((ti.aux || ti.verb).w) || (ti.toks[ti.toks.indexOf(ti.aux || ti.verb) + 1] || {}).w === 'not';
   const span = ti.aux ? { raw: text.slice(ti.aux.i, ti.verb.i + ti.verb.raw.length), i: ti.aux.i } : ti.verb;
+  if (ti.contFut) { const f = ['near', 'fut'].find(x => sel.includes(x)); if (f) ti.form = ti.intended = f; }
+  // a future signal in a be-going-to lesson: "Tomorrow I visit…" → "am going to visit"
+  if (ti.intended === 'fut' && ti.form !== 'fut' && !sel.includes('fut') && sel.includes('near')) ti.intended = 'near';
   if (!sel.includes(ti.intended)) {
     const ok = sel.find(t => t === ti.form) || null;
     // "Yesterday I go…" in a present-simple lesson: the signal word is the odd one out
     if (ok && ti.sig) E('tense-off', { wrong: ti.sig, tense: ti.intended, sel, sigw: ti.sig.raw });
-    else E('tense-off', { wrong: span, tense: ti.intended, sel, fix: sel.includes('ps') ? verbIn('ps', ti.base, ti.type, ti.sw, neg) : '' });
+    else { const to = (ti.intended === 'near' ? ['fut', 'ps'] : ti.intended === 'fut' ? ['near', 'ps'] : ['ps', 'fut', 'near']).find(x => sel.includes(x)); E('tense-off', { wrong: span, tense: ti.intended, sel, fix: to ? verbIn(to, ti.base, ti.type, ti.sw, neg) : '' }); }
     return out;
   }
   if (ti.form === ti.intended) {
@@ -619,6 +677,8 @@ function tenseErrors(text, sel) {
   if (ti.intended === 'past' && ti.form === 'pp') E('pp-past', { wrong: span, sig, fix: verbIn('past', ti.base, ti.type, ti.sw, neg) });
   else if (ti.intended === 'past') E('need-past', { wrong: span, sig, fix: verbIn('past', ti.base, ti.type, ti.sw, neg) });
   else if (ti.intended === 'pp') E('need-pp', { wrong: span, sig, fix: verbIn('pp', ti.base, ti.type, ti.sw, neg) });
+  else if (ti.intended === 'near') E('need-near', { wrong: span, sig, fix: verbIn('near', ti.base, ti.type, ti.sw, neg) });
+  else if (ti.intended === 'fut') E('need-fut', { wrong: span, sig, fix: verbIn('fut', ti.base, ti.type, ti.sw, neg) });
   else E('past', { wrong: span, sig, fix: verbIn('ps', ti.base, ti.type, ti.sw, neg) });
   return out;
 }
@@ -706,6 +766,12 @@ function checkAgreement(text) {
   // aux / modal + verb
   if (!doMain && (["don't", "doesn't", "didn't", 'do', 'does', 'did'].includes(w) || MODAL.has(w))) {
     const n = after();
+    // will / can… + V: "will goes", "will went", "will going", "will is"
+    if (n && MODAL.has(w)) {
+      const x = n.w;
+      const b = /^(am|is|are|was|were)$/.test(x) ? 'be' : BASE.has(x) ? null : (baseOfS(x) || BADPAST[x] && pastBase(BADPAST[x]) || pastBase(x) || stemIng(x));
+      if (b) return E('modal-form', { wrong: n, fix: b, aux: v.raw });
+    }
     if (n) { const b = baseOfS(n.w); if (b && !BASE.has(n.w)) return E('aux-s', { wrong: n, fix: b, aux: v.raw }); }
     return { error: false };
   }
@@ -724,6 +790,7 @@ function checkAgreement(text) {
     const b = baseOfS(w);
     if (b && !BASE.has(w)) return E('non3-s', { wrong: v, fix: b });
   }
+  if (w === 'going' && toks[j + 1] && toks[j + 1].w === 'to' && toks[j + 2] && (BASE.has(toks[j + 2].w) || toks[j + 2].w === 'be')) return E('going-be', { wrong: v, fix: beFor + ' going' });
   const st = stemIng(w);
   if (st) return E('ing', { wrong: v, fix: type === '3' ? sForm(st) : st, be: beFor });
   // second verb after "and" / "then"
@@ -779,6 +846,17 @@ function extraErrors(text) {
     if (/^(homeworks|musics|advices|informations|furnitures|rices|breads|moneys)$/.test(w)) E('uncount-s', { wrong: t, fix: w.slice(0, -1) });
     if (w === 'the' && prev && /^play(s|ing|ed)?$/.test(prev.w) && next && SPORTS.has(next.w)) E('sport-the', { wrong: t, sport: next.raw });
     if (MODAL.has(w) && next && next.w === 'to') E('modal-to', { wrong: next, modal: t.raw });
+    if (w === 'going' && next && next.w === 'to' && toks[k + 2]) {
+      const x = toks[k + 2].w, b = BASE.has(x) || x === 'be' ? null : /^(am|is|are|was|were)$/.test(x) ? 'be' : (baseOfS(x) || BADPAST[x] && pastBase(BADPAST[x]) || pastBase(x) || stemIng(x));
+      if (b) E('modal-form', { wrong: toks[k + 2], fix: b, aux: 'going to' });
+    }
+    // will / can… + V anywhere in the sentence: "…, so I will takes a taxi"
+    if (MODAL.has(w)) {
+      let q = k + 1; while (toks[q] && (ADV.has(toks[q].w) || toks[q].w === 'not')) q++;
+      const n = toks[q], x = n ? n.w : '';
+      const b = !n ? null : /^(am|is|are|was|were)$/.test(x) ? 'be' : BASE.has(x) ? null : (baseOfS(x) || BADPAST[x] && pastBase(BADPAST[x]) || pastBase(x) || stemIng(x));
+      if (b) E('modal-form', { wrong: n, fix: b, aux: t.raw });
+    }
     if (TO_VERBS.test(w) && next && STRONG.has(next.w) && !NOT_AFTER_WANT.has(next.w)) E('to-inf', { wrong: next, prev: t.raw });
     if (k === firstIdx && SUBJ_FIX[w] && next && isVerbish(next.w)) E('pron-case', { wrong: t, fix: SUBJ_FIX[w] });
     // countable noun standing alone: "play video game", "eat apple", "go to park", "two apple"
@@ -821,7 +899,7 @@ function checkGrammar(text, sel = TENSE_SEL) {
     .sort((x, y) => (x.wrong ? x.wrong.i : 0) - (y.wrong ? y.wrong.i : 0));
   return Object.assign({}, list[0], { count: list.length, all: list });
 }
-const SIG_HINT = sel => sel.map(t => ({ ps: 'Hiện tại đơn: every day, at 7 a.m. + I go / she goes', past: 'Quá khứ đơn: yesterday, last …, … ago + V2 / V-ed', pp: 'Hiện tại hoàn thành: just, already, ever, never, since, for + have / has + V3' })[t]).join('<br>');
+const SIG_HINT = sel => sel.map(t => ({ ps: 'Hiện tại đơn: every day, at 7 a.m. + I go / she goes', past: 'Quá khứ đơn: yesterday, last …, … ago + V2 / V-ed', pp: 'Hiện tại hoàn thành: just, already, ever, never, since, for + have / has + V3', fut: 'Tương lai đơn: tomorrow, next …, soon, I think… + will + V nguyên mẫu', near: 'Tương lai gần: kế hoạch đã định / dấu hiệu đang thấy + am / is / are going to + V' })[t]).join('<br>');
 function errText(g, cat) {
   const q = s => `<b>“${esc(s)}”</b>`;
   const W = g.wrong ? g.wrong.raw : '';
@@ -863,6 +941,10 @@ function errText(g, cat) {
     case 'need-past': return { msg: `Có ${q(g.sig)} (đã xảy ra) mà động từ ${q(W)} chưa chia quá khứ.`, hint: 'Quá khứ đơn: V2 / V-ed. go → went, eat → ate, play → played.', ans: `${W} → ${g.fix}` };
     case 'pp-past': return { msg: `Có ${q(g.sig)} (thời điểm đã qua, rõ ràng) nên không dùng ${q(W)} (hiện tại hoàn thành).`, hint: 'yesterday / last … / … ago → quá khứ đơn (V2 / V-ed).', ans: `${W} → ${g.fix}` };
     case 'need-pp': return { msg: `Có ${q(g.sig)} nên phải dùng hiện tại hoàn thành, không dùng ${q(W)}.`, hint: 'Hiện tại hoàn thành: have / has + V3. I have eaten, she has gone.', ans: `${W} → ${g.fix}` };
+    case 'need-near': return { msg: `Có ${q(g.sig)} (việc trong tương lai) mà động từ ${q(W)} chưa chia tương lai.`, hint: 'Tương lai gần: am / is / are + going to + động từ nguyên mẫu. I am going to visit, she is going to buy.', ans: `${W} → ${g.fix}` };
+    case 'going-be': return { msg: `Trước ${q(W)} còn thiếu am / is / are.`, hint: 'I am going to… · he / she / it is going to… · you / we / they are going to…', ans: `${W} → ${g.fix}` };
+    case 'need-fut': return { msg: `Có ${q(g.sig)} (việc trong tương lai) mà động từ ${q(W)} chưa chia tương lai.`, hint: 'Tương lai đơn: will + động từ nguyên mẫu. I will go, she will eat, they won’t come.', ans: `${W} → ${g.fix}` };
+    case 'modal-form': return { msg: `Sau ${q(g.aux)} động từ phải để nguyên mẫu, mà bạn lại viết ${q(W)}.`, hint: `${esc(g.aux)} + động từ nguyên mẫu (không thêm -s/-es, không chia quá khứ, không thêm -ing): will go, will be.`, ans: `${g.aux} ${W} → ${g.aux} ${g.fix}` };
     case 'past-and': return { msg: `Hai việc đều đã xảy ra mà ${q(W)} chưa chia quá khứ.`, hint: 'Các động từ nối bằng and / then cùng chia quá khứ: went home and ate dinner.', ans: `${W} → ${g.fix}` };
     case 'have': return { msg: `${q(g.subj)} phải đi với ${q(g.fix)}, không dùng ${q(W)}.`, hint: 'I / you / we / they → have · he / she / it → has', ans: `${W} → ${g.fix}` };
     case 'pp-form': return { msg: `Sau ${q(g.aux)} phải là V3 (quá khứ phân từ), mà bạn lại viết ${q(W)}.`, hint: 'have / has + V3: eaten, gone, done, written, played…', ans: `${W} → ${g.fix}` };
@@ -901,6 +983,14 @@ const ACTS = [
   ['climb', /\bclimb(s|ed|ing)?\b/],
   ['hide', /\bhid(e|es|ing|den)?\b|hide-and-seek/],
   ['keyboard', /\b(?:sit|sits|sat|sitting|lie|lies|lay|lying|sleep|sleeps|slept|sleeping|walk|walks|walked|step|steps|stepped)\s+on\s+(?:my|his|her|the|their|dad's|mom's)?\s*(?:keyboard|laptop|computer|homework|notebook)/],
+  ['public', /\bpublic\s+transport(?:ation)?\b|\bbus\s+stops?\b|\bmass\s+transit/],
+  ['private', /\bprivate\s+(?:transport(?:ation)?|vehicles?|cars?|motorbikes?)\b|\bpersonal\s+(?:transport(?:ation)?|vehicles?|cars?)\b/],
+  ['commute', /\bcommut|\bmeans?\s+of\s+transport|\bvehicles?\b|\btransportation\b/],
+  ['jam', /\btraffic\s+jams?\b|\bjams?\b(?=.*\b(?:traffic|road|street|hour)\b)|\bcongest|\brush[\s-]?hours?\b|\bpeak[\s-]?hours?\b|\bheavy\s+traffic|\bgridlock|\bstuck\s+(?:in|on)\s+(?:a\s+|the\s+)?(?:traffic|jams?|congestion|road|street|highway)|\b(?:lots?\s+of|a\s+lot\s+of|so\s+much|too\s+much)\s+traffic|\btraffic\s+(?:is|was|gets?|got|will)\b/],
+  ['fumes', /\bexhaust|\bfumes?\b|\bpollut|\bsmog\b|\bdusty\b|\bface\s?masks?\b|\bair\s+quality/],
+  ['shortcut', /\bshort[\s-]?cuts?\b/],
+  ['accident', /\baccidents?\b|\bcrash(?:es|ed|ing)?\b|\bcollid|\bcollision/],
+  ['flexible', /\bflexib/],
   ['wakeup', /\b(get|gets|got|getting)\s+up\b|\bwak(e|es|ing)\b|\bwoke\b/],
   ['brush', /\bbrush|\bteeth\b|\btooth|\bwash(es|ing)?\s+(my|his|her|its|the|their|your)?\s*face|\bbathroom/],
   ['shower', /\bshower|\bbath\b|\bbathe/],
@@ -910,7 +1000,7 @@ const ACTS = [
   ['exercise', /\b(run|runs|running|jog|jogs|jogging|gym|exercise|exercises|yoga|workout|stretch)\b|\bwork(s|ing)?\s+out\b/],
   ['work', /\b(work|works|working|office|job|meeting)\b/],
   ['study', /\bstud(y|ies|ying)|\bhomework|\blearn|\bread(s|ing)?\b|\bbooks?\b|\benglish|\bmath|\bexam|\breview/],
-  ['phone', /tik\s?tok|\bphone|facebook|instagram|youtube|\bscroll|social media|\breels|\binternet|\bonline|\bzalo|messenger|\bsurf/],
+  ['phone', /shopee|lazada|\btiki\b|online\s+shopping|\binsta\b|tik\s?tok|\bphone|facebook|instagram|youtube|\bscroll|social media|\breels|\binternet|\bonline|\bzalo|messenger|\bsurf/],
   ['tv', /\btv\b|television|\bmovies?\b|\bfilms?\b|netflix|cartoon/],
   ['game', /\bgames?\b|\bgaming|minecraft|pubg|free fire|roblox|li[eê]n qu[aâ]n/],
   ['sleep', /\bsleep|\bslept|\bbed\b|\basleep|\bnaps?\b/],
@@ -931,6 +1021,8 @@ function detectActs(text) {
   const has = k => found.some(f => f[0] === k);
   if (has('exercise') && /work(s|ing)?\s+out/.test(t)) found = found.filter(f => f[0] !== 'work');
   if (has('wakeup')) found = found.filter(f => f[0] !== 'sleep');
+  // buying on Shopee / online is the phone scene, not the supermarket
+  if (has('phone') && /shopee|lazada|\btiki\b|online/.test(t)) found = found.filter(f => f[0] !== 'shop');
   if (has('phone') && has('sleep')) found = found.filter(f => f[0] !== 'sleep');
   if (found.length > 1) found = found.filter(f => f[0] !== 'walk');
   // an education scene already shows studying / school / sport…
@@ -978,7 +1070,7 @@ function bigText(x, y, text, size = 72, fill = '#fff', cls = 'a-pop', delay = 0)
 
 /* ---- the cat ---- */
 function cat(o = {}) {
-  const { eyes = 'dot', mouth = 'w', arms = 'down', hat = '', prop = '', first = '', anim = 'a-bob', color = '#f5b05c', stripes = !o.pal, tie = false, backpack = false, gown = false } = o;
+  const { eyes = 'dot', mouth = 'w', arms = 'down', hat = '', prop = '', first = '', anim = 'a-bob', color = '#f5b05c', stripes = !o.pal, tie = false, backpack = false, gown = false, wfh = false, under = '', over = '' } = o;
   const C = color, P = '#f6aaa4';
   const ear = `<path d="M-86,-160 Q-96,-236 -78,-250 Q-66,-256 -24,-212 Z" fill="${C}" ${SW}/><path d="M-74,-186 Q-80,-226 -72,-234 Q-62,-234 -42,-212 Z" fill="${P}"/>`;
   const ears = ear + `<g transform="scale(-1 1)">${ear}</g>`;
@@ -1013,7 +1105,10 @@ function cat(o = {}) {
     bandana: `<path d="M-98,-178 Q0,-232 98,-178 L94,-160 Q0,-204 -94,-160Z" fill="#e2726a" ${SW3}/><path d="M90,-172 l38,-20 l-6,34 z" fill="#e2726a" ${SW3}/>`,
     grad: `<g transform="translate(0 -214)"><path d="M-56,8 V34 Q0,54 56,34 V8" fill="#2e3550" ${SW3}/><path d="M-110,0 L0,-40 L110,0 L0,40Z" fill="#2e3550" ${SW3}/><path d="M0,0 L78,10 V62" stroke="#f4b04a" stroke-width="7" fill="none"/><circle cx="78" cy="66" r="9" fill="#f4b04a"/></g>`,
     sunglasses: `<g fill="#222" ${SW3}><rect x="-70" y="-172" width="60" height="40" rx="15"/><rect x="10" y="-172" width="60" height="40" rx="15"/></g><path d="M-10,-158 Q0,-166 10,-158" fill="none" ${SW3}/><path d="M-60,-162 l18,0 M20,-162 l18,0" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".6"/>`,
-    sweatband: `<path d="M-98,-180 Q0,-214 98,-180 L96,-160 Q0,-194 -96,-160Z" fill="#e2726a" ${SW3}/>`
+    sweatband: `<path d="M-98,-180 Q0,-214 98,-180 L96,-160 Q0,-194 -96,-160Z" fill="#e2726a" ${SW3}/>`,
+    helmet: `<path d="M-96,-162 Q-92,-110 -52,-102 M96,-162 Q92,-110 52,-102" fill="none" stroke="${INK}" stroke-width="4"/><path d="M-106,-160 C-112,-268 112,-268 106,-160 Z" fill="#e2463c" ${SW}/><path d="M-60,-236 Q0,-256 60,-236" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" opacity=".7"/><path d="M-106,-160 H106" ${SW3}/>`,
+    mask: `<path d="M-50,-136 L-96,-152 M50,-136 L96,-152" stroke="#fff" stroke-width="6"/><path d="M-50,-140 Q0,-150 50,-140 L46,-104 Q0,-88 -46,-104 Z" fill="#9fd6ff" ${SW3}/><path d="M-34,-126 H34 M-32,-112 H32" stroke="#6fb0d8" stroke-width="4" stroke-linecap="round"/>`,
+    bandage: `<path d="M-100,-176 Q0,-216 100,-176 L98,-154 Q0,-194 -98,-154Z" fill="#fff" ${SW3}/><path d="M56,-200 l10,-16 M70,-196 l10,-16" stroke="#e2463c" stroke-width="5" stroke-linecap="round"/><g transform="rotate(-20 62 -118)"><rect x="44" y="-127" width="38" height="18" rx="6" fill="#ffe0b8" ${SW3}/></g>`
   };
   const stripeS = stripes ? `<path d="M-16,-219 L-11,-196 M0,-221 L0,-192 M16,-219 L11,-196 M-96,-150 L-74,-148 M-94,-134 L-74,-136 M96,-150 L74,-148 M94,-134 L74,-136" stroke="#b9621f" stroke-width="7" stroke-linecap="round"/>` : '';
   const blush = `<ellipse cx="-62" cy="-121" rx="12" ry="6.5" fill="#f4a08c" opacity=".75"/><ellipse cx="62" cy="-121" rx="12" ry="6.5" fill="#f4a08c" opacity=".75"/><circle cx="-70" cy="-112" r="2.4" fill="#e8925a"/><circle cx="-60" cy="-108" r="2.4" fill="#e8925a"/>`;
@@ -1023,12 +1118,15 @@ function cat(o = {}) {
   const dizzy = `<path d="M-52,-164 l26,26 M-26,-164 l-26,26 M26,-164 l26,26 M52,-164 l-26,26" stroke="${INK}" stroke-width="8" stroke-linecap="round"/><path d="M-16,-120 q8,-9 16,0 q8,9 16,0" fill="none" ${SW3}/>`;
   const star = (x, y) => `<path transform="translate(${x} ${y})" d="M0,-20 L6,-6 L21,-6 L9,4 L13,19 L0,10 L-13,19 L-9,4 L-21,-6 L-6,-6Z" fill="#ffe14d" ${SW3}/>`;
   const stars = `<g transform="translate(0 -250)"><g class="a-orbit">${star(-70, 0)}${star(35, -40)}${star(35, 40)}</g></g>`;
-  const inner = bp + tail + body + gownS + straps + tieS + feet + ears + head + stripeS + blush
+  const flower = (x, y) => `<g transform="translate(${x} ${y})">${[0, 72, 144, 216, 288].map(a => `<ellipse cx="0" cy="-6" rx="4.5" ry="6.5" fill="#fff" transform="rotate(${a})"/>`).join('')}<circle r="3.6" fill="#ffd84d"/></g>`;
+  const wfhS = wfh ? `<path d="M-70,-50 C-71,-30 -66,-4 -40,-2 L40,-2 C66,-4 71,-30 70,-50 Z" fill="#ff7aa8" ${SW}/>${[[-46, -34], [-14, -18], [22, -38], [50, -18], [-34, -12], [6, -40]].map(([x, y]) => flower(x, y)).join('')}<path d="M0,-34 V-3" ${SW3}/>`
+    + `<path d="M-60,-96 C-68,-76 -71,-62 -70,-50 L70,-50 C71,-62 68,-76 60,-96 Z" fill="#2e3550" ${SW}/><path d="M-20,-96 L0,-60 L20,-96 Z" fill="#fff" ${SW3}/><path d="M0,-90 L-7,-83 L0,-77 L7,-83Z M0,-77 L-8,-62 L0,-56 L8,-62Z" fill="#e2463c" ${SW3}/><path d="M-20,-96 L-30,-66 L0,-56 M20,-96 L30,-66 L0,-56" fill="none" stroke="#1d2338" stroke-width="4"/><circle cx="-12" cy="-58" r="3" fill="#ffd84d"/>` : '';
+  const inner = bp + tail + body + gownS + wfhS + straps + tieS + feet + ears + head + stripeS + blush
     + `<g class="eyes-main">${eyesMain}${MO[mouth] || MO.w}</g><g class="eyes-shock">${shock}</g><g class="eyes-dizzy">${dizzy}</g>`
     + (HAT[hat] || '') + armsS + prop + `<g class="dizzy-stars">${stars}</g>`;
   const peel = `<g class="trip-prop"><g transform="translate(70 -8)"><path d="M-40,8 Q-30,-30 0,-34 Q30,-30 40,8 Q22,-6 12,-2 Q0,-16 -12,-2 Q-22,-6 -40,8Z" fill="#ffd84d" ${SW3}/><path d="M-6,-34 q4,-14 12,-16" fill="none" stroke="#8a6a2a" stroke-width="6" stroke-linecap="round"/></g></g>`;
   if (o.pal) return `<g class="pal">${A(anim, inner)}</g>`; // a cat companion (mom, dad…): not the hero, so no trip / faint / split-screen loop
-  return `<g class="cat">${peel}${A('shaker', A(anim, inner))}</g>`;
+  return `<g class="cat">${under}${peel}${A('shaker', A(anim, inner))}${over}</g>`;
 }
 
 /* ---- friends ---- */
@@ -1319,13 +1417,45 @@ function clipDance(c) {
     + `<text x="18" y="690" font-size="22" fill="#fff">@meomuop 💃</text><text x="18" y="718" font-size="16" fill="#fff" font-family="Nunito" font-weight="700">nhảy trend mới nè #fyp #trend</text>`
     + `<svg x="0" y="736" width="364" height="40" viewBox="0 0 364 40">${A('a-ticker', `<text x="18" y="26" font-size="16" fill="#fff" font-family="Nunito" font-weight="700">♫ nhạc trend — Mèo Mướp remix   ♫ nhạc trend — Mèo Mướp remix   ♫ nhạc trend — Mèo Mướp remix   ♫ nhạc trend — Mèo Mướp remix</text>`)}</svg>`;
 }
-SC.phone = c => room(c, { wall: '#3d3b6e', floor: '#54476b', night: true, winX: 600, clock: false })
-  + T(80, 600, bedFrame(700))
-  + `<circle cx="380" cy="520" r="190" fill="url(#blueGlow)" opacity=".7" class="a-flicker"/>`
-  + T(330, 690, cat({ arms: 'up', eyes: 'dot', mouth: c.clip === 'live' ? 'open' : 'w', prop: P_.phone }), 1)
-  + T(80, 600, blanket(150, 540))
-  + T(1020, 40, `<rect x="0" y="0" width="400" height="820" rx="56" fill="#222" ${SW}/><svg x="18" y="18" width="364" height="784" viewBox="0 0 364 784">${c.clip === 'live' ? clipLive(c) : clipDance(c)}</svg><rect x="150" y="28" width="100" height="24" rx="12" fill="#111"/>`)
-  + bigText(330, 300, c.clip === 'live' ? 'Chốt! Chốt!' : 'Hahaha 😹', 56, '#ffe14d', 'a-float');
+/* ---- phone apps (inside a 364 × 784 screen) ---- */
+const appShopee = () => {
+  const items = [['🧶', 'Yarn ball', '15K'], ['🐟', 'Fish snack', '29K'], ['📦', 'Big box', '9K'], ['🛏️', 'Cat bed', '199K'], ['🐭', 'Toy mouse', '19K'], ['🎀', 'Cute bow', '12K']];
+  return `<rect width="364" height="784" fill="#f5f5f5"/><rect width="364" height="146" fill="#ee4d2d"/><text x="20" y="60" font-size="36" fill="#fff">Shopee</text>${emoText('🛒', 34, ' x="316" y="44"')}`
+    + A('a-pulse', `<circle cx="340" cy="28" r="14" fill="#fff" stroke="#ee4d2d" stroke-width="3"/><text x="340" y="35" text-anchor="middle" font-size="18" fill="#ee4d2d">9</text>`, 'transform-origin:50% 50%')
+    + `<rect x="18" y="84" width="328" height="44" rx="10" fill="#fff"/><text x="32" y="114" font-size="19" fill="#999">🔍 cat toys</text>`
+    + A('a-flash', `<rect x="18" y="160" width="328" height="56" rx="10" fill="#ffd84d"/><text x="182" y="197" text-anchor="middle" font-size="26" fill="#ee4d2d">⚡ FLASH SALE 9.9 ⚡</text>`, 'animation-duration:1s')
+    + items.map(([e, n, pr], i) => { const x = 18 + (i % 2) * 168, y = 230 + Math.floor(i / 2) * 182; return `<rect x="${x}" y="${y}" width="160" height="170" rx="12" fill="#fff" stroke="#e2e2e2" stroke-width="2"/>${emoText(e, 72, ` x="${x + 80}" y="${y + 62}"`)}<text x="${x + 12}" y="${y + 128}" font-size="18" fill="#333">${n}</text><text x="${x + 12}" y="${y + 156}" font-size="22" fill="#ee4d2d">₫${pr}</text>`; }).join('')
+    + T(290, 690, A('a-rise', `<text font-size="30" fill="#ee4d2d" stroke="#fff" stroke-width="5" paint-order="stroke">+1 🛒</text>`, 'animation-duration:1.4s'));
+};
+const appYoutube = () => `<rect width="364" height="784" fill="#fff"/><rect x="16" y="20" width="46" height="32" rx="9" fill="#ff0000"/><path d="M33,28 L49,36 L33,44Z" fill="#fff"/><text x="70" y="46" font-size="26" fill="#222">YouTube</text>`
+  + `<svg x="0" y="70" width="364" height="205" viewBox="0 0 364 205"><rect width="364" height="205" fill="#6cc0ff"/><rect y="160" width="364" height="45" fill="#f4d06f"/>${T(0, 80, A('a-swim', T(0, 0, taiyaki(), .7)))}${T(240, 196, A('a-hop', T(0, 0, cat({ pal: true, color: HERO, stripes: true, anim: 'a-none', eyes: 'star', mouth: 'open', arms: 'up' }), .3)), 'animation-duration:.8s')}</svg>`
+  + `<rect y="275" width="364" height="5" fill="#ccc"/>` + A('a-progress', `<rect y="275" width="364" height="5" fill="#ff0000"/>`)
+  + `<text x="16" y="318" font-size="21" fill="#222">Funny cats compilation 😹 #47</text><text x="16" y="346" font-size="16" fill="#777">12M views · 2 days ago</text>`
+  + `<circle cx="36" cy="388" r="20" fill="${HERO}"/><text x="66" y="394" font-size="17" fill="#222">Cat TV</text>` + A('a-pulse', `<rect x="226" y="368" width="122" height="40" rx="20" fill="#cc0000"/><text x="287" y="394" text-anchor="middle" font-size="17" fill="#fff">SUBSCRIBE</text>`, 'transform-origin:50% 50%')
+  + [['#ffd9a8', 'Cat vs cucumber 🥒'], ['#c9f0d6', '10 hours of birds 🐦'], ['#e9d8ff', 'Fish cooking ASMR 🐟']].map(([col, ti], i) => `<rect x="16" y="${432 + i * 116}" width="150" height="96" rx="10" fill="${col}"/><path d="M80,${464 + i * 116} L104,${480 + i * 116} L80,${496 + i * 116}Z" fill="#fff"/><text x="178" y="${470 + i * 116}" font-size="16" fill="#222">${ti}</text><text x="178" y="${496 + i * 116}" font-size="14" fill="#777">${[3, 8, 1][i]}M views</text>`).join('');
+const appInsta = () => {
+  const st = [['heo', '#ffe0e6'], ['thỏ', '#e6f4ff'], ['khỉ', '#fff1d6'], ['gấu trúc', '#eef9e8']];
+  return `<rect width="364" height="784" fill="#fff"/><text x="16" y="50" font-size="32" fill="#222" font-style="italic">Instagram</text>${emoText('🤍', 28, ' x="290" y="40"')}${emoText('💬', 26, ' x="336" y="40"')}`
+    + st.map(([vn, bg], i) => { const cx = 50 + i * 88; return `<clipPath id="igS${i}"><circle cx="${cx}" cy="112" r="30"/></clipPath><circle cx="${cx}" cy="112" r="36" fill="none" stroke="#e1306c" stroke-width="5"/><circle cx="${cx}" cy="112" r="30" fill="${bg}"/><g clip-path="url(#igS${i})"><svg x="${cx - 30}" y="82" width="60" height="60" viewBox="-115 -235 230 230">${compArt({ vn })}</svg></g>`; }).join('')
+    + `<path d="M0,162 H364" stroke="#eee" stroke-width="2"/><circle cx="34" cy="196" r="18" fill="${HERO}"/><text x="62" y="203" font-size="18" fill="#222">cho_official ✓</text><text x="330" y="203" font-size="20" fill="#222">⋯</text>`
+    + `<svg x="0" y="226" width="364" height="364" viewBox="0 0 364 364"><rect width="364" height="364" fill="#ffd9e6"/><circle cx="300" cy="70" r="40" fill="#ffd84d"/><rect y="290" width="364" height="74" fill="#f6dfa8"/>${T(182, 350, cat({ pal: true, color: HERO, stripes: true, anim: 'a-none', eyes: 'happy', mouth: 'open', arms: 'wave', hat: 'sunglasses' }), 1.1)}${T(182, 182, A('a-like', `<path d="M0,40 C-80,-10 -60,-80 0,-44 C60,-80 80,-10 0,40Z" fill="#fff" opacity=".95"/>`))}</svg>`
+    + `${emoText('❤️', 30, ' x="30" y="620"')}${emoText('💬', 28, ' x="78" y="620"')}${emoText('📤', 28, ' x="124" y="620"')}<text x="16" y="670" font-size="19" fill="#222">12,345 likes</text><text x="16" y="702" font-size="17" fill="#222">cho_official Living my best life 😼</text><text x="16" y="730" font-size="17" fill="#00376b">#catsofinstagram #beachday</text>`;
+};
+const phoneApp = t => /shopee|lazada|\btiki\b|online\s+shopping|shop(?:s|ped|ping)?\s+online|\b(?:buy|buys|bought|order|orders|ordered)\b.*\bonline\b/i.test(t) ? 'shopee' : /youtube/i.test(t) ? 'youtube' : /\binsta(?:gram)?\b/i.test(t) ? 'insta' : /tik\s?tok|reels/i.test(t) ? 'tiktok' : /internet|social\s+media|\bonline|\bsurf|\bscroll|facebook|zalo|messenger/i.test(t) ? 'mix' : 'tiktok';
+SC.phone = c => {
+  const app = phoneApp(c.text || ''), tik = c.clip === 'live' ? clipLive(c) : clipDance(c);
+  // "internet / social media": the screen flips between the apps
+  const screen = { shopee: appShopee(), youtube: appYoutube(), insta: appInsta(), tiktok: tik }[app]
+    || [appShopee(), appYoutube(), appInsta(), clipDance(c)].map((x, i) => `<g class="a-app" style="animation-delay:${-[0, 9, 6, 3][i]}s">${x}</g>`).join('');
+  const say = { shopee: 'Chốt đơn! 🛒', youtube: 'Thêm 1 video nữa thôi… 😹', insta: 'Thả tim! ❤️', mix: 'Lướt… lướt… lướt…' }[app] || (c.clip === 'live' ? 'Chốt! Chốt!' : 'Hahaha 😹');
+  return room(c, { wall: '#3d3b6e', floor: '#54476b', night: true, winX: 600, clock: false })
+    + T(80, 600, bedFrame(700))
+    + `<circle cx="380" cy="520" r="190" fill="url(#blueGlow)" opacity=".7" class="a-flicker"/>`
+    + T(330, 690, cat({ arms: 'up', eyes: app === 'insta' || app === 'shopee' ? 'star' : 'dot', mouth: c.clip === 'live' || app !== 'tiktok' ? 'open' : 'w', prop: P_.phone }), 1)
+    + T(80, 600, blanket(150, 540))
+    + T(1020, 40, `<rect x="0" y="0" width="400" height="820" rx="56" fill="#222" ${SW}/><svg x="18" y="18" width="364" height="784" viewBox="0 0 364 784">${screen}</svg><rect x="150" y="28" width="100" height="24" rx="12" fill="#111"/>`)
+    + bigText(330, 300, say, say.length > 16 ? 44 : 56, '#ffe14d', 'a-float');
+};
 
 SC.tv = c => room(c, { wall: '#fdeee6', floor: '#d6a77f', winX: 1240, clockX: 860 })
   + T(330, 360, `<rect x="-210" y="-150" width="420" height="270" rx="22" fill="#333" ${SW}/><svg x="-188" y="-130" width="376" height="230" viewBox="0 0 376 230"><rect width="376" height="230" fill="#6cc0ff"/><rect y="180" width="376" height="50" fill="#f4d06f"/>${(c.thing || c.food || c.ball || c.vehicle) && (c.thing || c.food || c.ball || c.vehicle).e !== '🎬' ? T(188, 105, A('a-float', emoText((c.thing || c.food || c.ball || c.vehicle).e, 130))) : T(0, 100, A('a-swim', taiyaki())) + T(0, 170, A('a-swim', T(0, 0, taiyaki(), .6)))}<rect width="376" height="230" fill="#fff" opacity=".12" class="a-twinkle"/></svg><rect x="-60" y="120" width="120" height="40" fill="#c08657" ${SW3}/><rect x="-140" y="160" width="280" height="200" rx="14" fill="#d39b6a" ${SW}/>`)
@@ -1787,6 +1917,221 @@ SC.keyboard = c => {
     + bubble(1050, 330, 'Noooo! My homework! 😱', { size: 30, max: 14, tail: 'right', delay: 1 });
 };
 
+/* ---- transport: vehicles (drawn with the ground at y = 0, facing right) ---- */
+const VCOL = ['#7cb7e8', '#f6aaa4', '#ffd84d', '#9be3b4', '#b9a7d6', '#f4b04a', '#e2726a', '#cfd8e3'];
+const wheel = (x, r = 32, spin = true) => { const q = (r * .42).toFixed(1), w = `<circle r="${r}" fill="#444" ${SW}/><circle r="${q}" fill="#ccc" ${SW3}/><path d="M0,-${q} V${q} M-${q},0 H${q}" stroke="${INK}" stroke-width="4"/>`; return T(x, -r, spin ? A('a-spin', w) : w); };
+const scooterBack = (col, spin = true) => wheel(-95, 32, spin) + wheel(105, 32, spin)
+  + `<path d="M30,-58 H100" stroke="${INK}" stroke-width="22" stroke-linecap="round"/><path d="M30,-58 H100" stroke="${col}" stroke-width="13" stroke-linecap="round"/>`
+  + `<path d="M-150,-46 Q-162,-120 -80,-124 L4,-124 Q30,-122 32,-92 L36,-46 Z" fill="${col}" ${SW}/>`
+  + `<rect x="-130" y="-142" width="124" height="24" rx="12" fill="#6b4a3a" ${SW3}/><circle cx="-152" cy="-78" r="9" fill="#e2463c" ${SW3}/>`;
+const scooterFront = col => `<path d="M86,-36 L124,-54 L102,-196 L70,-196 Z" fill="${col}" ${SW}/><circle cx="110" cy="-148" r="15" fill="#ffe14d" ${SW3}/><path d="M92,-200 L-14,-178" stroke="${INK}" stroke-width="12" stroke-linecap="round"/><circle cx="-14" cy="-178" r="9" fill="#444"/>`;
+const BIKE_FRAME = 'M-100,-40 L-36,-118 L4,-40 Z M4,-40 L84,-126 M-36,-118 L84,-126 M84,-126 L105,-40';
+const bikeBack = (col, spin = true) => wheel(-100, 40, spin) + wheel(105, 40, spin)
+  + `<path d="${BIKE_FRAME}" fill="none" stroke="${INK}" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/><path d="${BIKE_FRAME}" fill="none" stroke="${col}" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>`
+  + `<rect x="-66" y="-134" width="64" height="16" rx="8" fill="#6b4a3a" ${SW3}/>`;
+const bikeFront = () => `<path d="M84,-126 L76,-172 L-8,-166" fill="none" stroke="${INK}" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>`;
+const CAR_OUT = 'M-200,-40 L-200,-112 Q-196,-132 -170,-134 L-120,-136 L-86,-210 L62,-210 L116,-136 L172,-130 Q204,-126 204,-90 L204,-40 Z';
+const CAR_WIN = 'M-76,-198 L-106,-142 L-8,-142 L-8,-198 Z M6,-198 L6,-142 L104,-142 L58,-198 Z';
+const carBody = (col, hole = false, spin = false) => `<path d="${CAR_OUT}${hole ? ' ' + CAR_WIN : ''}" fill="${col}" fill-rule="evenodd" ${SW}/>`
+  + `<path d="${CAR_WIN}" fill="#bfe8ff" fill-opacity="${hole ? .25 : 1}" ${SW3}/>`
+  + `<path d="M-2,-136 V-50" ${SW3}/><rect x="182" y="-112" width="22" height="16" rx="6" fill="#ffe14d" ${SW3}/><rect x="-200" y="-112" width="14" height="18" rx="4" fill="#e2463c" ${SW3}/><path d="M-200,-52 h-16" stroke="${INK}" stroke-width="8" stroke-linecap="round"/>`
+  + wheel(-120, 36, spin) + wheel(124, 36, spin);
+const BUS_OUT = 'M-340,-40 L-340,-300 Q-340,-322 -318,-322 L304,-322 Q340,-322 340,-286 L340,-40 Z';
+const BUS_WIN = [-300, -150, 0, 150].map(x => `M${x},-292 H${x + 130} V-178 H${x} Z`).join(' ') + ' M296,-292 H328 V-178 H296 Z';
+const busBody = (col, label = '', hole = false, spin = false) => `<path d="${BUS_OUT}${hole ? ' ' + BUS_WIN : ''}" fill="${col}" fill-rule="evenodd" ${SW}/>`
+  + `<path d="${BUS_WIN}" fill="#bfe8ff" fill-opacity="${hole ? .2 : 1}" ${SW3}/>`
+  + `<rect x="-310" y="-150" width="200" height="50" rx="10" fill="#e2726a" ${SW3}/>` + (label ? `<text x="-210" y="-112" text-anchor="middle" font-size="32" fill="#fff">${esc(label)}</text>` : '')
+  + `<rect x="316" y="-112" width="24" height="20" rx="6" fill="#ffe14d" ${SW3}/><path d="M-340,-58 h-16" stroke="${INK}" stroke-width="9" stroke-linecap="round"/>`
+  + wheel(-220, 46, spin) + wheel(220, 46, spin);
+const ambulance = () => `<path d="M-300,-40 L-300,-150 L-250,-230 L-150,-230 L-150,-290 L250,-290 L250,-40 Z" fill="#fff" ${SW}/><path d="M-280,-150 L-246,-210 L-170,-210 L-170,-150 Z" fill="#bfe8ff" ${SW3}/>`
+  + `<rect x="-300" y="-122" width="550" height="26" fill="#e2463c"/><path d="M-300,-122 H250 M-300,-96 H250" ${SW3}/><path d="M30,-262 h40 v40 h40 v40 h-40 v40 h-40 v-40 h-40 v-40 h40z" fill="#e2463c" ${SW3}/>`
+  + `<text x="-25" y="-56" text-anchor="middle" font-size="30" fill="#e2463c">AMBULANCE</text><rect x="-140" y="-318" width="120" height="28" rx="10" fill="#ddd" ${SW3}/>`
+  + A('a-flash', `<circle cx="-110" cy="-304" r="15" fill="#ff3b30" ${SW3}/>`) + A('a-flash', `<circle cx="-50" cy="-304" r="15" fill="#3b7bff" ${SW3}/>`, 'animation-delay:.25s')
+  + wheel(-200, 40, false) + wheel(160, 40, false);
+const otherRider = (vn, col) => scooterBack(col, false) + T(-68, -140, compArt({ vn }), .5) + scooterFront(col);
+const exhaust = (x, y, r = 22, col = '#8d8a86') => [0, 1, 2].map(i => T(x - i * 26, y - i * 10, A('a-puff', `<circle r="${r}" fill="${col}" opacity=".8"/>`, D(i * .45)))).join('');
+const smogAt = (x, y, dx = -300, dy = -220, n = 6) => Array.from({ length: n }, (_, i) => T(x, y, A('a-fling', `<circle r="${30 + (i % 3) * 12}" fill="#77726c" opacity=".75"/>`, `--dx:${dx + (i % 3) * 40}px;--dy:${dy + (i % 2) * 50}px;animation-duration:2.2s;animation-delay:${(i * .37).toFixed(2)}s`))).join('');
+const trafficLight = (x, y, s = 1) => T(x, y, `<rect x="-10" y="-420" width="20" height="420" fill="#555" ${SW3}/><rect x="-46" y="-560" width="92" height="210" rx="20" fill="#333" ${SW}/>`
+  + A('a-flash', `<circle cx="0" cy="-520" r="26" fill="#ff3b30" ${SW3}/>`, 'animation-duration:1.2s') + `<circle cx="0" cy="-455" r="26" fill="#6b5a2a" ${SW3}/><circle cx="0" cy="-390" r="26" fill="#2f5a3a" ${SW3}/>`, s);
+const cone = (x, y, s = 1) => T(x, y, `<path d="M-30,0 L-12,-80 L12,-80 L30,0Z" fill="#f4a04a" ${SW3}/><path d="M-21,-40 H21" stroke="#fff" stroke-width="10"/><rect x="-38" y="-10" width="76" height="12" rx="4" fill="#f4a04a" ${SW3}/>`, s);
+const vehKind = t => /motor\s?bike|motorcycle|scooter/i.test(t) ? 'scooter' : /\bbus(es)?\b|\bcoach/i.test(t) ? 'bus' : /metro|subway|\btrains?\b|\btram/i.test(t) ? 'metro' : /\bcars?\b|taxi|\bgrab\b|\bdriv(e|es|ing)\b|\bdrove\b/i.test(t) ? 'car' : /\bbi(ke|kes|cycles?)\b|\bcycl/i.test(t) ? 'bike' : /\bwalk|on foot/i.test(t) ? 'walk' : 'scooter';
+// Chó on a vehicle: the vehicle sits inside the hero cat group (so it moves with Chó in the split screen) but outside the part that trips / faints
+const CS = .55;
+const RIDE = {
+  scooter: { s: 1.3, seat: [-68, -140], hat: 'helmet', col: '#e2726a', back: (col, sp) => scooterBack(col, sp), front: col => scooterFront(col) },
+  bike: { s: 1.3, seat: [-34, -132], hat: 'helmet', col: '#5aa9d6', back: (col, sp) => bikeBack(col, sp), front: () => bikeFront() },
+  car: { s: 1.3, seat: [52, -83], col: '#7cb7e8', back: () => '', front: (col, sp) => carBody(col, true, sp) },
+  bus: { s: .9, seat: [-85, -150], col: '#ffd84d', label: 'BUS 07', back: () => T(-235, -150, compArt({ vn: 'heo' }), .5) + T(65, -150, compArt({ vn: 'thỏ' }), .5) + T(215, -150, compArt({ vn: 'chó cưng' }), .5), front: (col, sp, lb) => busBody(col, lb, true, sp) },
+  metro: { s: .9, seat: [-85, -150], col: '#cfd8e3', label: 'METRO', back: () => T(-235, -150, compArt({ vn: 'khỉ' }), .5) + T(65, -150, compArt({ vn: 'gấu trúc' }), .5), front: (col, sp, lb) => busBody(col, lb, true, sp) }
+};
+function rideCat(kind, catO = {}, { spin = true, col } = {}) {
+  if (kind === 'walk' || !RIDE[kind]) return T(0, 0, cat(Object.assign({ anim: 'a-run' }, catO)), 1 / 1.3);
+  const r = RIDE[kind], k = 1 / CS, c0 = col || r.col, [sx, sy] = r.seat;
+  const wrap = inner => T(-sx * k, -sy * k, inner, k);
+  return T(sx, sy, cat(Object.assign({ hat: r.hat || '', arms: 'up' }, catO, { under: wrap(r.back(c0, spin, r.label)), over: wrap(r.front(c0, spin, r.label)) })), CS);
+}
+const rideScale = k => (RIDE[k] || RIDE.scooter).s;
+function cityBg(c, { scroll = false, roadTop = 770 } = {}) {
+  let s = `<svg x="0" y="0" width="1600" height="700" viewBox="0 0 1600 700">${skyScape(c.h)}</svg>` + (scroll ? A('a-scrollx', buildings(0) + buildings(1600)) : buildings(0));
+  s += `<rect y="${roadTop - 50}" width="1600" height="50" fill="#d8cbbd"/><path d="M0,${roadTop - 50} H1600" ${SW3}/><rect y="${roadTop}" width="1600" height="${900 - roadTop}" fill="#8f8a86"/><path d="M0,${roadTop} H1600" ${SW3}/>`;
+  const lanes = []; for (let y = roadTop + 100; y < 880; y += 110) lanes.push(y);
+  const dash = y => Array.from({ length: 21 }, (_, i) => `<rect x="${i * 160}" y="${y}" width="80" height="10" rx="5" fill="#fff" opacity=".85"/>`).join('');
+  s += scroll ? A('a-scrollx', lanes.map(dash).join(''), 'animation-duration:1.4s') : lanes.map(dash).join('');
+  if (skyOf(c.h).night) s += `<rect width="1600" height="900" fill="#141a45" opacity=".3"/>`;
+  return s;
+}
+const idleV = (x, y, s, inner, d = 0) => T(x, y, A('a-idle', inner, `animation-delay:${d}s`), s);
+const roadSign = (x, y, l1, l2, fill = '#2f8f5b') => T(x, y, `<rect x="-9" y="60" width="18" height="${Math.max(0, 640 - y)}" fill="#9aa7ad" ${SW3}/><rect x="-190" y="-70" width="380" height="130" rx="16" fill="${fill}" ${SW}/><rect x="-178" y="-58" width="356" height="106" rx="10" fill="none" stroke="#fff" stroke-width="5"/><text y="-8" text-anchor="middle" font-size="40" fill="#fff">${esc(l1)}</text><text y="38" text-anchor="middle" font-size="32" fill="#fff">${esc(l2)}</text>`);
+// a row of stuck cars / buses / scooters
+const jamRow = (y, s, items, d0 = 0) => items.map(([kind, x, extra], i) => {
+  const col = VCOL[(i * 3 + Math.round(y)) % VCOL.length];
+  const art = kind === 'bus' ? busBody(VCOL[2], extra || '') : kind === 'rider' ? otherRider(extra || 'heo', col) : carBody(col);
+  return idleV(x, y, s, art, ((i * .13 + d0) % .3).toFixed(2));
+}).join('');
+
+// commute / means of transport / vehicles
+SC.commute = c => {
+  const t = c.text || '', k = vehKind(t);
+  const dest = /school|class/i.test(t) ? 'SCHOOL' : /work|office|job/i.test(t) ? 'OFFICE' : 'CITY CENTRE';
+  const title = /means?\s+of\s+transport/i.test(t) ? 'MEANS OF TRANSPORT' : /vehicle/i.test(t) ? 'VEHICLES' : /public\s+transport/i.test(t) ? 'PUBLIC TRANSPORT' : 'MY DAILY COMMUTE';
+  const onc = [['car', 0], ['rider', -2], ['bus', -4]].map(([v, d], i) => T(1900, 800, A('a-trafficl', T(0, 0, v === 'car' ? carBody(VCOL[1], false, true) : v === 'bus' ? busBody(VCOL[3], '', false, true) : otherRider('chó cưng', VCOL[4]), .42, ' scale(-1 1)'), `animation-delay:${d}s`))).join('');
+  const say = { scooter: 'Beep beep! Off I go!', bike: 'Pedal, pedal… 🚲', car: 'Seat belt on! ✓', bus: `Next stop: ${dest.toLowerCase()}!`, metro: 'Wow, so fast! 🚇', walk: 'Walking is healthy! 💪' }[k];
+  return cityBg(c, { scroll: true, roadTop: 700 })
+    + roadSign(1330, 230, `${dest} →`, '5 km')
+    + onc
+    + T(800, 895, A('a-drive', rideCat(k, { eyes: 'happy', mouth: 'open', backpack: k === 'walk' && dest === 'SCHOOL' })), rideScale(k))
+    + bigText(800, 120, title, 64, '#ffe14d', 'a-pop')
+    + bubble(250, 300, say, { size: 34, tail: 'right', delay: .8 });
+};
+// traffic jam / congestion / rush hour / peak hour / get stuck in
+SC.jam = c => {
+  const t = c.text || '', k = vehKind(t), stuck = /stuck/i.test(t);
+  const title = /congest/i.test(t) ? 'CONGESTION' : /peak/i.test(t) ? 'PEAK HOUR' : /rush/i.test(t) ? 'RUSH HOUR' : 'TRAFFIC JAM';
+  return cityBg(c, { roadTop: 620 })
+    + trafficLight(1500, 600, .8)
+    + jamRow(690, .46, [['car', 110], ['car', 320], ['bus', 590, 'BUS 32'], ['car', 860], ['car', 1060], ['bus', 1330], ['car', 1560]])
+    + jamRow(790, .6, [['rider', 110, 'heo'], ['car', 330], ['rider', 560, 'thỏ'], ['car', 790], ['rider', 1020, 'khỉ'], ['car', 1250], ['rider', 1480, 'vịt']], .1)
+    + exhaust(170, 765, 16) + exhaust(1110, 765, 16)
+    + idleV(230, 895, .9, carBody(VCOL[0])) + exhaust(40, 850, 24)
+    + idleV(1330, 895, 1.05, otherRider('gấu', VCOL[5]), .15)
+    + T(800, 895, A('a-drive', rideCat(k === 'walk' ? 'scooter' : k, { eyes: 'meh', mouth: 'open' }, { spin: false })), rideScale(k))
+    + sweat(790, 560)
+    + bigText(380, 470, 'HONK!', 48, '#fff', 'a-flash') + bigText(1180, 430, 'BEEP BEEP!', 44, '#fff', 'a-flash', .25) + bigText(1420, 560, 'HONK!', 40, '#fff', 'a-flash', .5)
+    + bigText(800, 130, title, 80, '#ffe14d', 'a-pop')
+    + bubble(600, 320, stuck ? 'I’m stuck! I’ll be late! 😿' : 'Move, please!!! 😾', { size: 34, delay: .8 });
+};
+// exhaust fumes / air pollution
+SC.fumes = c => {
+  const t = c.text || '', k = vehKind(t);
+  const title = /pollut|smog|dust|air quality/i.test(t) ? 'AIR POLLUTION' : 'EXHAUST FUMES';
+  return cityBg(c, { roadTop: 660 })
+    + jamRow(770, .56, [['bus', 330, 'BUS 32'], ['car', 820], ['rider', 1150, 'heo'], ['car', 1450]])
+    + exhaust(130, 730, 34) + exhaust(690, 740, 30) + exhaust(1320, 740, 30)
+    + `<rect width="1600" height="900" fill="#8b8577" opacity=".32"/>`
+    + T(1260, 250, `<rect x="-10" y="120" width="20" height="290" fill="#9aa7ad" ${SW3}/><rect x="-200" y="-110" width="400" height="230" rx="20" fill="#2e3550" ${SW}/><text y="-56" text-anchor="middle" font-size="34" fill="#fff">AIR QUALITY</text>` + A('a-pulse', `<text y="40" text-anchor="middle" font-size="96" fill="#ff5a4e">287</text>`, 'transform-origin:50% 50%') + `<text y="96" text-anchor="middle" font-size="32" fill="#ffd84d">UNHEALTHY 😷</text>`)
+    + idleV(1190, 895, .9, carBody(VCOL[6]))
+    + smogAt(990, 850, -300, -240)
+    + T(720, 895, A('a-drive', rideCat(k === 'walk' ? 'scooter' : k, { hat: 'mask', eyes: 'meh' }, { spin: false })), rideScale(k))
+    + bigText(420, 470, 'COUGH! COUGH!', 50, '#fff', 'a-flash')
+    + bigText(800, 120, title, 72, '#ffe14d', 'a-pop');
+};
+// take a shortcut
+SC.shortcut = c => {
+  const t = c.text || '', v = vehKind(t), k = v === 'bus' || v === 'metro' ? 'scooter' : v;
+  const hedge = Array.from({ length: 17 }, (_, i) => `<circle cx="${i * 100 + 20}" cy="792" r="34" fill="#6fbf73" ${SW3}/>`).join('');
+  return cityBg(c, { roadTop: 600 })
+    + jamRow(690, .46, [['car', 120], ['bus', 390], ['car', 660], ['car', 870], ['bus', 1140], ['car', 1410], ['car', 1600]])
+    + jamRow(770, .5, [['rider', 200, 'heo'], ['car', 430], ['rider', 680, 'vịt'], ['car', 920], ['rider', 1170, 'khỉ'], ['car', 1400]], .1)
+    + `<rect y="790" width="1600" height="110" fill="#e8d8bf"/><path d="M0,790 H1600" ${SW3}/>` + hedge
+    + Array.from({ length: 8 }, (_, i) => `<ellipse cx="${i * 210 + 90}" cy="${860 + (i % 2) * 22}" rx="16" ry="8" fill="#cdb894"/>`).join('')
+    + roadSign(330, 250, 'MAIN ROAD', '45 min 😩', '#c0392b') + roadSign(1270, 250, 'SHORTCUT →', '5 min 😼')
+    + T(800, 893, A('a-zoomby', `<path d="M-250,-120 H-380 M-230,-70 H-400 M-240,-170 H-330" stroke="#fff" stroke-width="12" stroke-linecap="round"/>` + A('a-drive', rideCat(k, { eyes: 'happy', mouth: 'open' }))), rideScale(k) * .95)
+    + bigText(800, 120, 'TAKE A SHORTCUT!', 70, '#ffe14d', 'a-pop')
+    + bubble(980, 420, 'Bye bye, traffic jam! 😼', { size: 32, delay: .8 });
+};
+// a (serious) accident
+SC.accident = c => {
+  const t = c.text || '', saw = /\b(saw|see|sees|seen|seeing|witness\w*|watch\w*)\b/i.test(t);
+  const title = /serious|terrible|bad|horrible|major|big/i.test(t) ? 'SERIOUS ACCIDENT!' : 'ACCIDENT!';
+  const dent = `<path d="M204,-128 l-24,12 l20,12 l-24,14 l22,14 l-20,12 l22,14" fill="none" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/><path d="M70,-196 l-20,26 l14,6 l-18,22" fill="none" stroke="#fff" stroke-width="5"/>`;
+  return cityBg(c, { roadTop: 700 })
+    + `<path d="M60,880 C200,870 300,850 380,820 M90,900 C220,892 320,874 400,845" fill="none" stroke="#3a3533" stroke-width="12" opacity=".5"/>`
+    + T(260, 760, scooterBack('#9be3b4', true) + scooterFront('#9be3b4'), .7, ' rotate(172)')
+    + T(650, 885, carBody('#7cb7e8') + dent, .85, ' scale(-1 1) rotate(-6)')
+    + [[470, 760, 0], [520, 730, .6], [440, 720, 1.1]].map(([x, y, d]) => T(x, y, A('a-rise', `<circle r="34" fill="#8d8a86" opacity=".8"/>`, D(d)))).join('')
+    + [[420, 885], [470, 878], [520, 890], [380, 892]].map(([x, y], i) => `<path d="M${x},${y} l14,-10 l6,14z" fill="#bfe8ff" ${SW3} transform="rotate(${i * 50} ${x} ${y})"/>`).join('')
+    + cone(1050, 892, .7) + cone(1565, 892, .7)
+    + T(1320, 885, ambulance(), .75)
+    + T(935, 895, cat(saw ? { eyes: 'dot', mouth: 'open', arms: 'up' } : { hat: 'bandage', eyes: 'meh', mouth: 'w' }), 1)
+    + bigText(1320, 560, 'WEE-OO WEE-OO', 40, '#fff', 'a-flash')
+    + bigText(800, 130, title, 76, '#ffe14d', 'a-pop')
+    + bubble(890, 400, saw ? 'Oh no! Call 115! 🚑' : 'Ouch… my head! 🤕', { size: 34, delay: 1 });
+};
+// flexible (working hours, or a flexible way to get around)
+SC.flexible = c => {
+  const t = c.text || '';
+  if (/motor\s?bike|scooter|\bbikes?\b|bicycle|vehicle|transport/i.test(t)) {
+    const v = vehKind(t), k = v === 'bike' ? 'bike' : 'scooter';
+    return cityBg(c, { roadTop: 640 })
+      + jamRow(730, .52, [['car', 120], ['bus', 400], ['car', 690], ['car', 920], ['bus', 1200], ['car', 1480]])
+      + T(800, 840, A('a-weave', A('a-drive', rideCat(k, { eyes: 'happy', mouth: 'open' }))), 1.05)
+      + jamRow(900, .85, [['car', 200], ['car', 1400]], .1)
+      + bigText(800, 130, 'SO FLEXIBLE!', 80, '#ffe14d', 'a-pop')
+      + bubble(1000, 300, 'Zip, zip! No traffic jam for me! 😼', { size: 30, max: 18, delay: .8 });
+  }
+  const win = T(1150, 66, `<rect x="-14" y="-14" width="448" height="328" rx="14" fill="#fff" ${SW}/><rect width="420" height="300" fill="#bfe6ff"/>`
+    + [[20, 90, 70], [110, 60, 90], [220, 100, 60], [300, 40, 110]].map(([x, y, w], i) => `<rect x="${x}" y="${y}" width="${w}" height="${200 - y}" fill="${['#f6aaa4', '#ffd9a8', '#b9a7d6', '#9fd6ff'][i]}" ${SW3}/>`).join('')
+    + `<rect y="200" width="420" height="100" fill="#8f8a86"/>` + [0, 1, 2, 3].map(i => T(55 + i * 105, 252, carBody(VCOL[i]), .22)).join('') + [0, 1, 2].map(i => T(105 + i * 110, 298, carBody(VCOL[i + 4]), .24)).join('')
+    + bigText(300, 60, 'HONK!', 36, '#fff', 'a-flash') + `<rect width="420" height="300" fill="none" ${SW}/><path d="M210,0 V300 M0,150 H420" ${SW3}/>`, .8);
+  // the video call: everyone only sees the top half
+  const tile = (x, y, art, name, bg) => `<svg x="${x}" y="${y}" width="188" height="104" viewBox="-179 -252 358 198"><rect x="-179" y="-252" width="358" height="198" fill="${bg}"/>${art}</svg><rect x="${x}" y="${y}" width="188" height="104" fill="none" stroke="#1d2338" stroke-width="3"/><rect x="${x + 6}" y="${y + 80}" width="${name.length * 9 + 14}" height="19" rx="5" fill="#000" opacity=".55"/><text x="${x + 13}" y="${y + 95}" font-size="14" fill="#fff">${esc(name)}</text>`;
+  const screen = `<rect x="-215" y="-300" width="430" height="276" rx="18" fill="#333" ${SW}/><rect x="-200" y="-286" width="400" height="248" rx="6" fill="#1d2338"/>`
+    + `<rect x="-200" y="-286" width="400" height="30" rx="6" fill="#2d8cff"/><text x="-186" y="-265" font-size="17" fill="#fff">Zoom · Team meeting</text>`
+    + A('a-flash', `<circle cx="146" cy="-271" r="7" fill="#ff3b30"/>`, 'animation-duration:1.4s') + `<text x="158" y="-265" font-size="15" fill="#fff">REC</text>`
+    + tile(-196, -252, cat({ pal: true, color: HERO, stripes: true, wfh: true, eyes: 'happy', mouth: 'open', arms: 'wave', anim: 'a-none' }), c.cat, '#e9f3ff')
+    + tile(4, -252, compArt({ vn: 'sếp' }), 'Boss', '#fff4e0')
+    + tile(-196, -146, compArt({ vn: 'heo' }), 'Mr. Pig', '#eaf7ec')
+    + tile(4, -146, compArt({ vn: 'thỏ' }), 'Ms. Rabbit', '#fdeef4')
+    + `<path d="M-250,-24 H250 L222,8 H-222Z" fill="#9aa7ad" ${SW}/>`;
+  return room(c, { wall: '#eef6ff', floor: '#cfd8e3', win: false, clockX: 650 })
+    + win
+    + T(290, 230, `<rect x="-230" y="-110" width="460" height="220" rx="18" fill="#fff" ${SW}/><circle cx="0" cy="-96" r="9" fill="#e2463c" ${SW3}/><text y="-38" text-anchor="middle" font-size="42" fill="${INK}">FLEXIBLE HOURS</text><text y="18" text-anchor="middle" font-size="32" fill="#2f8f5b">Start any time ✓</text><text y="66" text-anchor="middle" font-size="32" fill="#c0392b">Rush hour? No, thanks!</text>`)
+    + T(1040, 650, `<rect x="-300" y="0" width="600" height="34" rx="12" fill="#d39b6a" ${SW}/><rect x="-260" y="34" width="30" height="220" fill="#c08657" ${SW3}/><rect x="230" y="34" width="30" height="220" fill="#c08657" ${SW3}/>`)
+    + T(1040, 650, screen)
+    + emo(1240, 618, '☕', 64)
+    + T(600, 875, cat({ wfh: true, eyes: 'happy', mouth: 'open', arms: 'wave' }), 1.15)
+    + bubble(150, 430, 'No rush hour, no trousers! 😎', { size: 32, max: 30, tail: 'right', delay: .8 });
+};
+// public transport: queue at the bus stop, a full bus, the metro above
+SC.public = c => {
+  const pax = ['heo', 'thỏ', 'khỉ', 'vịt', 'gấu trúc', 'chó cưng'];
+  const metro = `<rect x="-60" y="410" width="1720" height="26" fill="#9aa7ad" ${SW3}/>` + [200, 800, 1400].map(x => `<rect x="${x - 18}" y="436" width="36" height="230" fill="#9aa7ad" ${SW3}/>`).join('')
+    + A('a-trafficl', `<g transform="translate(1900 0)">` + [0, 1, 2].map(i => `<rect x="${i * 330}" y="300" width="320" height="110" rx="${i ? 14 : 50}" fill="#cfe7ff" ${SW3}/><path d="M${i * 330},370 h320" stroke="#2d8cff" stroke-width="10"/>` + [0, 1, 2, 3].map(w => `<rect x="${i * 330 + 26 + w * 72}" y="318" width="52" height="40" rx="8" fill="#fff" ${SW3}/>`).join('')).join('') + `<text x="160" y="400" text-anchor="middle" font-size="22" fill="#2d8cff">METRO</text></g>`, 'animation-duration:9s');
+  const shelter = T(360, 900, `<rect x="-240" y="-330" width="480" height="30" rx="10" fill="#2d8cff" ${SW}/><rect x="-226" y="-300" width="14" height="300" fill="#9aa7ad" ${SW3}/><rect x="212" y="-300" width="14" height="300" fill="#9aa7ad" ${SW3}/><rect x="-212" y="-300" width="424" height="160" fill="#bfe8ff" opacity=".45"/><text y="-308" text-anchor="middle" font-size="24" fill="#fff">BUS STOP</text>`);
+  const queue = pax.slice(0, 3).map((vn, i) => T(170 + i * 120, 900, A('a-bob', compArt({ vn }), D(i * .3)), .55)).join('');
+  const bus = busBody('#ffd84d', 'BUS 07') + pax.slice(1).map((vn, i) => T(-235 + i * 150, -150, compArt({ vn }), .5)).join('') + `<path d="${BUS_WIN}" fill="#bfe8ff" fill-opacity=".2" ${SW3}/>`;
+  return cityBg(c, { roadTop: 760 }) + metro
+    + T(1150, 895, A('a-idle', bus), .75)
+    + shelter + queue
+    + T(560, 900, cat({ eyes: 'happy', mouth: 'open', arms: 'up', prop: heldEmo('🎫', 80) }), .95)
+    + bigText(800, 120, 'PUBLIC TRANSPORT', 70, '#ffe14d', 'a-pop')
+    + T(1300, 250, `<rect x="-200" y="-60" width="400" height="120" rx="18" fill="#fff" ${SW}/><text y="-12" text-anchor="middle" font-size="34" fill="#2f8f5b">Cheap: 7,000đ</text><text y="34" text-anchor="middle" font-size="30" fill="#2f8f5b">Green for the planet 🌱</text>`)
+    + bubble(500, 420, 'Bus or metro? Both! 🚌', { size: 32, tail: 'left', delay: .8 });
+};
+// private transport: Chó's own car (and motorbike) at home
+SC.private = c => {
+  const t = c.text || '', k = /motor\s?bike|scooter/i.test(t) ? 'scooter' : 'car';
+  const house = T(330, 760, `<rect x="-260" y="-330" width="520" height="330" fill="#ffd9a8" ${SW}/><path d="M-300,-330 L0,-480 L300,-330Z" fill="#e2726a" ${SW}/><rect x="-200" y="-230" width="250" height="230" fill="#9aa7ad" ${SW}/>` + [0, 1, 2, 3].map(i => `<path d="M-200,${-200 + i * 50} H50" stroke="#7e8a90" stroke-width="5"/>`).join('') + `<rect x="110" y="-250" width="100" height="90" rx="10" fill="#9fd6ff" ${SW3}/><text x="-75" y="-250" text-anchor="middle" font-size="26" fill="${INK}">GARAGE</text>`);
+  return cityBg(c, { roadTop: 760 }) + house
+    + T(330, 760, `<path d="M-200,0 L-260,140 H120 L50,0Z" fill="#cfc6bb"/>`)
+    + T(1380, 900, scooterBack('#9be3b4', false) + scooterFront('#9be3b4') + `<rect x="-90" y="-250" width="180" height="46" rx="12" fill="#fff" ${SW3}/><text y="-218" text-anchor="middle" font-size="26" fill="${INK}">MINE TOO 🔑</text>`, .7)
+    + T(820, 895, A('a-drive', rideCat(k, { eyes: 'star', mouth: 'open', hat: k === 'car' ? 'sunglasses' : 'helmet' }, { col: '#e2463c' })), rideScale(k))
+    + bigText(800, 120, 'PRIVATE TRANSPORT', 70, '#ffe14d', 'a-pop')
+    + bubble(1000, 300, 'My own car! I go anywhere, any time! 😎', { size: 30, max: 20, delay: .8 })
+    + sparkles([[640, 520, 60], [1060, 640, 50]]);
+};
+const TRANSPORT_ACTS = ['public', 'private', 'commute', 'jam', 'fumes', 'shortcut', 'accident', 'flexible'];
+
 const EDU_ACTS = ['talent', 'revise', 'skip', 'quick', 'grades', 'exam', 'deadline', 'scholarship', 'signup', 'graduate', 'extra'];
 // generic scenes an education scene already covers
 const ABSORB = { revise: ['study'], quick: ['study', 'school'], exam: ['study', 'school'], grades: ['study', 'school'], skip: ['school', 'study'], signup: ['study', 'school'], graduate: ['school', 'study'], extra: ['sport', 'school', 'music', 'dance', 'study'], talent: ['music', 'sport', 'dance', 'study', 'cook'], scholarship: ['study', 'school'], deadline: ['study', 'work'] };
@@ -1799,9 +2144,10 @@ function gagSvg(c) {
   return '';
 }
 Object.assign(ABSORB, { beg: ['eat', 'drink'], litter: ['brush'], hide: ['sleep'], keyboard: ['sleep', 'work', 'study', 'walk'], groom: ['clean', 'brush'], climb: ['walk'], chase: ['exercise', 'walk'], box: ['sleep'], bite: ['eat'], yarn: ['game'] });
+Object.assign(ABSORB, { commute: ['travel', 'walk', 'school', 'work'], jam: ['travel', 'walk', 'commute', 'school', 'work'], fumes: ['travel', 'walk', 'commute'], shortcut: ['travel', 'walk', 'commute', 'school', 'work'], accident: ['travel', 'walk', 'commute', 'knock'], public: ['travel', 'walk', 'commute', 'school', 'work'], private: ['travel', 'walk', 'commute', 'school', 'work', 'shop'], flexible: ['work', 'travel', 'commute', 'walk', 'jam'] });
 const CAT_ACTS = ['bite', 'scratch', 'beg', 'litter', 'knock', 'chase', 'box', 'groom', 'yarn', 'climb', 'hide', 'keyboard'];
 const FRIEND_SCENES = new Set(['school', 'walk', 'work', 'sport', 'shop', 'exercise', 'chat', 'travel']);
-const NO_GAG = new Set([...CAT_ACTS, 'compose', 'phone', 'wakeup', 'music', 'travel', 'talent', 'revise', 'skip', 'quick', 'grades', 'exam', 'deadline', 'scholarship', 'signup', 'graduate', 'extra']);
+const NO_GAG = new Set([...CAT_ACTS, ...TRANSPORT_ACTS, 'compose', 'phone', 'wakeup', 'music', 'travel', 'talent', 'revise', 'skip', 'quick', 'grades', 'exam', 'deadline', 'scholarship', 'signup', 'graduate', 'extra']);
 
 /* ================= reading the sentence: place, verb, objects, companions ================= */
 const OBJ = [
@@ -2230,6 +2576,14 @@ function sceneSound(act, c) {
     case 'yarn': S.every(900, t => S.boing(t)); S.later(400, t => S.meow(t)); break;
     case 'climb': S.every(380, t => S.noise(t, .1, .12, 2500, 'bandpass'), 6); S.every(1800, t => S.meow(t), Infinity, 900); break;
     case 'hide': S.later(1800, t => S.meow(t)); break;
+    case 'public': S.engine(); S.later(1500, t => S.ding(t, 1568, .12)); S.every(3000, t => S.ding(t, 1175, .1), Infinity, 2600); break;
+    case 'private': S.engine(); S.later(600, t => S.horn(t)); break;
+    case 'commute': S.engine(); S.later(1200, t => S.horn(t)); break;
+    case 'jam': S.engine(); S.every(900, t => { if (Math.random() < .7) S.horn(t); }, Infinity, 300); break;
+    case 'fumes': S.engine(); S.every(1600, t => { S.noise(t, .12, .3, 700, 'bandpass'); S.noise(t + .22, .12, .3, 700, 'bandpass'); }, Infinity, 600); break;
+    case 'shortcut': S.engine(); S.every(3400, t => S.tone(500, t, .35, 'sawtooth', .05, 900), Infinity, 200); break;
+    case 'accident': S.later(200, t => { S.noise(t, .5, .4, 2500, 'highpass'); S.tone(160, t, .4, 'square', .1, 60); }); S.every(1000, t => { S.tone(960, t, .45, 'triangle', .05, 960); S.tone(720, t + .5, .45, 'triangle', .05, 720); }, Infinity, 1200); break;
+    case 'flexible': if (/motor|bike|scooter|vehicle|transport/i.test(c.text || '')) { S.engine(); S.every(1200, t => S.horn(t), Infinity, 500); } else { S.every(110, t => { if (Math.random() < .5) S.click(t); }); S.later(800, t => S.slurp(t)); } break;
     case 'keyboard': S.every(110, t => { if (Math.random() < .7) S.click(t); }); S.every(3400, t => S.snore(t), Infinity, 600); break;
   }
 }
@@ -2372,9 +2726,9 @@ function teacherHome() {
     <section class="hero">
       <div class="hero-cat">${miniCat()}</div>
       <div>
-        <p class="eyebrow">Hiện tại đơn · Quá khứ đơn · Hiện tại hoàn thành</p>
+        <p class="eyebrow">Hiện tại đơn · Quá khứ đơn · Hiện tại hoàn thành · Tương lai gần · Tương lai đơn</p>
         <h1>A Day in the Life of <span>${esc(catName)}</span><span class="vi">Một ngày của ${esc(catName)}</span></h1>
-        <p class="lead">Each student writes one sentence about Chó the cat in the tenses the teacher picks: daily habits, what happened yesterday, or things it has done. Nobody sees anyone else’s sentence. The teacher presses <b>Reveal</b> and the whole class watches Chó’s “chaotic” story. Any grammar mistake and something goes wrong: ghosts appear, or Chó trips or faints!<span class="vi">Mỗi bạn viết 1 câu về mèo Chó theo thì giáo viên chọn. Không ai thấy câu của ai. Giáo viên bấm Reveal (Tổng hợp) để cả lớp xem câu chuyện “hỗn loạn” của Chó. Câu nào sai ngữ pháp thì sẽ có chuyện: ma xuất hiện, hoặc Chó vấp ngã, ngất xỉu!</span></p>
+        <p class="lead">Each student writes one sentence about Chó the cat in the tenses the teacher picks: daily habits, what happened yesterday, things it has done, its plans, or what it will do. Nobody sees anyone else’s sentence. The teacher presses <b>Reveal</b> and the whole class watches Chó’s “chaotic” story. Any grammar mistake and something goes wrong: ghosts appear, or Chó trips or faints!<span class="vi">Mỗi bạn viết 1 câu về mèo Chó theo thì giáo viên chọn. Không ai thấy câu của ai. Giáo viên bấm Reveal (Tổng hợp) để cả lớp xem câu chuyện “hỗn loạn” của Chó. Câu nào sai ngữ pháp thì sẽ có chuyện: ma xuất hiện, hoặc Chó vấp ngã, ngất xỉu!</span></p>
       </div>
     </section>
     <form class="card form" id="createForm">
@@ -2503,7 +2857,7 @@ function teacherHome() {
     const cat = CAT_NAME;
     const cls = CLASSES.find(c => c.id === sel.value);
     const tenses = normTenses([...document.querySelectorAll('input[name=tense]:checked')].map(x => x.value));
-    const list = tenses.flatMap(t => ({ ps: SAMPLE, past: SAMPLE_PAST, pp: SAMPLE_PP })[t]);
+    const list = tenses.flatMap(t => ({ ps: SAMPLE, past: SAMPLE_PAST, pp: SAMPLE_PP, fut: SAMPLE_FUT, near: SAMPLE_NEAR })[t]);
     startReveal(list.map((s, i) => ({ id: 'demo' + i, name: s[0], sentence: s[1] })), { cat, className: cls ? cls.name : ($('#className').value.trim() || 'Demo'), demo: true, tenses });
   };
   if ($('#resumeBtn')) $('#resumeBtn').onclick = () => lobby(saved.code, saved.db);
@@ -2682,15 +3036,34 @@ const SAMPLE_PP = [
   ['Nhi', 'I have never met a deadline.'],
   ['Sơn', 'She have been a quick learner since she was a kid.']
 ];
+const SAMPLE_FUT = [
+  ['Hiếu', 'I think Chó will get stuck in a traffic jam tomorrow.'],
+  ['Thư', 'Next year I will commute to work by bus.'],
+  ['Long', 'Tomorrow I take a shortcut to avoid the rush hour.'],
+  ['Ngân', 'Exhaust fumes will make the air pollution worse.'],
+  ['Phát', 'I will drive slowly because I don’t want a serious accident.'],
+  ['Diệp', 'In the future, she will have flexible working hours.'],
+  ['Vinh', 'It is raining, so I will takes a taxi.']
+];
+const SAMPLE_NEAR = [
+  ['Bình', 'There is so much traffic, so Chó is going to be late.'],
+  ['Hải', 'Next month I am going to buy a private car.'],
+  ['Như', 'We are going to take a shortcut to avoid the traffic jam.'],
+  ['Tú', 'She is going to use public transport because it is cheap.'],
+  ['Kiên', 'Tomorrow I going to take the bus.'],
+  ['Lâm', 'He are going to work from home because he has flexible working hours.']
+];
 const R = { items: [], i: 0, meta: {}, timers: [], haunted: false, active: false };
-const CH_ORDER = ['past', 'ps', 'pp'];
+const CH_ORDER = ['past', 'ps', 'pp', 'near', 'fut'];
 const chapterInfo = (t, cat) => ({
   past: { t: `Hôm qua của ${cat}`, vi: `Hôm qua của ${cat}`, en: `${cat}’s Yesterday`, s: 'Quá khứ đơn', h: 19 },
   ps: { t: `Một ngày thường của ${cat}`, vi: `Một ngày thường của ${cat}`, en: `A Normal Day for ${cat}`, s: 'Hiện tại đơn', h: 9 },
-  pp: { t: `Những điều ${cat} đã làm được`, vi: `Những điều ${cat} đã làm được`, en: `What ${cat} Has Done`, s: 'Hiện tại hoàn thành', h: 11 }
+  pp: { t: `Những điều ${cat} đã làm được`, vi: `Những điều ${cat} đã làm được`, en: `What ${cat} Has Done`, s: 'Hiện tại hoàn thành', h: 11 },
+  near: { t: `Kế hoạch của ${cat}`, vi: `Kế hoạch của ${cat}`, en: `${cat}’s Plans`, s: 'Tương lai gần (be going to)', h: 10 },
+  fut: { t: `Tương lai của ${cat}`, vi: `Tương lai của ${cat}`, en: `${cat}’s Future`, s: 'Tương lai đơn', h: 10 }
 })[t];
 const capFirst = s => s ? s[0].toUpperCase() + s.slice(1) : s;
-const timeLabel = it => it.time ? it.time.label : it.tense === 'past' ? capFirst(it.sig || 'Ngày trước') : it.tense === 'pp' ? '✓ Đã làm' : 'Hằng ngày';
+const timeLabel = it => it.time ? it.time.label : it.tense === 'past' ? capFirst(it.sig || 'Ngày trước') : it.tense === 'pp' ? '✓ Đã làm' : it.tense === 'fut' ? capFirst(it.sig || 'Sắp tới') : it.tense === 'near' ? capFirst(it.sig || 'Kế hoạch') : 'Hằng ngày';
 const realIndex = i => R.items.slice(0, i + 1).filter(x => !x.chapter).length;
 const realItems = () => R.items.filter(x => !x.chapter);
 function clearTimers() { R.timers.splice(0).forEach(t => clearTimeout(t)); }
@@ -2702,7 +3075,7 @@ function startReveal(raw, meta) {
   const sorted = raw.map(it => {
     const text = it.fixed || it.sentence, time = parseTime(text), ti = tenseInfo(text);
     const tense = TENSE_SEL.includes(ti.intended) ? ti.intended : TENSE_SEL.includes(ti.form) ? ti.form : TENSE_SEL[0];
-    return Object.assign(it, { time, tense, sig: ti.pastSig ? (/^when|^in the past/i.test(ti.pastSig.raw) ? 'Back then' : ti.pastSig.raw) : '', ok: false, ctx: { friend: pick(FRIENDS), clip: pick(['live', 'dance']), gag: Math.random() < .35 ? pick(['bird', 'peek']) : null, rnd: Math.random() } });
+    return Object.assign(it, { time, tense, sig: ti.pastSig ? (/^when|^in the past/i.test(ti.pastSig.raw) ? 'Back then' : ti.pastSig.raw) : ti.futSig ? ti.futSig.raw : '', ok: false, ctx: { friend: pick(FRIENDS), clip: pick(['live', 'dance']), gag: Math.random() < .35 ? pick(['bird', 'peek']) : null, rnd: Math.random() } });
   }).sort((a, b) => (CH_ORDER.indexOf(a.tense) - CH_ORDER.indexOf(b.tense)) || ((a.time ? a.time.key : 9999) - (b.time ? b.time.key : 9999)));
   // one chapter per tense, each with its own title screen
   R.items = [];
@@ -2813,8 +3186,8 @@ function drawScene(act, c0, last) {
   try { sceneSound(act, c); } catch (e) {}
 }
 // where the interesting part of each scene is (for the half-screen crop)
-const FOCUS = { bite: 880, scratch: 860, beg: 760, litter: 820, knock: 860, chase: 800, climb: 1000, hide: 860, keyboard: 860, revise: 780, wakeup: 560, skip: 820, sport: 700, compose: 640, shop: 700, travel: 760, walk: 700 };
-const splitLabel = t => /\bbecause\b|\bso\b/i.test(t) ? 'nên' : /\bbut\b/i.test(t) ? 'nhưng' : /\b(then|after|before)\b/i.test(t) ? '→' : '→';
+const FOCUS = { public: 640, private: 820, commute: 760, jam: 760, fumes: 720, shortcut: 800, accident: 800, flexible: 720, bite: 880, scratch: 860, beg: 760, litter: 820, knock: 860, chase: 800, climb: 1000, hide: 860, keyboard: 860, revise: 780, wakeup: 560, skip: 820, sport: 700, compose: 640, shop: 700, travel: 760, walk: 700 };
+const splitLabel = t => /\b(than|instead\s+of|versus|vs|prefer|prefers|preferred)\b/i.test(t) ? 'vs' : /\bbecause\b|\bso\b/i.test(t) ? 'nên' : /\bbut\b/i.test(t) ? 'nhưng' : /\b(then|after|before)\b/i.test(t) ? '→' : '→';
 function drawSplit(a, b, c0, label) {
   const c = Object.assign({}, c0);
   const panel = (act, x) => {
@@ -2830,16 +3203,18 @@ function drawSplit(a, b, c0, label) {
   try { sceneSound(a, c); } catch (e) {}
 }
 SC.chapter = c => {
-  const bg = { past: '#efe2cc', ps: '#e6f4ff', pp: '#fff1d6' }[c.chapter];
+  const bg = { past: '#efe2cc', ps: '#e6f4ff', pp: '#fff1d6', fut: '#ece6ff', near: '#e4f7ec' }[c.chapter];
   const big = c.title.length > 22;
   const catO = c.chapter === 'pp' ? { eyes: 'star', mouth: 'open', arms: 'up', prop: heldEmo('🏆', 110) }
+    : c.chapter === 'fut' ? { eyes: 'star', mouth: 'open', arms: 'up', prop: heldEmo('🔮', 110) }
+    : c.chapter === 'near' ? { eyes: 'happy', mouth: 'open', arms: 'up', prop: heldEmo('📋', 110) }
     : c.chapter === 'past' ? { eyes: 'happy', arms: 'down' } : { eyes: 'happy', mouth: 'open', arms: 'wave' };
   return `<rect width="1600" height="900" fill="${bg}"/><rect width="1600" height="900" fill="url(#dots)"/>`
     + (c.chapter === 'pp' ? confetti(26) : c.chapter === 'past' ? `<rect x="40" y="40" width="1520" height="820" rx="30" fill="none" stroke="#c8a77e" stroke-width="10" stroke-dasharray="30 18"/>` : '')
     + T(800, 300, A('a-pop', `<rect x="-680" y="-150" width="1360" height="300" rx="40" fill="#fff" ${SW}/><text y="-46" text-anchor="middle" font-size="42" fill="#8a7466">${esc(c.sub)}</text><text y="${big ? 66 : 74}" text-anchor="middle" font-size="${big ? 78 : 96}" fill="${INK}">${esc(c.title)}</text>`))
-    + emo(220, 640, { past: '📅', ps: '⏰', pp: '🏅' }[c.chapter], 150, 'a-float') + emo(1380, 640, { past: '📸', ps: '☀️', pp: '🎓' }[c.chapter], 150, 'a-float', .6)
+    + emo(220, 640, { past: '📅', ps: '⏰', pp: '🏅', fut: '🚀', near: '🗓️' }[c.chapter], 150, 'a-float') + emo(1380, 640, { past: '📸', ps: '☀️', pp: '🎓', fut: '✨', near: '🎒' }[c.chapter], 150, 'a-float', .6)
     + T(800, 880, cat(catO), 1.15)
-    + (c.chapter === 'past' ? bubble(900, 460, 'Hôm qua mình đã…', { think: true, size: 34 }) : '');
+    + (c.chapter === 'past' ? bubble(900, 460, 'Hôm qua mình đã…', { think: true, size: 34 }) : c.chapter === 'fut' ? bubble(900, 460, 'Sau này mình sẽ…', { think: true, size: 34 }) : c.chapter === 'near' ? bubble(900, 460, 'Mình định sẽ…', { think: true, size: 34 }) : '');
 };
 function showChapter(i) {
   const it = R.items[i], ch = chapterInfo(it.chapter, R.meta.cat);
